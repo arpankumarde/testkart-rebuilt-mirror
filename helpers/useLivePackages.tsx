@@ -6,6 +6,7 @@ import { postMentorshipPackageUpdate } from "../endpoints/mentorship/packages/up
 import { postMentorshipPackageCancel } from "../endpoints/mentorship/packages/cancel_POST.schema";
 import { postMentorshipPackagePayNow } from "../endpoints/mentorship/packages/pay-now_POST.schema";
 import { postMentorshipCreditSchedule } from "../endpoints/mentorship/credits/schedule_POST.schema";
+import { postMentorshipCreditScheduleMany } from "../endpoints/mentorship/credits/schedule-many_POST.schema";
 import { postMentorshipCreditRelease } from "../endpoints/mentorship/credits/release_POST.schema";
 import { postMentorshipBookingReport } from "../endpoints/mentorship/bookings/report_POST.schema";
 import { getTeacherMentorshipPackages } from "../endpoints/teacher/mentorship/packages_GET.schema";
@@ -62,6 +63,11 @@ export const useCreditScheduleMutation = () => {
 export const useCreditReleaseMutation = () => {
   const invalidate = useInvalidateLive();
   return useMutation({ mutationFn: postMentorshipCreditRelease, onSuccess: invalidate });
+};
+
+export const useCreditScheduleManyMutation = () => {
+  const invalidate = useInvalidateLive();
+  return useMutation({ mutationFn: postMentorshipCreditScheduleMany, onSuccess: invalidate });
 };
 
 export const useBookingReportMutation = () => {

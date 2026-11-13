@@ -1,7 +1,12 @@
 import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { OutputType } from "./rate_GET.schema";
-import { MENTORSHIP_SESSION_DURATIONS, MENTORSHIP_TRIAL_DISCOUNT_PERCENT } from "../../../helpers/liveLessonConfig";
+import {
+  FULL_SESSION_MINUTES,
+  MENTORSHIP_SESSION_DURATIONS,
+  MENTORSHIP_TRIAL_DISCOUNT_PERCENT,
+  SHORT_SESSION_MINUTES,
+} from "../../../helpers/liveLessonConfig";
 import { minClassPrice, resolveLivePrices } from "../../../helpers/livePricing";
 import superjson from "superjson";
 
@@ -24,10 +29,10 @@ export async function handle(request: Request) {
       durations: [...MENTORSHIP_SESSION_DURATIONS],
       prices,
       trialDiscount: row ? row.mentorshipTrialDiscount : true,
-      minClassPrice30: minClassPrice(30),
-      minClassPrice60: minClassPrice(60),
-      trialDiscountPercent30: MENTORSHIP_TRIAL_DISCOUNT_PERCENT[30],
-      trialDiscountPercent60: MENTORSHIP_TRIAL_DISCOUNT_PERCENT[60],
+      minClassPriceShort: minClassPrice(SHORT_SESSION_MINUTES),
+      minClassPriceFull: minClassPrice(FULL_SESSION_MINUTES),
+      trialDiscountPercentShort: MENTORSHIP_TRIAL_DISCOUNT_PERCENT[SHORT_SESSION_MINUTES],
+      trialDiscountPercentFull: MENTORSHIP_TRIAL_DISCOUNT_PERCENT[FULL_SESSION_MINUTES],
     };
     return new Response(superjson.stringify(output));
   } catch (error) {

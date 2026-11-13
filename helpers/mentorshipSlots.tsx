@@ -2,7 +2,7 @@ import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import type { Kysely } from "kysely";
 import { db } from "./db";
 import type { DB } from "./schema";
-import { BOOKING_MIN_NOTICE_MINUTES, DEFAULT_SLOT_BUFFER_MINUTES } from "./liveLessonConfig";
+import { BOOKING_MIN_NOTICE_MINUTES, DEFAULT_SLOT_BUFFER_MINUTES, PACKAGE_MAX_CLASSES_PER_WEEK } from "./liveLessonConfig";
 
 export interface AvailableSlot {
   startTime: Date;
@@ -196,6 +196,21 @@ export async function isTeacherSlotBookable(
   if (held) return { ok: false, reason: "This time is being held for another student. Please pick another slot." };
 
   return { ok: true };
+}
+
+/**
+ * How many classes a week a package with this teacher can hold: one class a day, so the number of
+ * weekdays the teacher has open hours, capped at PACKAGE_MAX_CLASSES_PER_WEEK.
+ */
+export async function teacherMaxClassesPerWeek(teacherId: number, executor: Kysely<DB> = db): Promise<number> {
+  const rows = await executor
+    .selectFrom("mentorshipAvailability")
+    .select("dayOfWeek")
+    .distinct()
+    .where("teacherId", "=", teacherId)
+    .where("isActive", "=", true)
+    .execute();
+  return Math.min(rows.length, PACKAGE_MAX_CLASSES_PER_WEEK);
 }
 
 /** Slots held for a package checkout or renewal that has not been paid yet. */

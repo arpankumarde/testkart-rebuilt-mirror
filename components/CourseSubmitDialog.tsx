@@ -25,7 +25,7 @@ interface CourseSubmitDialogProps {
   readiness: CourseReadinessItem[];
   hasUnsavedChanges: boolean;
   isSubmitting: boolean;
-  /** An unlisted course goes live at once without review. */
+  /** An unlisted course is reviewed too, then opens only from its link. */
   unlisted?: boolean;
   aiContext: CourseAiContext;
   /** Saves the Details tab. Resolves false when something needs fixing there. */
@@ -52,7 +52,7 @@ const aiErrorMessage = (error: unknown) =>
     : 'AI could not write a description this time. Try again, or write it yourself.';
 
 /*
- * What Submit for review (Publish, for a verified teacher) opens when the course
+ * What Submit for review (Publish, for an admin) opens when the course
  * is not ready to submit straight away. A missing description gets its own step: AI drafts one
  * from the title and chapters, the teacher reads it, and one button saves it
  * and submits the course.
@@ -140,10 +140,10 @@ export const CourseSubmitDialog: React.FC<CourseSubmitDialogProps> = ({
 
   if (step === 'save') {
     title = 'Save your changes and submit?';
-    description = unlisted
-      ? 'Your unsaved edits in Details are saved first. Then the course goes live as unlisted, without review, for anyone with the link.'
-      : publishesDirectly
-        ? 'Your unsaved edits in Details are saved first. Then the course is published, or sent for review if you claimed the Creator Bonus.'
+    description = publishesDirectly
+      ? 'Your unsaved edits in Details are saved first. Then the course is published, or sent for review if you claimed the Creator Bonus.'
+      : unlisted
+        ? 'Your unsaved edits in Details are saved first. Then the course goes to our team for review, and once approved it opens for anyone with the link.'
         : 'Your unsaved edits in Details are saved first. Then the course goes to our team for review.';
     body = null;
     footer = (

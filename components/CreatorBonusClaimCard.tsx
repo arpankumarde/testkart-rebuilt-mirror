@@ -72,7 +72,7 @@ const ExamOffer: React.FC<ExamOfferProps> = ({ option, checked, onCheckedChange,
 
 /*
  * The bonus opt-in shown next to "Submit for review" (or "Publish"). A claim
- * always goes through review, even for a verified teacher. When the item
+ * always goes through review, even for an admin. When the item
  * qualifies the teacher ticks it to claim the bonus with this submission; when it
  * does not yet, it shows how far the item has to go. A test series tagged with an
  * exam in a running Exam Bonus also gets one card per campaign, and the ticks

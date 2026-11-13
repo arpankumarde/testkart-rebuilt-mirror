@@ -223,7 +223,7 @@ const ProductRow: React.FC<ProductRowProps> = ({
             onClick={onSubmit}
             disabled={isSubmitting}
           >
-            {publishesDirectly || product.visibility === 'unlisted'
+            {publishesDirectly
               ? (isSubmitting ? 'Publishing...' : 'Publish')
               : (isSubmitting ? 'Submitting...' : 'Submit for review')}
             <span className={styles.visuallyHidden}>: {product.title}</span>

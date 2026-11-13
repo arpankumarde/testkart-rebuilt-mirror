@@ -14,7 +14,8 @@ class AccountNotFoundError extends Error {}
 function foreignKeyBlocker(error: unknown): string | null {
   if (typeof error !== "object" || error === null) return null;
   const { code, constraint_name } = error as { code?: unknown; constraint_name?: unknown };
-  if (code !== "23503") return null;
+  // 23503 is a NO ACTION foreign key, 23001 a RESTRICT one (order_items.mock_test_id).
+  if (code !== "23503" && code !== "23001") return null;
   return typeof constraint_name === "string" ? constraint_name : "unknown constraint";
 }
 
@@ -83,7 +84,7 @@ export async function handle(request: Request) {
       // Owned content, orders and enrollments cascade; support threads and
       // sponsorship rows are detached (ON DELETE SET NULL). A remaining blocker,
       // such as a test students have bought or an authored blog post, raises
-      // 23503 and rolls the whole closure back.
+      // 23503 or 23001 and rolls the whole closure back.
       await trx
         .deleteFrom("users")
         .where("id", "=", user.id)

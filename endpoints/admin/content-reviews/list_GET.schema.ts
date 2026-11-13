@@ -119,6 +119,8 @@ export type ContentReviewAdminView = {
   createdAt: Date;
   /** An open review of a live unlisted item, asking to be listed publicly. */
   publicRequest: boolean;
+  /** An open review of an unlisted item that is not live yet; approving puts it live as unlisted, not listed. */
+  unlistedRequest: boolean;
   contentMeta: ContentMeta | null;
   // Every exam the item is listed under, primary first. Empty for bundles.
   exams: { examId: number | null; examName: string }[];

@@ -3,7 +3,7 @@ import superjson from "superjson";
 
 export const schema = z.object({
   teacherId: z.coerce.number().int().positive(),
-  /** 30 or 60 minutes, or a legacy 25 / 50 to move a class booked before 18-11-2026. */
+  /** 25 or 50 minutes, or a legacy 30 / 60 to move a class booked from 18-11-2026 to 20-11-2026. */
   durationMinutes: z.coerce.number().int().positive(),
   /** Inclusive range start, ISO date or datetime. Defaults to now. */
   from: z.coerce.date().optional(),

@@ -2,13 +2,11 @@ import { z } from "zod";
 import superjson from "superjson";
 import type { CashfreeMode } from "../../../helpers/cashfreeCheckout";
 
-/** Starts a package: the picked class times are held, then the student sets up autopay and pays. */
+/** Starts a package: the student sets up autopay and pays first, then picks class times for the paid classes. */
 export const schema = z.object({
   teacherId: z.number().int().positive(),
   classesPerWeek: z.number().int().min(1).max(6),
-  classMinutes: z.union([z.literal(30), z.literal(60)]),
-  /** Exactly classesPerWeek x 4 start times inside the next 4 weeks, at most one a day. */
-  startTimes: z.array(z.coerce.date()).min(4).max(24),
+  classMinutes: z.union([z.literal(25), z.literal(50)]),
 });
 
 export type InputType = z.infer<typeof schema>;

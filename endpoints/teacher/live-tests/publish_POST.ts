@@ -90,9 +90,8 @@ export async function handle(request: Request) {
         throw new Error("Live test is already published.");
       }
 
-      // Unlisted live tests skip review and go live at once (helpers/contentVisibility).
       unlisted = liveTest.visibility === "unlisted";
-      needsReview = !unlisted && !(await publishesWithoutReview(trx, user.role, liveTest.teacherId));
+      needsReview = !publishesWithoutReview(user.role);
       if (user.role !== "admin" && (await hasPendingReview(trx, "live_test", liveTest.id))) {
         throw new Error(alreadyInReviewMessage("live test"));
       }
@@ -115,7 +114,7 @@ export async function handle(request: Request) {
       // 6. A free test's prize pool is paid from the teacher's wallet
       await assertTeacherCanFundPrizePool(trx, liveTest);
 
-      // 7. Queue for review, or publish directly for an admin or verified teacher
+      // 7. Queue for review, or publish directly for an admin
       if (needsReview) {
         queued = { contentType: "live_test", contentId: liveTest.id, teacherId: liveTest.teacherId };
         await queueContentReview(trx, queued);

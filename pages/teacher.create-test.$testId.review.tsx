@@ -325,9 +325,9 @@ const Page = () => {
   const isUnlisted = (isLiveTest && liveTest ? liveTest.visibility : testPackage.visibility) === "unlisted";
   const kindLabel = isLiveTest ? "live test" : "test series";
   const isPublishing = publishMutation.isPending || publishLiveMutation.isPending;
-  // Unlisted content skips review. A bonus claim always goes through review, even for a verified teacher.
+  // Only admins publish directly, and a bonus claim always goes through review, even for an admin.
   const claimsBonus = (claimBonus || examCampaignId !== null) && !isLiveTest;
-  const goesLiveNow = isUnlisted || (publishesDirectly && !claimsBonus);
+  const goesLiveNow = publishesDirectly && !claimsBonus;
   const verdict = isAlreadyLive ? "live" : isInReview ? "inReview" : isReadyToPublish ? "ready" : "blocked";
 
   const totalQuestions = orderedItems.reduce((sum, item) => sum + item.questionsCount, 0);
@@ -410,8 +410,11 @@ const Page = () => {
                   <>
                     <h2 id="review-verdict" className={styles.verdictTitle}>In review</h2>
                     <p className={styles.verdictBody}>
-                      Our team is reviewing this {kindLabel}. Students can find it once it is approved, and we will
-                      email you when it is approved or needs changes. You can keep editing it meanwhile.
+                      Our team is reviewing this {kindLabel}.{" "}
+                      {isUnlisted
+                        ? "Once it is approved it opens for anyone with the link"
+                        : "Students can find it once it is approved"}
+                      , and we will email you when it is approved or needs changes. You can keep editing it meanwhile.
                     </p>
                     <div className={styles.verdictActions}>
                       <Button asChild size="lg">
@@ -434,13 +437,15 @@ const Page = () => {
                     <p className={styles.verdictBody}>
                       {plural(orderedItems.length, "test")} and {plural(totalQuestions, "question")} pass every
                       required check.{" "}
-                      {isUnlisted
-                        ? "It is unlisted, so it goes live as soon as you publish, without review, for anyone with the link."
-                        : goesLiveNow
-                        ? "Your account is verified, so it goes live as soon as you publish."
+                      {goesLiveNow
+                        ? isUnlisted
+                          ? "It goes live as unlisted as soon as you publish, for anyone with the link."
+                          : "It goes live as soon as you publish."
                         : publishesDirectly
                           ? "Claiming a bonus sends it to our team for review before students can find it."
-                          : "Our team reviews it before students can find it."}
+                          : isUnlisted
+                            ? "Our team reviews it first. Once approved it opens for anyone with the link, and stays out of search and listings."
+                            : "Our team reviews it before students can find it."}
                     </p>
                     <div className={styles.verdictActions}>
                       <Button size="lg" onClick={handlePublish} disabled={isPublishing}>

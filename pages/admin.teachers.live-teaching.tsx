@@ -119,7 +119,7 @@ const ApplicationCard: React.FC<{ application: LiveTeachingApplicationRow }> = (
           </div>
           <div className={styles.fact}>
             <dt><IndianRupee size={14} aria-hidden="true" /> Rate</dt>
-            <dd>{rate !== null ? `₹${rate.toLocaleString("en-IN")} / 30 min` : "Not set"}</dd>
+            <dd>{rate !== null ? `₹${rate.toLocaleString("en-IN")} / short session` : "Not set"}</dd>
           </div>
           <div className={styles.fact}>
             <dt><CalendarClock size={14} aria-hidden="true" /> Weekly hours</dt>

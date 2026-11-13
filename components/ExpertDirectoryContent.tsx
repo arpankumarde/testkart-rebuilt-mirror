@@ -6,11 +6,13 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./
 import {
   BOOKING_MIN_NOTICE_MINUTES,
   FREE_CANCELLATION_CUTOFF_HOURS,
+  FULL_SESSION_MINUTES,
   JOIN_WINDOW_MINUTES_BEFORE,
   MENTORSHIP_MIN_CLASS_PRICE,
   MENTORSHIP_TRIAL_DISCOUNT_PERCENT,
   PACKAGE_MAX_CLASSES_PER_WEEK,
   PACKAGE_WEEKS,
+  SHORT_SESSION_MINUTES,
 } from "../helpers/liveLessonConfig";
 import type { ExpertSubject } from "../endpoints/experts/subjects_GET.schema";
 import styles from "./ExpertDirectoryContent.module.css";
@@ -24,11 +26,11 @@ import styles from "./ExpertDirectoryContent.module.css";
 const FAQS: { question: string; answer: string }[] = [
   {
     question: "How does the trial session work?",
-    answer: `Your first class with each tutor is a trial. Choose a 30-minute or 60-minute class and pick a time from the tutor's open slots. The trial is a paid class, but tutors can offer it at a discount: ${MENTORSHIP_TRIAL_DISCOUNT_PERCENT[30]}% off the 30-minute class or ${MENTORSHIP_TRIAL_DISCOUNT_PERCENT[60]}% off the 60-minute class. After the trial you can continue with the same tutor on a plan.`,
+    answer: `Your first class with each tutor is a trial. Choose a short session (${SHORT_SESSION_MINUTES} min) or a full session (${FULL_SESSION_MINUTES} min) and pick a time from the tutor's open slots. The trial is a paid class, but tutors can offer it at a discount: ${MENTORSHIP_TRIAL_DISCOUNT_PERCENT[SHORT_SESSION_MINUTES]}% off the short session or ${MENTORSHIP_TRIAL_DISCOUNT_PERCENT[FULL_SESSION_MINUTES]}% off the full session. After the trial you can continue with the same tutor on a plan.`,
   },
   {
     question: "How much do 1:1 sessions cost?",
-    answer: `Each tutor sets their own price for a 30-minute and a 60-minute class, starting from ₹${MENTORSHIP_MIN_CLASS_PRICE[30]} and ₹${MENTORSHIP_MIN_CLASS_PRICE[60]}. Each tutor card shows the lowest trial price. After the trial, plans run for ${PACKAGE_WEEKS} weeks with 1 to ${PACKAGE_MAX_CLASSES_PER_WEEK} classes a week.`,
+    answer: `Each tutor sets their own price for a short session and a full session, starting from ₹${MENTORSHIP_MIN_CLASS_PRICE[SHORT_SESSION_MINUTES]} and ₹${MENTORSHIP_MIN_CLASS_PRICE[FULL_SESSION_MINUTES]}. Each tutor card shows the lowest trial price. After the trial, plans run for ${PACKAGE_WEEKS} weeks with 1 to ${PACKAGE_MAX_CLASSES_PER_WEEK} classes a week.`,
   },
   {
     question: "How are tutors verified?",
@@ -87,7 +89,8 @@ export const ExpertDirectoryContent: React.FC<{ subjects: ExpertSubject[] }> = (
           Testkart tutors teach live, private video classes for school subjects and competitive exam preparation.
           {featured.length > 0 && ` Subjects on offer right now include ${joinList(featured)}.`} Every tutor card
           shows the tutor's subjects, languages, ratings and starting price, so you can compare tutors before you
-          book. Classes are 30 or 60 minutes long, and you pick a time from the tutor's open slots. Your first
+          book. Choose a short session ({SHORT_SESSION_MINUTES} min) or a full session ({FULL_SESSION_MINUTES} min),
+          and pick a time from the tutor's open slots. Your first
           class with each tutor is a trial, and some tutors offer it at a discount. If the tutor suits you,
           continue with a {PACKAGE_WEEKS}-week plan of 1 to {PACKAGE_MAX_CLASSES_PER_WEEK} classes a week, all
           held in the Testkart online classroom.

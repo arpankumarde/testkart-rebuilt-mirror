@@ -2,6 +2,7 @@ import superjson from "superjson";
 import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { getLiveBalance, isLateForStudent, isTrialCreditHeld, LIVE_PACKAGE_STATUSES } from "../../../helpers/livePackages";
+import { teacherMaxClassesPerWeek } from "../../../helpers/mentorshipSlots";
 import type { LivePackageView, OutputType, TrialFollowUp } from "./list_GET.schema";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -33,6 +34,8 @@ export async function handle(request: Request) {
       .orderBy("livePackages.createdAt", "desc")
       .execute();
     const ids = packages.map((p) => p.id);
+    const teacherIds = [...new Set(packages.map((p) => p.teacherId))];
+    const maxPerWeek = new Map(await Promise.all(teacherIds.map(async (t) => [t, await teacherMaxClassesPerWeek(t)] as const)));
 
     const [cycles, credits, bookings, mandates, balance] = await Promise.all([
       ids.length
@@ -67,6 +70,7 @@ export async function handle(request: Request) {
         teacher: { id: p.teacherId, displayName: p.teacherName, avatarUrl: p.teacherAvatarUrl },
         classesPerWeek: p.classesPerWeek,
         nextClassesPerWeek: p.nextClassesPerWeek,
+        maxClassesPerWeek: Math.max(maxPerWeek.get(p.teacherId) ?? 0, p.classesPerWeek),
         classMinutes: p.classMinutes,
         pricePerClass: Number(p.pricePerClass),
         autoRenew: p.autoRenew,

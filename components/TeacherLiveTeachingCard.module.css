@@ -164,6 +164,12 @@
   color: var(--sp-lavender-ink);
 }
 
+.optionMins {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--sp-text);
+}
+
 .optionPrice {
   display: flex;
   align-items: baseline;

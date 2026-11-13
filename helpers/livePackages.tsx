@@ -1,5 +1,6 @@
 import { sql, type Kysely } from "kysely";
 import { nanoid } from "nanoid";
+import { toZonedTime } from "date-fns-tz";
 import { db } from "./db";
 import type { DB } from "./schema";
 import { isTeacherSlotBookable } from "./mentorshipSlots";
@@ -19,6 +20,7 @@ import {
   raiseCashfreeSubscriptionCharge,
 } from "./cashfreeSubscriptions";
 import {
+  CREDIT_SCHEDULE_MAX_DAYS,
   FREE_CANCELLATION_CUTOFF_HOURS,
   PACKAGE_CYCLE_DAYS,
   PACKAGE_GRACE_DAYS,
@@ -272,6 +274,109 @@ export async function spendCredit(trx: Exec, creditId: string): Promise<boolean>
 
 export const isLateForStudent = (scheduledAt: Date) =>
   new Date(scheduledAt).getTime() - Date.now() < FREE_CANCELLATION_CUTOFF_HOURS * HOUR_MS;
+
+export type ScheduleCreditsResult = {
+  booked: Date[];
+  skipped: { startTime: Date; reason: string }[];
+  waiting: number;
+};
+
+/**
+ * Books a package's classes that are waiting for a time into the given start times, oldest cycle
+ * first. A time that is taken (another booking, a live course or group class, a held slot), clashes
+ * with the student's own classes or falls on a day that already has a class with this teacher is
+ * skipped and reported; its credit keeps waiting. Run inside a transaction.
+ */
+export async function schedulePackageCredits(
+  trx: Exec,
+  studentId: number,
+  packageId: string,
+  startTimes: Date[]
+): Promise<ScheduleCreditsResult> {
+  const times = [...new Map(startTimes.map((t) => [t.getTime(), t])).values()].sort((a, b) => a.getTime() - b.getTime());
+  const latest = Date.now() + CREDIT_SCHEDULE_MAX_DAYS * DAY_MS;
+
+  const pkg = await trx
+    .selectFrom("livePackages")
+    .select(["id", "studentId", "teacherId", "status"])
+    .where("id", "=", packageId)
+    .forUpdate()
+    .executeTakeFirst();
+  if (!pkg || pkg.studentId !== studentId) throw new Error("Package not found.");
+  if (!(LIVE_PACKAGE_STATUSES as readonly string[]).includes(pkg.status)) throw new Error("This package has stopped.");
+  const teacher = await trx.selectFrom("users").select("timezone").where("id", "=", pkg.teacherId).executeTakeFirstOrThrow();
+
+  const credits = await trx
+    .selectFrom("liveClassCredits")
+    .innerJoin("livePackageCycles", "livePackageCycles.id", "liveClassCredits.cycleId")
+    .select([
+      "liveClassCredits.id",
+      "liveClassCredits.studentId",
+      "liveClassCredits.teacherId",
+      "liveClassCredits.kind",
+      "liveClassCredits.packageId",
+      "liveClassCredits.orderId",
+      "liveClassCredits.classMinutes",
+      "liveClassCredits.amount",
+    ])
+    .where("liveClassCredits.packageId", "=", pkg.id)
+    .where("liveClassCredits.studentId", "=", studentId)
+    .where("liveClassCredits.status", "=", "unscheduled")
+    .orderBy("livePackageCycles.cycleNumber", "asc")
+    .orderBy("liveClassCredits.createdAt", "asc")
+    .forUpdate()
+    .execute();
+  if (credits.length === 0) throw new Error("All classes in this package already have a time.");
+
+  await teacherBookingLock(pkg.teacherId).execute(trx);
+  const dayKey = (d: Date) => {
+    const z = toZonedTime(d, teacher.timezone);
+    return `${z.getFullYear()}-${z.getMonth()}-${z.getDate()}`;
+  };
+  const withTeacher = await trx
+    .selectFrom("mentorshipBookings")
+    .select("scheduledAt")
+    .where("studentId", "=", studentId)
+    .where("teacherId", "=", pkg.teacherId)
+    .where("status", "!=", "cancelled")
+    .where("scheduledAt", ">", new Date(Date.now() - DAY_MS))
+    .execute();
+  const takenDays = new Set(withTeacher.map((b) => dayKey(new Date(b.scheduledAt))));
+
+  const booked: Date[] = [];
+  const skipped: ScheduleCreditsResult["skipped"] = [];
+  let next = 0;
+  for (const t of times) {
+    const credit = credits[next];
+    if (!credit) {
+      skipped.push({ startTime: t, reason: "No paid classes left to book." });
+      continue;
+    }
+    if (t.getTime() > latest) {
+      skipped.push({ startTime: t, reason: `More than ${CREDIT_SCHEDULE_MAX_DAYS} days away.` });
+      continue;
+    }
+    const key = dayKey(t);
+    if (takenDays.has(key)) {
+      skipped.push({ startTime: t, reason: "You already have a class with this teacher that day." });
+      continue;
+    }
+    const slot = await isTeacherSlotBookable(pkg.teacherId, t, credit.classMinutes, trx);
+    if (!slot.ok) {
+      skipped.push({ startTime: t, reason: slot.reason });
+      continue;
+    }
+    if (!(await isStudentFree(trx, studentId, t, credit.classMinutes))) {
+      skipped.push({ startTime: t, reason: "You already have a class at this time." });
+      continue;
+    }
+    await bookCredit(trx, credit, t);
+    takenDays.add(key);
+    booked.push(t);
+    next++;
+  }
+  return { booked, skipped, waiting: credits.length - next };
+}
 
 /** Marks this cycle's other unpaid "Pay now" orders cancelled; returns their Cashfree ids to terminate after commit. */
 async function cancelPendingPayNowOrders(trx: Exec, cycleId: string, exceptOrderId: number | null = null): Promise<string[]> {

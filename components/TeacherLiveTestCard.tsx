@@ -159,9 +159,11 @@ export const TeacherLiveTestCard: React.FC<TeacherLiveTestCardProps> = ({
               <Info size={14} className={styles.draftNoticeIcon} aria-hidden="true" />
               <span>
                 {liveTest.inReview
-                  ? 'In review. Students can see it and register once our team approves it.'
+                  ? liveTest.visibility === 'unlisted'
+                    ? 'In review. Anyone with the link can register once our team approves it.'
+                    : 'In review. Students can see it and register once our team approves it.'
                   : liveTest.visibility === 'unlisted'
-                    ? 'This test is not live yet. Publish it to open it at once for anyone with the link.'
+                    ? 'This test is not live yet. Submit it for review; once approved it opens for anyone with the link.'
                     : 'This test is not yet visible to students. Submit it for review to make it available.'}
               </span>
             </div>

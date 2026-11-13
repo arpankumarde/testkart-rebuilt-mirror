@@ -3,6 +3,7 @@ import { schema, OutputType } from "./teacher-offerings_GET.schema";
 import { MENTORSHIP_SESSION_DURATIONS } from "../../helpers/liveLessonConfig";
 import { classPriceFor, pricesMeetFloors, resolveLivePrices } from "../../helpers/livePricing";
 import { getLiveBalance, getLivePackageFor, getTrialState } from "../../helpers/livePackages";
+import { teacherMaxClassesPerWeek } from "../../helpers/mentorshipSlots";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { NotAuthenticatedError } from "../../helpers/getSetServerSession";
 import superjson from "superjson";
@@ -53,6 +54,7 @@ export async function handle(request: Request) {
     const resolved = resolveLivePrices(teacher);
     const enabled = approved && !!teacher.mentorshipEnabled && !!resolved && pricesMeetFloors(resolved);
     const prices = enabled ? resolved : null;
+    const maxClassesPerWeek = enabled ? await teacherMaxClassesPerWeek(teacherId) : 0;
 
     let trialState: OutputType["trialState"] = null;
     let activePackageId: string | null = null;
@@ -89,6 +91,7 @@ export async function handle(request: Request) {
         ? MENTORSHIP_SESSION_DURATIONS.map((minutes) => ({ durationMinutes: minutes, price: classPriceFor(prices, minutes) }))
         : [],
       prices,
+      maxClassesPerWeek,
       isTrialEligible: trialState === "eligible",
       trialState,
       activePackageId,

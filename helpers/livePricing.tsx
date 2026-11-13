@@ -1,24 +1,27 @@
 import {
+  FULL_SESSION_MINUTES,
   MENTORSHIP_MIN_CLASS_PRICE,
   MENTORSHIP_SESSION_DURATIONS,
   MENTORSHIP_TRIAL_DISCOUNT_PERCENT,
   PACKAGE_MAX_CLASSES_PER_WEEK,
   PACKAGE_WEEKS,
+  SHORT_SESSION_MINUTES,
 } from "./liveLessonConfig";
 
 /**
  * Shared by server and browser: a teacher's 1:1 prices and the package maths. Teachers set a
- * 30-minute and a 60-minute class price; the trial is that price, or a fixed discount off it when
- * the teacher turns the trial discount on. There is no separate trial price and no free class.
+ * short session (25 min) and a full session (50 min) price; the trial is that price, or a fixed
+ * discount off it when the teacher turns the trial discount on. There is no separate trial price
+ * and no free class.
  */
 
 export type LiveClassMinutes = (typeof MENTORSHIP_SESSION_DURATIONS)[number];
 
 export type LivePrices = {
-  class30: number;
-  class60: number;
-  trial30: number;
-  trial60: number;
+  classShort: number;
+  classFull: number;
+  trialShort: number;
+  trialFull: number;
   trialDiscount: boolean;
 };
 
@@ -37,15 +40,15 @@ export const trialPriceFrom = (classPrice: number, minutes: LiveClassMinutes, di
 
 /** Null until the teacher has set both class prices. */
 export function resolveLivePrices(row: PriceColumns): LivePrices | null {
-  const class30 = toNumber(row.mentorshipRatePerUnit);
-  const class60 = toNumber(row.mentorshipClassPrice60);
-  if (class30 === null || class60 === null) return null;
+  const classShort = toNumber(row.mentorshipRatePerUnit);
+  const classFull = toNumber(row.mentorshipClassPrice60);
+  if (classShort === null || classFull === null) return null;
   const trialDiscount = row.mentorshipTrialDiscount === true;
   return {
-    class30,
-    class60,
-    trial30: trialPriceFrom(class30, 30, trialDiscount),
-    trial60: trialPriceFrom(class60, 60, trialDiscount),
+    classShort,
+    classFull,
+    trialShort: trialPriceFrom(classShort, SHORT_SESSION_MINUTES, trialDiscount),
+    trialFull: trialPriceFrom(classFull, FULL_SESSION_MINUTES, trialDiscount),
     trialDiscount,
   };
 }
@@ -53,13 +56,20 @@ export function resolveLivePrices(row: PriceColumns): LivePrices | null {
 export const isLiveClassMinutes = (m: number): m is LiveClassMinutes =>
   (MENTORSHIP_SESSION_DURATIONS as readonly number[]).includes(m);
 
-export const classPriceFor = (p: LivePrices, minutes: LiveClassMinutes) => (minutes === 30 ? p.class30 : p.class60);
-export const trialPriceFor = (p: LivePrices, minutes: LiveClassMinutes) => (minutes === 30 ? p.trial30 : p.trial60);
+export const classPriceFor = (p: LivePrices, minutes: LiveClassMinutes) =>
+  minutes === SHORT_SESSION_MINUTES ? p.classShort : p.classFull;
+export const trialPriceFor = (p: LivePrices, minutes: LiveClassMinutes) =>
+  minutes === SHORT_SESSION_MINUTES ? p.trialShort : p.trialFull;
 
 export const pricesMeetFloors = (p: LivePrices) =>
-  p.class30 >= minClassPrice(30) && p.class60 >= minClassPrice(60) && p.trial30 > 0 && p.trial60 > 0;
+  p.classShort >= minClassPrice(SHORT_SESSION_MINUTES) &&
+  p.classFull >= minClassPrice(FULL_SESSION_MINUTES) &&
+  p.trialShort > 0 &&
+  p.trialFull > 0;
 
-export const PACKAGE_CLASSES_PER_WEEK_OPTIONS = Array.from({ length: PACKAGE_MAX_CLASSES_PER_WEEK }, (_, i) => i + 1);
+/** Classes-a-week choices for a teacher who teaches on `teachingDays` weekdays (one class a day). */
+export const packagePerWeekOptions = (teachingDays: number) =>
+  Array.from({ length: Math.max(0, Math.min(teachingDays, PACKAGE_MAX_CLASSES_PER_WEEK)) }, (_, i) => i + 1);
 
 export const packageClassCount = (classesPerWeek: number) => classesPerWeek * PACKAGE_WEEKS;
 export const packageCycleTotal = (pricePerClass: number, classesPerWeek: number) =>
@@ -67,15 +77,11 @@ export const packageCycleTotal = (pricePerClass: number, classesPerWeek: number)
 /** The mandate cap: this teacher's biggest package at the chosen class length. */
 export const packageMandateMax = (pricePerClass: number) => pricePerClass * packageClassCount(PACKAGE_MAX_CLASSES_PER_WEEK);
 
-/** Class lengths read as words: 30 is "Half an hour", 60 is "1 hour", 120 is "2 hours". */
-export const formatClassLength = (minutes: number) => {
-  if (minutes === 30) return "Half an hour";
-  if (minutes > 0 && minutes % 60 === 0) {
-    const hours = minutes / 60;
-    return `${hours} hour${hours === 1 ? "" : "s"}`;
-  }
-  return `${minutes} min`;
-};
+/** A 1:1 class length by name. Classes booked at the older 30 / 60 minute lengths keep the matching name. */
+export const classLengthName = (minutes: number) => (minutes <= 30 ? "Short session" : "Full session");
+
+/** "Short session (25 min)": the name first, the minutes as a detail. */
+export const formatClassLength = (minutes: number) => `${classLengthName(minutes)} (${minutes} min)`;
 
 export const formatRupees = (amount: number) =>
   `₹${Number(amount).toLocaleString("en-IN", { maximumFractionDigits: Number.isInteger(Number(amount)) ? 0 : 2 })}`;

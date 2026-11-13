@@ -274,6 +274,18 @@
   border-top: 1px solid var(--tc-line, var(--border));
 }
 
+.priceHeadCol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.priceHeadMins {
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
 .priceRowText {
   display: flex;
   flex-direction: column;

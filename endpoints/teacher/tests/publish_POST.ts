@@ -67,7 +67,7 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    // Unlisted series skip review and go live at once (helpers/contentVisibility).
+    // Unlisted series are reviewed too, and cannot claim a bonus (helpers/contentVisibility).
     const unlisted = test.visibility === "unlisted";
     const claimsExamBonus = input.examBonusCampaignId !== undefined;
     const claimsBonus = input.claimCreatorBonus === true || claimsExamBonus;
@@ -85,8 +85,7 @@ export async function handle(request: Request): Promise<Response> {
         { status: 400 }
       );
     }
-    const needsReview =
-      !unlisted && (claimsBonus || !(await publishesWithoutReview(db, user.role, test.teacherId)));
+    const needsReview = claimsBonus || !publishesWithoutReview(user.role);
     if (user.role !== "admin" && (await hasPendingReview(db, "mock_test", input.testId))) {
       return new Response(
         superjson.stringify({ error: alreadyInReviewMessage("test series") }),

@@ -95,17 +95,22 @@ export async function sendPackageStartedEmails(s: CycleSummary): Promise<void> {
     to: student?.email,
     student: true,
     eyebrow: "Package active",
-    subject: `Your classes with ${teacher?.displayName ?? "your teacher"} are booked`,
+    subject:
+      s.booked > 0
+        ? `Your classes with ${teacher?.displayName ?? "your teacher"} are booked`
+        : `Pick your class times with ${teacher?.displayName ?? "your teacher"}`,
     heading: "Your package is active",
     greeting: student?.displayName ?? "",
     lines: [
-      waiting > 0
-        ? `${s.booked} classes are booked. ${waiting} more ${waiting > 1 ? "are" : "is"} waiting for you to pick a time.`
-        : `All ${s.classCount} classes are booked.`,
+      s.booked === 0
+        ? `Your payment is done. Now pick your class times: choose a day and time once and we book it for all 4 weeks.`
+        : waiting > 0
+          ? `${s.booked} classes are booked. ${waiting} more ${waiting > 1 ? "are" : "is"} waiting for you to pick a time.`
+          : `All ${s.classCount} classes are booked.`,
       "You can cancel or move a class up to 6 hours before it starts.",
     ],
     table,
-    ctaLabel: "See my classes",
+    ctaLabel: waiting > 0 ? "Pick class times" : "See my classes",
     ctaUrl: STUDENT_URL,
   });
   await send({
@@ -115,7 +120,8 @@ export async function sendPackageStartedEmails(s: CycleSummary): Promise<void> {
     heading: "A student took a package",
     greeting: teacher?.displayName ?? "",
     lines: [
-      `${student?.displayName ?? "A student"} booked ${s.classCount} classes of ${s.classMinutes} minutes over the next 4 weeks.`,
+      `${student?.displayName ?? "A student"} paid for ${s.classCount} classes of ${s.classMinutes} minutes over the next 4 weeks.`,
+      ...(waiting > 0 ? ["Each class shows in your bookings once they pick its time from your open hours."] : []),
       "You are paid for each class once it is held.",
     ],
     ctaLabel: "See bookings",

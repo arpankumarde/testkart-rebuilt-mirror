@@ -4,15 +4,14 @@ import { toast } from "sonner";
 import { AlertTriangle, CalendarPlus, Star, Wallet } from "lucide-react";
 import { Button } from "./Button";
 import { Dialog } from "./Dialog";
-import { ConsoleDialogContent, ConsoleDialogHeader, ConsoleDialogBody, ConsoleDialogFooter } from "./ConsoleDialog";
+import { ConsoleDialogContent, ConsoleDialogHeader, ConsoleDialogBody } from "./ConsoleDialog";
 import { ConsoleConfirmDialog } from "./ConsoleConfirmDialog";
-import { LiveSlotPicker, useLiveSlotRange } from "./LiveSlotPicker";
 import { LivePackageBuilder } from "./LivePackageBuilder";
+import { LivePackageScheduler } from "./LivePackageScheduler";
 import { Skeleton } from "./Skeleton";
 import { useMentorshipTeacherOfferingsQuery } from "../helpers/useMentorship";
 import {
   useCreditReleaseMutation,
-  useCreditScheduleMutation,
   useLivePackagesQuery,
   usePackageCancelMutation,
   usePackagePayNowMutation,
@@ -20,8 +19,7 @@ import {
 } from "../helpers/useLivePackages";
 import { startCashfreeCheckout } from "../helpers/cashfreeCheckout";
 import { postMentorshipReview } from "../endpoints/mentorship/review_POST.schema";
-import { formatClassLength, formatRupees, PACKAGE_CLASSES_PER_WEEK_OPTIONS } from "../helpers/livePricing";
-import { CREDIT_SCHEDULE_MAX_DAYS } from "../helpers/liveLessonConfig";
+import { formatClassLength, formatRupees, packagePerWeekOptions } from "../helpers/livePricing";
 import type { LivePackageView, TrialFollowUp } from "../endpoints/mentorship/packages/list_GET.schema";
 import styles from "./LivePackagesPanel.module.css";
 
@@ -127,7 +125,13 @@ const PlanDialog: React.FC<{ trial: TrialFollowUp; balance: number; onClose: () 
           {offerings.isLoading ? (
             <Skeleton style={{ height: "12rem", width: "100%" }} />
           ) : prices ? (
-            <LivePackageBuilder teacherId={trial.teacherId} teacherName={trial.teacherName} prices={prices} balance={balance} />
+            <LivePackageBuilder
+              teacherId={trial.teacherId}
+              teacherName={trial.teacherName}
+              prices={prices}
+              balance={balance}
+              maxClassesPerWeek={offerings.data?.maxClassesPerWeek ?? 0}
+            />
           ) : (
             <p className={styles.dialogNote}>{trial.teacherName} is not taking new plans right now.</p>
           )}
@@ -222,7 +226,7 @@ const PackageCard: React.FC<{ pkg: LivePackageView }> = ({ pkg }) => {
           </p>
           <div className={styles.actions}>
             <Button size="sm" onClick={() => setScheduling(true)}>
-              <CalendarPlus size={14} aria-hidden="true" /> Pick a time
+              <CalendarPlus size={14} aria-hidden="true" /> Pick times
             </Button>
             <Button
               size="sm"
@@ -256,7 +260,7 @@ const PackageCard: React.FC<{ pkg: LivePackageView }> = ({ pkg }) => {
             disabled={update.isPending || !pkg.autoRenew}
             onChange={(e) => save({ nextClassesPerWeek: Number(e.target.value) }, "Saved for your next 4 weeks.")}
           >
-            {PACKAGE_CLASSES_PER_WEEK_OPTIONS.map((n) => (
+            {packagePerWeekOptions(pkg.maxClassesPerWeek).map((n) => (
               <option key={n} value={n}>
                 {n} a week
               </option>
@@ -268,9 +272,7 @@ const PackageCard: React.FC<{ pkg: LivePackageView }> = ({ pkg }) => {
         </button>
       </div>
 
-      {scheduling && pkg.waitingCredits[0] && (
-        <ScheduleDialog pkg={pkg} creditId={pkg.waitingCredits[0].id} onClose={() => setScheduling(false)} />
-      )}
+      {scheduling && waiting > 0 && <ScheduleDialog pkg={pkg} onClose={() => setScheduling(false)} />}
 
       <ConsoleConfirmDialog
         open={confirmCancel}
@@ -298,40 +300,13 @@ const PackageCard: React.FC<{ pkg: LivePackageView }> = ({ pkg }) => {
   );
 };
 
-const ScheduleDialog: React.FC<{ pkg: LivePackageView; creditId: string; onClose: () => void }> = ({ pkg, creditId, onClose }) => {
-  const [picked, setPicked] = useState<number[]>([]);
-  const range = useLiveSlotRange(CREDIT_SCHEDULE_MAX_DAYS);
-  const schedule = useCreditScheduleMutation();
-  return (
-    <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <ConsoleDialogContent size="md">
-        <ConsoleDialogHeader title={`Book a class with ${pkg.teacher.displayName}`} description={`${formatClassLength(pkg.classMinutes)}, already paid.`} />
-        <ConsoleDialogBody>
-          <LiveSlotPicker teacherId={pkg.teacher.id} minutes={pkg.classMinutes} range={range} mode="single" selected={picked} onChange={setPicked} />
-        </ConsoleDialogBody>
-        <ConsoleDialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Close
-          </Button>
-          <Button
-            disabled={picked.length === 0 || schedule.isPending}
-            onClick={() =>
-              schedule.mutate(
-                { creditId, startTime: new Date(picked[0]) },
-                {
-                  onSuccess: () => {
-                    toast.success("Class booked.");
-                    onClose();
-                  },
-                  onError: (err) => toast.error(err instanceof Error ? err.message : "Could not book this time."),
-                }
-              )
-            }
-          >
-            {schedule.isPending ? "Booking..." : "Book this time"}
-          </Button>
-        </ConsoleDialogFooter>
-      </ConsoleDialogContent>
-    </Dialog>
-  );
-};
+const ScheduleDialog: React.FC<{ pkg: LivePackageView; onClose: () => void }> = ({ pkg, onClose }) => (
+  <Dialog open onOpenChange={(open) => !open && onClose()}>
+    <ConsoleDialogContent size="lg">
+      <ConsoleDialogHeader title={`Classes with ${pkg.teacher.displayName}`} description={`${formatClassLength(pkg.classMinutes)}, already paid.`} />
+      <ConsoleDialogBody>
+        <LivePackageScheduler pkg={pkg} onDone={(left) => left === 0 && onClose()} />
+      </ConsoleDialogBody>
+    </ConsoleDialogContent>
+  </Dialog>
+);

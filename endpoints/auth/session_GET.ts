@@ -88,7 +88,7 @@ export async function handle(request: Request) {
      examFocus,
     };
     if (user.role === "teacher" || user.role === "admin") {
-      fullUser.publishesWithoutReview = await publishesWithoutReview(db, user.role, effectiveTeacherId);
+      fullUser.publishesWithoutReview = publishesWithoutReview(user.role);
     }
     fullUser.examFocusPromptDue = isExamFocusPromptDue({
       user: fullUser,

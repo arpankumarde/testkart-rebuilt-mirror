@@ -31,8 +31,8 @@ type Executor = Kysely<DB> | Transaction<DB>;
  *   since the bundle page would keep listing it.
  * - Unlisted to public on a live item goes through review like any public
  *   publish. The item stays live and unlisted until the review is approved;
- *   publishApprovedContent then sets it public. Verified teachers, admins and
- *   bundles (whose items must all be public) switch at once. A course needs a
+ *   publishApprovedContent then sets it public. Admins and bundles (whose
+ *   items must all be public) switch at once. A course needs a
  *   video lesson first and a test series its minimum question count, as they
  *   do to publish (helpers/courseVideoRequirement, helpers/testSeriesMinimum).
  * - Asking again while a request waits is not an error: nothing new is queued
@@ -197,8 +197,8 @@ export async function changeContentVisibility(input: {
       : state.live
         ? `${Noun} is now unlisted. It no longer shows in search, listings or your profile, and its link still works.`
         : pending
-          ? `${Noun} was taken out of review and is now unlisted. Publish it to put it live at once for anyone with the link.`
-          : `${Noun} is set to unlisted. When you publish it, it goes live at once for anyone with the link.`;
+          ? `${Noun} was taken out of review and is now unlisted. Publish it again to send it for review.`
+          : `${Noun} is set to unlisted. When you publish it, our team reviews it first, then it opens for anyone with the link.`;
     return {
       visibility: "unlisted",
       inReview: false,
@@ -272,7 +272,7 @@ export async function changeContentVisibility(input: {
     }
   }
 
-  if (await publishesWithoutReview(db, input.role, state.teacherId)) {
+  if (publishesWithoutReview(input.role)) {
     if (pending) await clearOpenReviews(db, contentType, contentId);
     await writeContentVisibility(db, contentType, contentId, "public");
     return {

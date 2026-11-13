@@ -6,6 +6,8 @@ export type LivePackageView = {
   teacher: { id: number; displayName: string; avatarUrl: string | null };
   classesPerWeek: number;
   nextClassesPerWeek: number | null;
+  /** Most classes a week the next cycle can hold: the teacher's teaching weekdays, never below classesPerWeek. */
+  maxClassesPerWeek: number;
   classMinutes: number;
   pricePerClass: number;
   autoRenew: boolean;

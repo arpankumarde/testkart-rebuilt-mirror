@@ -376,6 +376,15 @@ export async function handle(request: Request): Promise<Response> {
             WHEN 'live_test' THEN (SELECT lt.is_active AND lt.visibility = 'unlisted' FROM live_tests lt WHERE lt.id = cr.content_id)
           END, false)
         `.as("publicRequest"),
+        sql<boolean>`
+          cr.status IN ('pending', 'senior_review') AND COALESCE(CASE cr.content_type
+            WHEN 'mock_test' THEN (SELECT NOT (mt.is_published AND mt.deleted_at IS NULL) AND mt.visibility = 'unlisted' FROM mock_tests mt WHERE mt.id = cr.content_id)
+            WHEN 'course' THEN (SELECT c.status <> 'published' AND c.visibility = 'unlisted' FROM courses c WHERE c.id = cr.content_id)
+            WHEN 'digital_product' THEN (SELECT dp.status <> 'published' AND dp.visibility = 'unlisted' FROM digital_products dp WHERE dp.id = cr.content_id)
+            WHEN 'course_bundle' THEN (SELECT NOT cb.is_published AND cb.visibility = 'unlisted' FROM course_bundles cb WHERE cb.id = cr.content_id)
+            WHEN 'live_test' THEN (SELECT NOT lt.is_active AND lt.visibility = 'unlisted' FROM live_tests lt WHERE lt.id = cr.content_id)
+          END, false)
+        `.as("unlistedRequest"),
       ]);
 
     let countQuery = db
@@ -579,6 +588,7 @@ export async function handle(request: Request): Promise<Response> {
         reviewedByName: r.reviewedByName ?? null,
         createdAt: r.createdAt,
         publicRequest: r.publicRequest === true,
+        unlistedRequest: r.unlistedRequest === true,
         contentMeta: getContentMeta(r.contentType, r.contentId),
         exams: getContentExams(r.contentType, r.contentId),
         bonusClaim: bonusByReview.get(r.id) ?? null,

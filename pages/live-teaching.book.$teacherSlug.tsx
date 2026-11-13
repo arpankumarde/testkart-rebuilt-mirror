@@ -5,24 +5,26 @@ import { toast } from "sonner";
 import { ArrowLeft, Clock, CheckCircle, Video, Sparkles, Loader2 } from "lucide-react";
 import { useAuth } from "../helpers/useAuth";
 import { useMentorshipTeacherOfferingsBySlugQuery, useMentorshipPurchaseMutation } from "../helpers/useMentorship";
-import { useInvalidateLiveClasses, usePackageVerifyMutation } from "../helpers/useLivePackages";
+import { useInvalidateLiveClasses, useLivePackagesQuery, usePackageVerifyMutation } from "../helpers/useLivePackages";
 import { startCashfreeCheckout } from "../helpers/cashfreeCheckout";
 import { postPaymentCashfreeVerify } from "../endpoints/payment/cashfree/verify_POST.schema";
-import { formatClassLength, formatRupees, LiveClassMinutes, LivePrices, trialPriceFor } from "../helpers/livePricing";
+import { classLengthName, formatRupees, LiveClassMinutes, LivePrices, trialPriceFor } from "../helpers/livePricing";
 import { MENTORSHIP_SESSION_DURATIONS } from "../helpers/liveLessonConfig";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
 import { NotFoundState } from "../components/NotFoundState";
 import { LiveSlotPicker, useLiveSlotRange } from "../components/LiveSlotPicker";
 import { LivePackageBuilder } from "../components/LivePackageBuilder";
+import { LivePackageScheduler } from "../components/LivePackageScheduler";
 import styles from "./live-teaching.book.$teacherSlug.module.css";
 
 const STUDENT_CLASSES = "/student/live-teaching";
 
 /**
  * One page per tutor at /live-teaching/book/<teacher slug>, in the order a student meets them: a
- * trial first (30 or 60 minutes), then a package of 1 to 6 classes a week paid by autopay. Returns
- * from Cashfree land here too.
+ * trial first (short session of 25 minutes or full session of 50), then a package of 1 to 6
+ * classes a week paid by autopay, then picking times for the paid classes. Returns from Cashfree
+ * land here too, so a paid package goes straight on to picking its times.
  */
 const BookMentorshipPage: React.FC = () => {
   const { teacherSlug = null } = useParams<{ teacherSlug: string }>();
@@ -76,8 +78,7 @@ const BookMentorshipPage: React.FC = () => {
             setConfirming(null);
             await invalidate();
             if (result.status === "active") {
-              toast.success("Your package is active. Your classes are booked.");
-              navigate(STUDENT_CLASSES);
+              toast.success("Payment done. Now pick your class times.");
             } else if (result.status === "pending") {
               toast.warning("Your bank is still confirming autopay. We will email you once it is done.");
             } else {
@@ -193,23 +194,47 @@ const BookMentorshipPage: React.FC = () => {
         )}
 
         {stage === "package" && (
-          <LivePackageBuilder teacherId={teacher.id} teacherName={teacher.displayName} prices={data.prices} balance={data.balance ?? 0} />
-        )}
-
-        {stage === "package-active" && (
-          <Notice
-            title="You have a package with this teacher"
-            text="Book, move or cancel your classes from your classes page."
-            action="Open my classes"
-            onAction={() => navigate(STUDENT_CLASSES)}
+          <LivePackageBuilder
+            teacherId={teacher.id}
+            teacherName={teacher.displayName}
+            prices={data.prices}
+            balance={data.balance ?? 0}
+            maxClassesPerWeek={data.maxClassesPerWeek}
           />
         )}
+
+        {stage === "package-active" && <PackageTimes teacherId={teacher.id} onFinished={() => navigate(STUDENT_CLASSES)} />}
       </div>
     </>
   );
 };
 
 export default BookMentorshipPage;
+
+/** After paying: the paid classes still waiting for a time, picked here; otherwise a pointer to the classes page. */
+const PackageTimes: React.FC<{ teacherId: number; onFinished: () => void }> = ({ teacherId, onFinished }) => {
+  const packagesQuery = useLivePackagesQuery();
+  const pkg = packagesQuery.data?.packages.find((p) => p.teacher.id === teacherId);
+  if (packagesQuery.isLoading) return <Skeleton style={{ height: "12rem", width: "100%" }} />;
+  if (!pkg || pkg.waitingCredits.length === 0) {
+    return (
+      <Notice
+        title="You have a package with this teacher"
+        text="Book, move or cancel your classes from your classes page."
+        action="Open my classes"
+        onAction={onFinished}
+      />
+    );
+  }
+  return (
+    <>
+      <p className={styles.successText}>
+        {pkg.waitingCredits.length} paid class{pkg.waitingCredits.length > 1 ? "es" : ""} to book. Pick a day and a time and we repeat it every week.
+      </p>
+      <LivePackageScheduler pkg={pkg} onDone={(left) => left === 0 && onFinished()} />
+    </>
+  );
+};
 
 const Notice: React.FC<{ title: string; text: string; action: string; onAction: () => void }> = ({ title, text, action, onAction }) => (
   <div className={styles.successBox}>
@@ -274,7 +299,12 @@ const TrialBooking: React.FC<{
               setPicked([]);
             }}
           >
-            <Clock size={14} aria-hidden="true" /> {formatClassLength(m)}
+            <span className={styles.durationLabel}>
+              <span className={styles.durationName}>
+                <Clock size={14} aria-hidden="true" /> {classLengthName(m)}
+              </span>
+              <span className={styles.durationMins}>{m} min</span>
+            </span>
             <span className={styles.durationPrice}>{formatRupees(trialPriceFor(prices, m))}</span>
           </button>
         ))}

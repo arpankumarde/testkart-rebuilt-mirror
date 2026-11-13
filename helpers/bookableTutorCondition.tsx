@@ -15,6 +15,6 @@ export const bookableTutorCondition = sql<boolean>`(
   AND slug IS NOT NULL
   AND mentorship_enabled = true
   AND live_teaching_status = 'approved'
-  AND COALESCE(mentorship_rate_per_unit, 0) >= ${MENTORSHIP_MIN_CLASS_PRICE[30]}
-  AND COALESCE(mentorship_class_price60, 0) >= ${MENTORSHIP_MIN_CLASS_PRICE[60]}
+  AND COALESCE(mentorship_rate_per_unit, 0) >= ${MENTORSHIP_MIN_CLASS_PRICE[25]}
+  AND COALESCE(mentorship_class_price60, 0) >= ${MENTORSHIP_MIN_CLASS_PRICE[50]}
 )`;

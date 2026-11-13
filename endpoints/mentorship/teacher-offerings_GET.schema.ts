@@ -35,6 +35,8 @@ export type OutputType = {
   durations: MentorshipOfferingDuration[];
   /** Class and trial prices for both lengths. Null when 1:1 is off. */
   prices: LivePrices | null;
+  /** Most classes a week a package can hold: the weekdays this teacher has open hours (one class a day), at most 6. */
+  maxClassesPerWeek: number;
   /** True if the signed-in viewer is a student who can book a trial with this teacher. */
   isTrialEligible: boolean;
   /** Signed-in student only: where they stand with this teacher. Null when signed out or not a student. */

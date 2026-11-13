@@ -81,7 +81,7 @@ export async function getLiveTeachingState(teacherId: number): Promise<LiveTeach
   const subjects = Array.from(
     new Set([...asStringList(user.expertiseAreas), ...asStringList(user.teachingCategories)])
   );
-  /* The 30-minute price stands for "prices set"; it counts only once the 60-minute price is set too. */
+  /* The short session price stands for "prices set"; it counts only once the full session price is set too. */
   const ratePerUnit =
     user.mentorshipRatePerUnit !== null && user.mentorshipClassPrice60 !== null ? Number(user.mentorshipRatePerUnit) : null;
 

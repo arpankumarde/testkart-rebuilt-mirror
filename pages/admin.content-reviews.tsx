@@ -402,6 +402,11 @@ const AdminContentReviewsPage: React.FC = () => {
                           Public request
                         </Badge>
                       )}
+                      {review.unlistedRequest && (
+                        <Badge variant="lavender" className={styles.flag} title="Approving puts it live as unlisted: open from its link, not listed">
+                          Unlisted
+                        </Badge>
+                      )}
                       {statusFilter === "all" && (
                         <Badge variant={reviewStatusBadgeVariant(review.status)} className={styles.flag}>
                           {reviewStatusLabel(review.status)}

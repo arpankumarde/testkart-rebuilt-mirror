@@ -5,7 +5,7 @@ import type { CashfreeCheckoutSession } from "../../helpers/cashfreeCheckout";
 /** Books a trial: the only 1:1 class sold on its own. Later classes come in packages. */
 export const schema = z.object({
   teacherId: z.number().int().positive(),
-  /** 30 or 60 minutes - see MENTORSHIP_SESSION_DURATIONS. */
+  /** 25 or 50 minutes - see MENTORSHIP_SESSION_DURATIONS. */
   durationMinutes: z.number().int().positive(),
   startTime: z.coerce.date(),
 });

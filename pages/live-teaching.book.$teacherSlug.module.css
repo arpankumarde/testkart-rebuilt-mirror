@@ -145,6 +145,31 @@
   color: var(--sp-lavender-ink);
 }
 
+.durationLabel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.125rem;
+  text-align: left;
+}
+
+.durationName {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.durationMins {
+  padding-left: calc(14px + 0.375rem);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--sp-text);
+}
+
+.durationButtonSelected .durationMins {
+  color: var(--sp-lavender-ink);
+}
+
 .durationPrice {
   display: flex;
   align-items: center;

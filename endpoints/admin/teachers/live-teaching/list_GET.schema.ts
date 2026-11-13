@@ -21,7 +21,7 @@ export type LiveTeachingApplicationRow = {
   decidedBy: string | null;
   decisionReason: string | null;
   introVideoUrl: string;
-  /** 30-minute class price when they applied (25-minute price for applications before 18-11-2026). */
+  /** Short session class price when they applied (the 30-minute price for applications from 18-11-2026 to 20-11-2026). */
   ratePerUnit: number | null;
   /** True for the teacher's latest row of this kind; only that one can be decided or revoked. */
   isLatest: boolean;

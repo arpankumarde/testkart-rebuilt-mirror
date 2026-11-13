@@ -1,0 +1,262 @@
+/* Weekly time picker for paid package classes: days lavender, times and picks blue, in the /app palette. */
+.scheduler {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.counter {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: var(--sp-ink);
+}
+
+.counterSub {
+  font-family: var(--font-family-base);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--sp-text);
+}
+
+.repeat {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 999px;
+  background: var(--fc-blue-tint);
+  color: var(--fc-blue-ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.repeat input {
+  accent-color: var(--fc-blue-ink);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  padding: 1.25rem;
+  background: var(--sp-card);
+  border: 1px solid var(--sp-line);
+  border-radius: 1.25rem;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: var(--sp-ink);
+}
+
+.title svg {
+  box-sizing: content-box;
+  padding: 0.375rem;
+  border-radius: 0.625rem;
+  background: var(--fc-blue-tint);
+  color: var(--fc-blue-ink);
+}
+
+.zone {
+  margin-left: auto;
+  font-family: var(--font-family-base);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--sp-text);
+}
+
+.empty {
+  margin: 0;
+  padding: 1.25rem;
+  text-align: center;
+  border: 1.5px dashed var(--sp-line-strong);
+  border-radius: 1rem;
+  color: var(--sp-text);
+  font-size: 0.875rem;
+}
+
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.375rem;
+}
+
+.day {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  height: 2.75rem;
+  border: 1.5px solid var(--sp-line-strong);
+  border-radius: 0.875rem;
+  background: var(--sp-surface);
+  color: var(--sp-ink);
+  font-size: 0.875rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.day:hover {
+  border-color: var(--sp-lavender-edge);
+}
+
+.dayPicked {
+  background: var(--fc-blue-tint);
+  border-color: var(--fc-blue-edge);
+  color: var(--fc-blue-ink);
+}
+
+.dayOn,
+.dayOn:hover {
+  background: var(--sp-lavender-tint);
+  border-color: var(--sp-lavender-edge);
+  color: var(--sp-lavender-ink);
+}
+
+.times {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(6rem, 1fr));
+  gap: 0.5rem;
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.time {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.5rem;
+  border: 1.5px solid var(--sp-line-strong);
+  border-radius: 0.75rem;
+  background: var(--sp-surface);
+  color: var(--sp-ink);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.time:hover:not(:disabled) {
+  border-color: var(--fc-blue-edge);
+  background: var(--sp-card);
+}
+
+.time:disabled {
+  cursor: not-allowed;
+  border-style: dashed;
+  color: var(--sp-text);
+}
+
+.timeOn,
+.timeOn:hover:not(:disabled) {
+  background: var(--fc-blue-tint);
+  border-color: var(--fc-blue-edge);
+  color: var(--fc-blue-ink);
+}
+
+.timeNote {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--sp-text);
+}
+
+.timeOn .timeNote {
+  color: var(--fc-blue-ink);
+}
+
+.day:focus-visible,
+.time:focus-visible,
+.remove:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--sp-surface), 0 0 0 4px var(--fc-blue-edge);
+}
+
+.picked {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pickedRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--fc-blue-tint);
+  border: 1px solid var(--fc-blue-edge);
+  border-radius: 1rem;
+  color: var(--fc-blue-ink);
+}
+
+.pickedTitle {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 800;
+}
+
+.pickedDates {
+  margin: 0.125rem 0 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.remove {
+  display: inline-flex;
+  padding: 0.375rem;
+  border: none;
+  border-radius: 0.625rem;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.remove:hover {
+  background: var(--sp-card);
+}
+
+.cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.note {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--sp-text);
+}
+
+@media (max-width: 420px) {
+  .days {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

@@ -34,13 +34,13 @@ const status: Status = {
 
 const rate: Rate = {
   enabled: true,
-  durations: [30, 60],
-  prices: { class30: 199, class60: 349, trial30: 139, trial60: 175, trialDiscount: true },
+  durations: [25, 50],
+  prices: { classShort: 199, classFull: 349, trialShort: 139, trialFull: 175, trialDiscount: true },
   trialDiscount: true,
-  minClassPrice30: 49,
-  minClassPrice60: 99,
-  trialDiscountPercent30: 30,
-  trialDiscountPercent60: 50,
+  minClassPriceShort: 49,
+  minClassPriceFull: 99,
+  trialDiscountPercentShort: 30,
+  trialDiscountPercentFull: 50,
 };
 
 const w = (id: string, dayOfWeek: number, startTime: string, endTime: string, isActive = true) => ({ id, dayOfWeek, startTime, endTime, isActive });

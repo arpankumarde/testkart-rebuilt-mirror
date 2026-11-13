@@ -1,14 +1,13 @@
 import superjson from "superjson";
-import { toZonedTime } from "date-fns-tz";
 import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
 import { schema, OutputType } from "./checkout_POST.schema";
-import { isTeacherSlotBookable } from "../../../helpers/mentorshipSlots";
+import { teacherMaxClassesPerWeek } from "../../../helpers/mentorshipSlots";
 import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
 import { cashfreeGatewayEnv, getCashfreeConfig } from "../../../helpers/cashfree";
 import { createCashfreeSubscription } from "../../../helpers/cashfreeSubscriptions";
-import { CHECKOUT_HOLD_MINUTES, PACKAGE_CYCLE_DAYS, PACKAGE_WEEKS } from "../../../helpers/liveLessonConfig";
+import { PACKAGE_CYCLE_DAYS, PACKAGE_WEEKS } from "../../../helpers/liveLessonConfig";
 import { classPriceFor, packageMandateMax, pricesMeetFloors, resolveLivePrices } from "../../../helpers/livePricing";
 import {
   abandonPendingPackage,
@@ -16,11 +15,9 @@ import {
   getLiveBalance,
   getLivePackageFor,
   getTrialState,
-  isStudentFree,
   PACKAGE_CHECKOUT_HOLD_MS,
   roundMoney,
   studentBalanceLock,
-  teacherBookingLock,
 } from "../../../helpers/livePackages";
 import { getOrderClientInfo } from "../../../helpers/orderClientInfo";
 import { getOrderAttribution } from "../../../helpers/getOrderAttribution";
@@ -38,8 +35,6 @@ export async function handle(request: Request) {
     const input = schema.parse(superjson.parse(await request.text()));
     const { teacherId, classesPerWeek, classMinutes } = input;
     const classCount = classesPerWeek * PACKAGE_WEEKS;
-    const startTimes = [...input.startTimes].sort((a, b) => a.getTime() - b.getTime());
-    if (startTimes.length !== classCount) return fail(`Pick ${classCount} class times.`);
 
     getCashfreeConfig();
 
@@ -69,24 +64,23 @@ export async function handle(request: Request) {
     if (await getLivePackageFor(user.id, teacherId)) {
       return fail("You already have a package with this teacher.");
     }
+    const maxPerWeek = await teacherMaxClassesPerWeek(teacherId);
+    if (classesPerWeek > maxPerWeek) {
+      return fail(
+        maxPerWeek > 0
+          ? `${teacher.displayName} teaches on ${maxPerWeek} day${maxPerWeek > 1 ? "s" : ""} a week, so pick up to ${maxPerWeek} class${maxPerWeek > 1 ? "es" : ""} a week.`
+          : "This teacher has no open hours right now."
+      );
+    }
 
     const now = Date.now();
     const cycleStart = new Date(now);
     const cycleEnd = new Date(now + PACKAGE_CYCLE_DAYS * 24 * 60 * 60000);
-    const days = new Set<string>();
-    for (const t of startTimes) {
-      if (t.getTime() >= cycleEnd.getTime()) return fail("Every class must fall within the next 4 weeks.");
-      const z = toZonedTime(t, teacher.timezone);
-      const key = `${z.getFullYear()}-${z.getMonth()}-${z.getDate()}`;
-      if (days.has(key)) return fail("Pick at most one class a day.");
-      days.add(key);
-    }
 
     const price = roundMoney(classPriceFor(prices, classMinutes));
     const amount = roundMoney(price * classCount);
     const maxAmount = roundMoney(packageMandateMax(price));
     const fee = await getTeacherPlatformFee(teacherId);
-    const holdUntil = new Date(now + CHECKOUT_HOLD_MINUTES * 60000);
 
     const created = await db.transaction().execute(async (trx) => {
       await studentBalanceLock(user.id).execute(trx);
@@ -99,15 +93,6 @@ export async function handle(request: Request) {
         .execute();
       const staleSubscriptionIds: string[] = [];
       for (const s of stale) staleSubscriptionIds.push(...(await abandonPendingPackage(trx, s.id, "Replaced by a newer checkout.")));
-
-      await teacherBookingLock(teacherId).execute(trx);
-      for (const t of startTimes) {
-        const slot = await isTeacherSlotBookable(teacherId, t, classMinutes, trx);
-        if (!slot.ok) throw new Error(`${slot.reason} (${t.toISOString()})`);
-        if (!(await isStudentFree(trx, user.id, t, classMinutes))) {
-          throw new Error("One of these times clashes with another class of yours.");
-        }
-      }
 
       const balance = await getLiveBalance(user.id, trx);
       const balanceUsed = roundMoney(Math.max(0, Math.min(balance, amount)));
@@ -146,7 +131,8 @@ export async function handle(request: Request) {
         .returning("id")
         .executeTakeFirstOrThrow();
 
-      const cycle = await trx
+      // Pay first, schedule after: the paid cycle's classes start as credits waiting for a time.
+      await trx
         .insertInto("livePackageCycles")
         .values({
           packageId: pkg.id,
@@ -161,21 +147,6 @@ export async function handle(request: Request) {
           status: "pending",
           orderId: order.id,
         })
-        .returning("id")
-        .executeTakeFirstOrThrow();
-
-      await trx
-        .insertInto("liveSlotHolds")
-        .values(
-          startTimes.map((t) => ({
-            cycleId: cycle.id,
-            teacherId,
-            studentId: user.id,
-            startsAt: t,
-            durationMinutes: classMinutes,
-            expiresAt: holdUntil,
-          }))
-        )
         .execute();
 
       // UPI and card mandates charge at least ₹1 at setup; when the balance covers the cycle that rupee is refunded.

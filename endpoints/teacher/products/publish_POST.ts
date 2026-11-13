@@ -47,9 +47,8 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    // Unlisted study notes skip review and go live at once (helpers/contentVisibility).
     const unlisted = product.visibility === "unlisted";
-    const needsReview = !unlisted && !(await publishesWithoutReview(db, user.role, product.teacherId));
+    const needsReview = !publishesWithoutReview(user.role);
     if (user.role !== "admin" && (await hasPendingReview(db, "digital_product", input.id))) {
       return new Response(
         superjson.stringify({ error: alreadyInReviewMessage("study note") }),

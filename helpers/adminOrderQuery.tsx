@@ -460,7 +460,7 @@ export async function loadOrderRows(ids: number[]): Promise<AdminOrderRow[]> {
     push(
       cycle.orderId,
       {
-        title: `1:1 package, ${cycle.classCount} classes of ${length}${cycle.cycleNumber > 1 ? ` (renewal ${cycle.cycleNumber})` : ""}`,
+        title: `1:1 package, ${cycle.classCount} classes, ${length}${cycle.cycleNumber > 1 ? ` (renewal ${cycle.cycleNumber})` : ""}`,
         type: "live_class",
         url: "/admin/live-lessons",
       },

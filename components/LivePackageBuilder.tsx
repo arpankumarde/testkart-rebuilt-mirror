@@ -1,81 +1,57 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
-import { Repeat, ShieldCheck } from "lucide-react";
+import { CalendarCheck, ShieldCheck } from "lucide-react";
 import { Button } from "./Button";
-import { LiveSlotPicker, localDayKey, useLiveSlotRange, useOpenSlotTimes } from "./LiveSlotPicker";
 import { usePackageCheckoutMutation } from "../helpers/useLivePackages";
 import { startCashfreeSubscriptionCheckout } from "../helpers/cashfreeCheckout";
 import {
   classPriceFor,
-  formatClassLength,
+  classLengthName,
   formatRupees,
   LivePrices,
   LiveClassMinutes,
-  PACKAGE_CLASSES_PER_WEEK_OPTIONS,
   packageClassCount,
   packageMandateMax,
+  packagePerWeekOptions,
 } from "../helpers/livePricing";
-import { MENTORSHIP_SESSION_DURATIONS, PACKAGE_CYCLE_DAYS } from "../helpers/liveLessonConfig";
+import { MENTORSHIP_SESSION_DURATIONS } from "../helpers/liveLessonConfig";
 import styles from "./LivePackageBuilder.module.css";
 
-const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
-
-/** Pick classes per week and length, pick the 4 weeks of times, then set up autopay and pay. */
+/**
+ * Pick classes per week and length, then set up autopay and pay. Class times are picked after
+ * payment (LivePackageScheduler). Classes a week stop at the teacher's teaching weekdays.
+ */
 export const LivePackageBuilder: React.FC<{
   teacherId: number;
   teacherName: string;
   prices: LivePrices;
   balance: number;
-}> = ({ teacherId, teacherName, prices, balance }) => {
-  const [perWeek, setPerWeek] = useState(2);
+  /** The teacher's teaching weekdays, at most 6 (teacher-offerings maxClassesPerWeek). */
+  maxClassesPerWeek: number;
+}> = ({ teacherId, teacherName, prices, balance, maxClassesPerWeek }) => {
+  const options = packagePerWeekOptions(maxClassesPerWeek);
+  const [perWeek, setPerWeek] = useState(Math.min(2, Math.max(1, options.length)));
   const [minutes, setMinutes] = useState<LiveClassMinutes>(MENTORSHIP_SESSION_DURATIONS[MENTORSHIP_SESSION_DURATIONS.length - 1]);
-  const [repeat, setRepeat] = useState(true);
-  const [selected, setSelected] = useState<number[]>([]);
-  const range = useLiveSlotRange(PACKAGE_CYCLE_DAYS);
-  const openTimes = useOpenSlotTimes(teacherId, minutes, range);
   const checkout = usePackageCheckoutMutation();
+
+  if (options.length === 0) {
+    return (
+      <section className={styles.card}>
+        <h2 className={styles.cardTitle}>No open hours right now</h2>
+        <p className={styles.muted}>{teacherName} has not set any open hours for 1:1 classes. Please check back later.</p>
+      </section>
+    );
+  }
 
   const count = packageClassCount(perWeek);
   const price = classPriceFor(prices, minutes);
   const total = price * count;
   const fromBalance = Math.min(Math.max(balance, 0), total);
   const toPay = total - fromBalance;
-  const remaining = count - selected.length;
-
-  const pickedDays = useMemo(() => new Set(selected.map((ms) => localDayKey(new Date(ms)))), [selected]);
-
-  const choosePerWeek = (n: number) => {
-    setPerWeek(n);
-    setSelected((s) => s.slice(0, packageClassCount(n)));
-  };
-  const chooseMinutes = (m: LiveClassMinutes) => {
-    setMinutes(m);
-    setSelected([]);
-  };
-
-  const onPick = (next: number[]) => {
-    const added = next.find((ms) => !selected.includes(ms));
-    if (!repeat || added === undefined) return setSelected(next);
-    const filled = [...selected];
-    const days = new Set(pickedDays);
-    for (let week = 0; week < 4 && filled.length < count; week++) {
-      const ms = added + week * WEEK_MS;
-      const key = localDayKey(new Date(ms));
-      if (!openTimes.has(ms) || days.has(key) || filled.includes(ms)) continue;
-      filled.push(ms);
-      days.add(key);
-    }
-    setSelected(filled.sort((a, b) => a - b));
-  };
 
   const pay = async () => {
     try {
-      const session = await checkout.mutateAsync({
-        teacherId,
-        classesPerWeek: perWeek,
-        classMinutes: minutes,
-        startTimes: selected.map((ms) => new Date(ms)),
-      });
+      const session = await checkout.mutateAsync({ teacherId, classesPerWeek: perWeek, classMinutes: minutes });
       await startCashfreeSubscriptionCheckout(session);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not start the payment.");
@@ -86,20 +62,25 @@ export const LivePackageBuilder: React.FC<{
     <div className={styles.builder}>
       <section className={styles.card}>
         <h2 className={styles.cardTitle}>Classes a week</h2>
-        <div className={styles.chips} role="radiogroup" aria-label="Classes a week">
-          {PACKAGE_CLASSES_PER_WEEK_OPTIONS.map((n) => (
+        <div className={styles.chips} style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }} role="radiogroup" aria-label="Classes a week">
+          {options.map((n) => (
             <button
               key={n}
               type="button"
               role="radio"
               aria-checked={perWeek === n}
               className={`${styles.chip} ${perWeek === n ? styles.chipOn : ""}`}
-              onClick={() => choosePerWeek(n)}
+              onClick={() => setPerWeek(n)}
             >
               {n}
             </button>
           ))}
         </div>
+        {options.length < 6 && (
+          <p className={styles.muted}>
+            {teacherName} teaches on {options.length} day{options.length > 1 ? "s" : ""} a week, one class a day.
+          </p>
+        )}
         <h2 className={styles.cardTitle}>Class length</h2>
         <div className={styles.lengths} role="radiogroup" aria-label="Class length">
           {MENTORSHIP_SESSION_DURATIONS.map((m) => (
@@ -109,9 +90,12 @@ export const LivePackageBuilder: React.FC<{
               role="radio"
               aria-checked={minutes === m}
               className={`${styles.length} ${minutes === m ? styles.lengthOn : ""}`}
-              onClick={() => chooseMinutes(m)}
+              onClick={() => setMinutes(m)}
             >
-              <span>{formatClassLength(m)}</span>
+              <span className={styles.lengthLabel}>
+                {classLengthName(m)}
+                <span className={styles.lengthMins}>{m} min</span>
+              </span>
               <span className={styles.lengthPrice}>{formatRupees(classPriceFor(prices, m))} a class</span>
             </button>
           ))}
@@ -140,35 +124,13 @@ export const LivePackageBuilder: React.FC<{
         </p>
       </section>
 
-      <div className={styles.pickHead}>
-        <p className={styles.counter} aria-live="polite">
-          {remaining > 0 ? `Pick ${remaining} more time${remaining > 1 ? "s" : ""}` : "All times picked"}
-          <span className={styles.counterSub}>
-            {selected.length} of {count}
-          </span>
-        </p>
-        <label className={styles.repeat}>
-          <input type="checkbox" checked={repeat} onChange={(e) => setRepeat(e.target.checked)} />
-          <Repeat size={14} aria-hidden="true" /> Same time every week
-        </label>
-      </div>
-
-      <LiveSlotPicker
-        teacherId={teacherId}
-        minutes={minutes}
-        range={range}
-        mode="multi"
-        selected={selected}
-        onChange={onPick}
-        maxSelected={count}
-        title={`Times with ${teacherName}`}
-        emptyText="This teacher has no open times in the next 4 weeks."
-      />
-
       <div className={styles.cta}>
-        <Button size="lg" disabled={remaining > 0 || checkout.isPending} onClick={pay}>
-          {checkout.isPending ? "Opening payment..." : toPay > 0 ? `Set up autopay and pay ${formatRupees(toPay)}` : "Set up autopay and book"}
+        <Button size="lg" disabled={checkout.isPending} onClick={pay}>
+          {checkout.isPending ? "Opening payment..." : toPay > 0 ? `Pay ${formatRupees(toPay)} and set up autopay` : "Set up autopay"}
         </Button>
+        <p className={styles.small}>
+          <CalendarCheck size={14} aria-hidden="true" /> Right after paying, pick a day and time once and we book it for all 4 weeks.
+        </p>
         <p className={styles.small}>
           <ShieldCheck size={14} aria-hidden="true" /> Cancel or move a class up to 6 hours before. Cancelled classes stay in your
           package or go to your live class balance.

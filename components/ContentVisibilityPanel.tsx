@@ -93,9 +93,13 @@ const ContentVisibilityPanelBody: React.FC<ContentVisibilityPanelProps> = ({
   } else if (status.live) {
     note = "Live and public. Students can find it in search, listings and your profile.";
   } else if (status.inReview) {
-    note = "Pending review. It goes live and is listed once our team approves it.";
+    note = unlisted
+      ? "Pending review. Once our team approves it, it opens for anyone with the link."
+      : "Pending review. It goes live and is listed once our team approves it.";
   } else if (unlisted) {
-    note = "Draft. Publishing puts it live at once, without review, for anyone with the link.";
+    note = switchesAtOnce
+      ? "Draft. Publishing puts it live at once for anyone with the link."
+      : "Draft. Publishing sends it for review; once approved it opens for anyone with the link.";
   } else {
     note = switchesAtOnce
       ? "Draft. Publishing puts it live and lists it publicly."

@@ -175,7 +175,7 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
 
   const isPublished = course.status === "published";
   const isInReview = !isPublished && course.inReview;
-  // Unlisted courses publish at once without review and cannot claim the Creator Bonus.
+  // Unlisted courses are reviewed like public ones but cannot claim the Creator Bonus.
   const isUnlisted = course.visibility === "unlisted";
   const status = isPublished
     ? { label: "Live", className: styles.statusLive }
@@ -299,7 +299,7 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
               ) : (
                 <Button onClick={startSubmit} disabled={publishCourseMutation.isPending || detailsUploading}>
                   <Send size={16} />
-                  {publishesDirectly || isUnlisted
+                  {publishesDirectly
                     ? (publishCourseMutation.isPending ? "Publishing..." : isUnlisted ? "Publish as unlisted" : "Publish")
                     : (publishCourseMutation.isPending ? "Submitting..." : "Submit for review")}
                 </Button>

@@ -388,7 +388,7 @@ const ACTIONS: Record<string, TeacherAction> = {
   "content-visibility/update": write(
     contentVisibilityUpdate,
     contentVisibilityUpdateSchema,
-    "Make a test series, live test (liveTests.id), course, study note or bundle public or unlisted. Unlisted items publish at once without review, open from their link for anyone, and stay out of search, listings, profiles and sitemaps. Making a live unlisted item public sends it for review first unless the teacher is verified; it stays unlisted until approved."
+    "Make a test series, live test (liveTests.id), course, study note or bundle public or unlisted. Unlisted items go through review like public ones, then open from their link for anyone and stay out of search, listings, profiles and sitemaps. Making a live unlisted item public sends it for review first; it stays unlisted until approved."
   ),
   "course-lessons/create": write(courseLessonsCreate, courseLessonsCreateSchema, "Add a lesson to a course section."),
   "course-lessons/delete": write(courseLessonsDelete, courseLessonsDeleteSchema, "Delete a course lesson.", CONFIRM),

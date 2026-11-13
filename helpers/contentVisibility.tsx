@@ -3,9 +3,9 @@ import { ContentVisibilityArrayValues, type ContentVisibility } from "./schema";
 
 /*
  * Every teacher item - test series, live test, course, study note, bundle - is
- * public or unlisted. Public is the default and follows the usual publish and
- * review workflow. Unlisted goes live at once without review, opens from its
- * normal URL for anyone who has the link, and is kept out of every discovery
+ * public or unlisted. Both follow the usual publish and review workflow.
+ * Unlisted opens from its normal URL for anyone who has the link once it is
+ * live, and is kept out of every discovery
  * surface: search, listings, category and exam pages, teacher and institute
  * profiles, homepage sections, recommendations, sitemaps and search engines.
  *
@@ -22,7 +22,7 @@ export const DEFAULT_CONTENT_VISIBILITY: ContentVisibility = "public";
 export const visibilityInputSchema = z
   .enum(ContentVisibilityArrayValues)
   .optional()
-  .describe("public (default, reviewed and listed) or unlisted (live at once from its link, never listed)");
+  .describe("public (default, reviewed and listed) or unlisted (reviewed, then opens from its link, never listed)");
 
 export const VISIBILITY_OPTIONS: { value: ContentVisibility; label: string; description: string }[] = [
   {

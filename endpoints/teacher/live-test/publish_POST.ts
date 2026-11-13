@@ -48,9 +48,8 @@ export async function handle(request: Request) {
       return new Response(superjson.stringify({ error: "This live test is already published." }), { status: 400 });
     }
 
-    // Unlisted live tests skip review and go live at once (helpers/contentVisibility).
     const unlisted = liveTest.visibility === "unlisted";
-    const needsReview = !unlisted && !(await publishesWithoutReview(db, user.role, liveTest.teacherId));
+    const needsReview = !publishesWithoutReview(user.role);
     if (user.role !== "admin" && (await hasPendingReview(db, "live_test", liveTest.id))) {
       return new Response(superjson.stringify({ error: alreadyInReviewMessage("live test") }), { status: 400 });
     }

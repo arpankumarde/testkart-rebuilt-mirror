@@ -2,6 +2,7 @@ import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./rate_POST.schema";
 import { minClassPrice, pricesMeetFloors, resolveLivePrices } from "../../../helpers/livePricing";
+import { FULL_SESSION_MINUTES, SHORT_SESSION_MINUTES } from "../../../helpers/liveLessonConfig";
 import superjson from "superjson";
 
 const fail = (error: string, status = 400) => new Response(superjson.stringify({ error }), { status });
@@ -23,8 +24,10 @@ export async function handle(request: Request) {
 
     if (input.prices) {
       const p = input.prices;
-      if (p.class30 < minClassPrice(30)) return fail(`A 30-minute class must cost at least ₹${minClassPrice(30)}.`);
-      if (p.class60 < minClassPrice(60)) return fail(`A 60-minute class must cost at least ₹${minClassPrice(60)}.`);
+      if (p.classShort < minClassPrice(SHORT_SESSION_MINUTES))
+        return fail(`A short session must cost at least ₹${minClassPrice(SHORT_SESSION_MINUTES)}.`);
+      if (p.classFull < minClassPrice(FULL_SESSION_MINUTES))
+        return fail(`A full session must cost at least ₹${minClassPrice(FULL_SESSION_MINUTES)}.`);
     }
 
     if (input.enabled && !input.prices) {
@@ -45,8 +48,8 @@ export async function handle(request: Request) {
         mentorshipEnabled: input.enabled,
         ...(input.prices
           ? {
-              mentorshipRatePerUnit: input.prices.class30.toFixed(2),
-              mentorshipClassPrice60: input.prices.class60.toFixed(2),
+              mentorshipRatePerUnit: input.prices.classShort.toFixed(2),
+              mentorshipClassPrice60: input.prices.classFull.toFixed(2),
               mentorshipTrialDiscount: input.prices.trialDiscount,
             }
           : {}),

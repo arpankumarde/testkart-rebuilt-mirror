@@ -54,7 +54,7 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    // Unlisted courses skip review and go live at once (helpers/contentVisibility).
+    // Unlisted courses are reviewed too, and cannot claim the Creator Bonus (helpers/contentVisibility).
     const unlisted = course.visibility === "unlisted";
     if (unlisted && claimCreatorBonus === true) {
       return new Response(
@@ -62,8 +62,7 @@ export async function handle(request: Request): Promise<Response> {
         { status: 400 }
       );
     }
-    const needsReview =
-      !unlisted && (claimCreatorBonus === true || !(await publishesWithoutReview(db, user.role, course.teacherId)));
+    const needsReview = claimCreatorBonus === true || !publishesWithoutReview(user.role);
     if (user.role !== "admin" && (await hasPendingReview(db, "course", courseId))) {
       return new Response(
         superjson.stringify({ error: alreadyInReviewMessage("course") }),

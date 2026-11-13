@@ -5,7 +5,7 @@ import { useMentorshipTeacherOfferingsQuery } from "../helpers/useMentorship";
 import { useLiveCoursesQuery } from "../helpers/useLiveCourses";
 import { LIVE_COURSE_LIST_PATH, formatIstDate, liveCoursePath } from "../helpers/liveCourseRules";
 import { liveBookingPath } from "../helpers/liveBookingRoutes";
-import { trialPriceFor, formatClassLength, LiveClassMinutes } from "../helpers/livePricing";
+import { trialPriceFor, classLengthName, LiveClassMinutes } from "../helpers/livePricing";
 import { LiveSessionDateTile } from "./LiveSession";
 import styles from "./TeacherLiveTeachingCard.module.css";
 
@@ -107,7 +107,8 @@ export const TeacherLiveTeachingCard: React.FC<TeacherLiveTeachingCardProps> = (
                     <Link to={liveBookingPath(teacherRef, d.durationMinutes)} className={styles.option}>
                       <span className={styles.optionLength}>
                         <Clock size={15} aria-hidden="true" />
-                        {formatClassLength(d.durationMinutes)}
+                        {classLengthName(d.durationMinutes)}
+                        <span className={styles.optionMins}>{d.durationMinutes} min</span>
                       </span>
                       <span className={styles.optionPrice}>
                         {formatPrice(showTrial ? trial : d.price)}

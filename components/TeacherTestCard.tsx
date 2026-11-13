@@ -98,7 +98,7 @@ export const TeacherTestCard: React.FC<TeacherTestCardProps> = ({
   const [isShareOpen, setShareOpen] = React.useState(false);
   const [coverFailed, setCoverFailed] = React.useState(false);
   // Toasts its own success and error and refreshes the list, so the card
-  // moves to In review (or Published, for a verified teacher) once it lands.
+  // moves to In review (or Published, for an admin) once it lands.
   const publishMutation = useTeacherTestMutations().usePublishTestMutation();
   const publishesDirectly = usePublishesWithoutReview();
   const testUrl = buildPublicAssetUrl('test-series', test.slug);

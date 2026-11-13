@@ -41,8 +41,8 @@ export async function fetchExpertsListServer(rawInput: Record<string, unknown>):
     baseQuery = baseQuery.where("isVerified", "=", true);
   }
 
-  // Price filters and sorting use the 60-minute class price.
-  const priceExpr = sql<number>`GREATEST(COALESCE(mentorship_class_price60, 0), ${MENTORSHIP_MIN_CLASS_PRICE[60]})`;
+  // Price filters and sorting use the full session (50 min) class price.
+  const priceExpr = sql<number>`GREATEST(COALESCE(mentorship_class_price60, 0), ${MENTORSHIP_MIN_CLASS_PRICE[50]})`;
 
   if (input.minPrice != null) {
     baseQuery = baseQuery.where(priceExpr, ">=", input.minPrice);
@@ -154,9 +154,9 @@ export async function fetchExpertsListServer(rawInput: Record<string, unknown>):
         teachingCategories: asStringArray(r.teachingCategories),
         languages: asStringArray(r.languages),
         mentorshipEnabled: r.mentorshipEnabled,
-        price60: livePrices?.class60 ?? null,
-        trialPrice60: livePrices?.trial60 ?? null,
-        trialFrom: livePrices ? Math.min(livePrices.trial30, livePrices.trial60) : null,
+        priceFull: livePrices?.classFull ?? null,
+        trialPriceFull: livePrices?.trialFull ?? null,
+        trialFrom: livePrices ? Math.min(livePrices.trialShort, livePrices.trialFull) : null,
         rating: totalReviews > 0 ? Math.round((ratingWeightedSum / totalReviews) * 10) / 10 : null,
         reviewsCount: totalReviews,
         studentsCount: parseInt(r.totalStudents as any, 10),
@@ -170,8 +170,8 @@ export async function fetchExpertsListServer(rawInput: Record<string, unknown>):
     currentPage: page,
     totalPages,
     priceBounds: {
-      min: priceBoundsRow?.min != null ? Math.floor(Number(priceBoundsRow.min)) : MENTORSHIP_MIN_CLASS_PRICE[60],
-      max: priceBoundsRow?.max != null ? Math.ceil(Number(priceBoundsRow.max)) : MENTORSHIP_MIN_CLASS_PRICE[60],
+      min: priceBoundsRow?.min != null ? Math.floor(Number(priceBoundsRow.min)) : MENTORSHIP_MIN_CLASS_PRICE[50],
+      max: priceBoundsRow?.max != null ? Math.ceil(Number(priceBoundsRow.max)) : MENTORSHIP_MIN_CLASS_PRICE[50],
     },
   };
 }

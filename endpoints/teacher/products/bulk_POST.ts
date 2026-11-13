@@ -56,7 +56,7 @@ export async function handle(request: Request): Promise<Response> {
             .orderBy("id", "asc")
             .execute()
         : [];
-      needsReview = !(await publishesWithoutReview(db, user.role, effectiveTeacherId));
+      needsReview = !publishesWithoutReview(user.role);
       const alreadyInReview = user.role !== "admin"
         ? await pendingReviewIds(db, "digital_product", candidateIds)
         : new Set<number>();
@@ -90,9 +90,7 @@ export async function handle(request: Request): Promise<Response> {
         }
         succeeded.push(p.id);
       }
-      // Unlisted study notes skip review and go live at once (helpers/contentVisibility).
-      const unlistedIds = new Set(products.filter((p) => p.visibility === "unlisted").map((p) => p.id));
-      const reviewIds = needsReview ? succeeded.filter((id) => !unlistedIds.has(id)) : [];
+      const reviewIds = needsReview ? succeeded : [];
       const goLiveIds = succeeded.filter((id) => !reviewIds.includes(id));
       for (const p of products.filter((row) => reviewIds.includes(row.id))) {
         await queueContentReview(db, { contentType: "digital_product", contentId: p.id, teacherId: p.teacherId });

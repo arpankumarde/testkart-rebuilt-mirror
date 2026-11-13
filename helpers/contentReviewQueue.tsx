@@ -10,10 +10,9 @@ type Executor = Kysely<DB> | Transaction<DB>;
 /*
  * Teacher content goes live only after an admin approves it. A teacher's
  * publish action queues a pending contentReviews row; admin/content-reviews
- * approves it (publishApprovedContent) or rejects it with a note. Admin users
- * and verified teachers publish directly (publishesWithoutReview), except that
- * a Creator Bonus claim always goes through review, since crediting needs an
- * approved review. An item already waiting for review stays in the queue: it
+ * approves it (publishApprovedContent) or rejects it with a note. Only admin
+ * users publish directly (publishesWithoutReview); every teacher, verified or
+ * not, goes through review. An item already waiting for review stays in the queue: it
  * cannot be published around it. Bundles skip review: they publish at once, but only when
  * every item in them is already published. The admin preview page can also make
  * any item live, move it back to draft or reject it after it went live
@@ -27,10 +26,11 @@ type Executor = Kysely<DB> | Transaction<DB>;
  * holds a review for content that is gone. A Creator Bonus claim made with that
  * review is withdrawn with it (helpers/teacherCampaign).
  *
- * Unlisted content (helpers/contentVisibility) skips review and goes live at
- * once. A review is therefore always a request to list an item publicly: an
- * approval also sets its visibility to public, and an unlisted item that is
- * already live stays live while its request to go public waits.
+ * Unlisted content (helpers/contentVisibility) goes through review too. An
+ * approval puts an item live with the visibility the teacher chose, so an
+ * unlisted item goes live as unlisted. The one exception is a live unlisted
+ * item's request to go public: it stays live and unlisted while that waits,
+ * and its approval sets it public.
  */
 
 export const REVIEW_QUEUED_NOTE =
@@ -50,23 +50,9 @@ export class ContentGoneError extends Error {
 export const contentGoneMessage = (contentType: ContentType) =>
   `The teacher deleted this ${CONTENT_NOUNS[contentType]}, so it was removed from the review queue. No email was sent.`;
 
-/**
- * Whether a publish by this user goes live at once. The badge checked is the
- * owning teacher's, so a team manager publishes under the owner's verification.
- * isVerified is the paid-subscription badge, also set by admins.
- */
-export async function publishesWithoutReview(
-  executor: Executor,
-  role: string,
-  teacherId: number
-): Promise<boolean> {
-  if (role === "admin") return true;
-  const owner = await executor
-    .selectFrom("users")
-    .select("isVerified")
-    .where("id", "=", teacherId)
-    .executeTakeFirst();
-  return owner?.isVerified === true;
+/** Whether a publish by this user goes live at once. Only admins skip review; verified teachers do not. */
+export function publishesWithoutReview(role: string): boolean {
+  return role === "admin";
 }
 
 /** Queues content for admin review. Returns the new review's id, or null when it is already waiting. */
@@ -185,6 +171,9 @@ export async function publishApprovedContent(
   contentId: number,
   now: Date
 ): Promise<void> {
+  const state = await loadContentState(trx, contentType, contentId);
+  const publicRequest = state?.live === true && state.visibility === "unlisted";
+  const visibility = publicRequest ? { visibility: "public" as const } : {};
   switch (contentType) {
     case "mock_test": {
       const test = await trx
@@ -196,7 +185,7 @@ export async function publishApprovedContent(
       if (test.deletedAt) throw new Error("The teacher moved this test series to the Trash.");
       await trx
         .updateTable("mockTests")
-        .set({ isPublished: true, wasEverPublished: true, visibility: "public", updatedAt: now })
+        .set({ isPublished: true, wasEverPublished: true, ...visibility, updatedAt: now })
         .where("id", "=", contentId)
         .execute();
       return;
@@ -205,7 +194,7 @@ export async function publishApprovedContent(
     case "course": {
       const result = await trx
         .updateTable("courses")
-        .set({ status: "published", publishedAt: now, visibility: "public", updatedAt: now })
+        .set({ status: "published", publishedAt: now, ...visibility, updatedAt: now })
         .where("id", "=", contentId)
         .executeTakeFirst();
       if (Number(result.numUpdatedRows) === 0) throw new ContentGoneError(contentType);
@@ -215,7 +204,7 @@ export async function publishApprovedContent(
     case "digital_product": {
       const result = await trx
         .updateTable("digitalProducts")
-        .set({ status: "published", isPublished: true, publishedAt: now, visibility: "public", updatedAt: now })
+        .set({ status: "published", isPublished: true, publishedAt: now, ...visibility, updatedAt: now })
         .where("id", "=", contentId)
         .executeTakeFirst();
       if (Number(result.numUpdatedRows) === 0) throw new ContentGoneError(contentType);
@@ -225,7 +214,7 @@ export async function publishApprovedContent(
     case "course_bundle": {
       const result = await trx
         .updateTable("courseBundles")
-        .set({ isPublished: true, publishedAt: now, visibility: "public", updatedAt: now })
+        .set({ isPublished: true, publishedAt: now, ...visibility, updatedAt: now })
         .where("id", "=", contentId)
         .executeTakeFirst();
       if (Number(result.numUpdatedRows) === 0) throw new ContentGoneError(contentType);
@@ -256,10 +245,12 @@ export async function publishApprovedContent(
       // unpublished, or it shows up as a separate mock test on the marketplace.
       await trx
         .updateTable("liveTests")
-        .set({ isActive: true, visibility: "public", updatedAt: now })
+        .set({ isActive: true, ...visibility, updatedAt: now })
         .where("id", "=", contentId)
         .execute();
-      await trx.updateTable("mockTests").set({ visibility: "public", updatedAt: now }).where("id", "=", liveTest.mockTestId).execute();
+      if (publicRequest) {
+        await trx.updateTable("mockTests").set({ visibility: "public", updatedAt: now }).where("id", "=", liveTest.mockTestId).execute();
+      }
       return;
     }
   }

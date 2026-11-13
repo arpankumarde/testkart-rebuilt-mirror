@@ -30,10 +30,10 @@ import { expertsDirectoryQuery } from "../helpers/expertsDirectoryQuery";
 import { getExpertsList } from "../endpoints/experts/list_GET.schema";
 import type { ExpertListItem, ExpertSortValue } from "../endpoints/experts/list_GET.schema";
 import { getExpertSubjects } from "../endpoints/experts/subjects_GET.schema";
+import { FULL_SESSION_MINUTES } from "../helpers/liveLessonConfig";
 import styles from "./expert.module.css";
 
-/* Cards and the price filter use the 60-minute class price. */
-const SESSION_MINUTES = 60;
+/* Cards and the price filter use the full session class price. */
 const SITE_ORIGIN = "https://testkart.in";
 const BASE_PATH = "/expert";
 const PAGE_TITLE = "Online 1:1 Tutors for Exam Prep in India";
@@ -161,10 +161,10 @@ const TutorCard: React.FC<{ teacher: ExpertListItem; index: number }> = ({ teach
               <span className={styles.priceValue}>₹{formatCount(teacher.trialFrom)}</span>
             </div>
           ) : (
-            teacher.price60 != null && (
+            teacher.priceFull != null && (
               <div className={styles.price}>
-                <span className={styles.priceValue}>₹{formatCount(teacher.price60)}</span>
-                <span className={styles.priceUnit}>{SESSION_MINUTES}-min session</span>
+                <span className={styles.priceValue}>₹{formatCount(teacher.priceFull)}</span>
+                <span className={styles.priceUnit}>Full session, {FULL_SESSION_MINUTES} min</span>
               </div>
             )
           )}
@@ -362,7 +362,7 @@ const ExpertsDirectoryPage: React.FC = () => {
     <>
       <div className={styles.filterGroup} role="group" aria-labelledby="expert-price-label">
         <span id="expert-price-label" className={styles.filterLabel}>
-          Price per {SESSION_MINUTES}-min session (₹)
+          Price per full session (₹)
         </span>
         <div className={styles.priceRow}>
           <Input
