@@ -8,8 +8,6 @@ export const schema = z
   .object({
     from: z.coerce.date(),
     to: z.coerce.date(),
-    /** Comma-separated session kinds; omitted means both. */
-    kinds: z.string().optional(),
     /** The teacher's session status. */
     status: z.enum(["scheduled", "completed", "missed", "cancelled"]).optional(),
     teacherId: z.coerce.number().int().positive().optional(),
@@ -25,8 +23,9 @@ export type InputType = z.input<typeof schema>;
 /** Did the teacher hold the session. */
 export type LiveSessionStatus = "scheduled" | "completed" | "missed" | "cancelled";
 
+/** A 1:1 session. Live course classes are on the Live courses admin page, not here. */
 export type LiveCalendarEvent = {
-  kind: "booking" | "group";
+  kind: "booking";
   id: string;
   title: string;
   teacherId: number;
@@ -39,7 +38,6 @@ export type LiveCalendarEvent = {
   status: LiveSessionStatus;
   /** Still scheduled although its end time has passed: nobody has marked it yet. */
   unmarked: boolean;
-  /** 1 for a 1:1 session; enrolled learners for a group lesson. */
   studentCount: number;
   maxCapacity: number | null;
   price: number;
@@ -57,7 +55,6 @@ export const getAdminLiveCalendar = async (input: InputType, init?: RequestInit)
   const params = new URLSearchParams();
   params.set("from", new Date(input.from as Date | string).toISOString());
   params.set("to", new Date(input.to as Date | string).toISOString());
-  if (input.kinds) params.set("kinds", input.kinds);
   if (input.status) params.set("status", input.status);
   if (input.teacherId) params.set("teacherId", String(input.teacherId));
   if (input.q) params.set("q", input.q);

@@ -31,7 +31,8 @@ export async function handle(request: Request): Promise<Response> {
         .where("id", "=", bookingId)
         .execute();
       if (resolution !== "refunded" || !b.creditId) return null;
-      return returnCredit(trx, b.creditId);
+      // The sweep may already have spent the credit; an upheld report gives it back either way.
+      return returnCredit(trx, b.creditId, ["booked", "spent"]);
     });
 
     if (outcome) await sendClassRefundedEmail(bookingId, outcome);

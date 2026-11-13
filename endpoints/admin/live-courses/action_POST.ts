@@ -1,7 +1,14 @@
 import superjson from "superjson";
 import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
-import { actorStamp, recordSessionEvent, type LiveActor } from "../../../helpers/liveSessionLifecycle";
+import {
+  LiveLifecycleError,
+  actorStamp,
+  completeLiveSession,
+  markGroupLessonMissed,
+  recordSessionEvent,
+  type LiveActor,
+} from "../../../helpers/liveSessionLifecycle";
 import {
   LiveCourseError,
   cancelWholeCourse,
@@ -101,6 +108,56 @@ export async function handle(request: Request) {
         await sendClassChangeNotices(courseId, [{ kind: "cancelled", title: cls.title, startTime: cls.startTime, reason: input.reason }]);
       }
       message = "Class cancelled.";
+    }
+
+    if (input.action === "class_outcome" || input.action === "attendance") {
+      const cls = await db
+        .selectFrom("groupLessons")
+        .select(["id", "liveCourseId", "startTime"])
+        .where("id", "=", input.classId)
+        .executeTakeFirst();
+      if (!cls?.liveCourseId) throw new LiveCourseError("Class not found.", 404);
+      if (new Date(cls.startTime).getTime() > Date.now()) throw new LiveCourseError("This class hasn't started yet.");
+      const courseId = cls.liveCourseId;
+
+      if (input.action === "class_outcome") {
+        try {
+          if (input.outcome === "held") {
+            const r = await completeLiveSession({ kind: "group", id: cls.id, actor, settleNow: true, reason: input.reason });
+            message = r.changed ? "Class marked held." : "This class was already marked held.";
+          } else {
+            const r = await markGroupLessonMissed({ id: cls.id, actor, reason: input.reason });
+            await syncCourseDates(db, courseId);
+            message = r.changed ? "Class marked missed. Students are not refunded automatically." : "This class was already marked missed.";
+          }
+        } catch (e) {
+          if (e instanceof LiveLifecycleError) throw new LiveCourseError(e.message.replace(/group lesson|lesson/g, "class"));
+          throw e;
+        }
+      } else {
+        const enrolled = await db
+          .selectFrom("liveCourseEnrollments")
+          .select("studentId")
+          .where("liveCourseId", "=", courseId)
+          .where("studentId", "in", input.marks.map((m) => m.studentId))
+          .execute();
+        const allowed = new Set(enrolled.map((e) => e.studentId));
+        const marks = input.marks.filter((m) => allowed.has(m.studentId));
+        if (marks.length === 0) throw new LiveCourseError("None of these students are in this course.");
+        await db
+          .insertInto("liveCourseAttendance")
+          .values(marks.map((m) => ({ groupLessonId: cls.id, studentId: m.studentId, present: m.present, source: "teacher", markedBy: by })))
+          .onConflict((oc) =>
+            oc.columns(["groupLessonId", "studentId"]).doUpdateSet((eb) => ({
+              present: eb.ref("excluded.present"),
+              source: "teacher",
+              markedBy: by,
+              markedAt: new Date(),
+            }))
+          )
+          .execute();
+        message = `Attendance saved for ${marks.length} student${marks.length === 1 ? "" : "s"}.`;
+      }
     }
 
     const output: OutputType = { message };

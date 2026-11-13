@@ -1,12 +1,10 @@
 import React from "react";
-import { CalendarClock, CalendarX2, DoorOpen, Lock, Timer, Users, Video } from "lucide-react";
+import { CalendarClock, CalendarX2, DoorOpen, Lock, Timer, Video } from "lucide-react";
 import {
   JOIN_WINDOW_MINUTES_BEFORE,
   JOIN_WINDOW_MINUTES_AFTER,
   FREE_CANCELLATION_CUTOFF_HOURS,
   BOOKING_MIN_NOTICE_MINUTES,
-  GROUP_LESSON_MIN_CAPACITY,
-  GROUP_LESSON_MAX_CAPACITY,
   MENTORSHIP_SESSION_DURATIONS,
   VIDEO_PROVIDER_MODE,
 } from "../helpers/liveLessonConfig";
@@ -23,7 +21,7 @@ type Policy = {
   tone: Tone;
 };
 
-/* Read-only view of the code-level live lesson policy constants in helpers/liveLessonConfig. */
+/* Read-only view of the code-level 1:1 live class policy constants in helpers/liveLessonConfig. */
 export const AdminLivePolicyCard: React.FC<{ className?: string }> = ({ className }) => {
   const isMock = VIDEO_PROVIDER_MODE === "mock";
 
@@ -61,14 +59,6 @@ export const AdminLivePolicyCard: React.FC<{ className?: string }> = ({ classNam
       tone: "sage",
     },
     {
-      key: "capacity",
-      label: "Group capacity",
-      value: `${GROUP_LESSON_MIN_CAPACITY}-${GROUP_LESSON_MAX_CAPACITY} learners`,
-      hint: "Enforced on every group lesson",
-      icon: <Users />,
-      tone: "mint",
-    },
-    {
       key: "video",
       label: "Video provider",
       value: (
@@ -90,7 +80,7 @@ export const AdminLivePolicyCard: React.FC<{ className?: string }> = ({ classNam
           <h2 id="live-policy-title" className={styles.title}>
             Session policies
           </h2>
-          <p className={styles.subtitle}>Rules the platform enforces on every booking and group lesson.</p>
+          <p className={styles.subtitle}>Rules the platform enforces on every 1:1 booking.</p>
         </div>
         <span className={styles.readOnly} title="These are system-level defaults set in code. They cannot be edited here.">
           <Lock aria-hidden="true" />

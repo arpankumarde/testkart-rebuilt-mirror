@@ -3,8 +3,11 @@ import { db } from "./db";
 import { AUTO_COMPLETE_AFTER_MINUTES, COMPLETION_OVERDUE_HOURS, COMPLETION_REMINDER_MAX_AGE_DAYS } from "./liveLessonConfig";
 import {
   abandonPendingPackage,
+  cancelAbandonedMandates,
+  confirmRaisedCharge,
   failRenewal,
   raiseRenewalCharge,
+  reconcileAbandonedMandate,
   returnCredit,
   settleLivePackageCheckout,
   settleLiveRenewal,
@@ -12,6 +15,7 @@ import {
   startLiveRenewal,
   stopLivePackage,
 } from "./livePackages";
+import { DEAD_SUBSCRIPTION_STATUSES } from "./cashfreeSubscriptions";
 import { sendClassRefundedEmail, sendClassReminderEmails, sendCompletionOverdueEmail, sendTrialFollowUpEmail } from "./livePackageEmails";
 import { sendClassReminderWhatsApp } from "./liveClassWhatsApp";
 import { recordSessionEvent, sessionStatusOf } from "./liveSessionLifecycle";
@@ -35,7 +39,7 @@ async function part(name: string, work: () => Promise<void>) {
   }
 }
 
-/** First checkouts whose return or webhook never arrived. Gives up after a day. */
+/** First checkouts whose return or webhook never arrived. Gives up after a day and cancels the mandate. */
 async function settleStaleCheckouts() {
   const rows = await db
     .selectFrom("livePackages")
@@ -47,8 +51,36 @@ async function settleStaleCheckouts() {
   for (const row of rows) {
     const outcome = await settleLivePackageCheckout(row.id).catch(() => ({ status: "pending" as const }));
     if (outcome.status === "pending" && new Date(row.createdAt).getTime() < Date.now() - DAY_MS) {
-      await db.transaction().execute((trx) => abandonPendingPackage(trx, row.id, "The checkout was not completed."));
+      const abandoned = await db.transaction().execute((trx) => abandonPendingPackage(trx, row.id, "The checkout was not completed."));
+      await cancelAbandonedMandates(abandoned);
     }
+  }
+}
+
+/**
+ * Mandates of abandoned or replaced checkouts that Cashfree may still treat as live: cancelled
+ * there, and an authorisation that was paid anyway becomes live class balance.
+ */
+async function settleAbandonedMandates() {
+  const rows = await db
+    .selectFrom("liveMandates")
+    .innerJoin("livePackages", "livePackages.id", "liveMandates.packageId")
+    .select("liveMandates.subscriptionId")
+    .where("liveMandates.status", "=", "failed")
+    .where("livePackages.status", "=", "failed")
+    .where("liveMandates.createdAt", ">", new Date(Date.now() - 2 * DAY_MS))
+    .where((eb) =>
+      eb.or([
+        eb("liveMandates.gatewayStatus", "is", null),
+        eb("liveMandates.gatewayStatus", "not in", [...DEAD_SUBSCRIPTION_STATUSES, "NOT_FOUND"]),
+      ])
+    )
+    .limit(20)
+    .execute();
+  for (const row of rows) {
+    await reconcileAbandonedMandate(row.subscriptionId).catch((error) =>
+      console.error(`[liveTeachingSweep] abandoned mandate ${row.subscriptionId}:`, error)
+    );
   }
 }
 
@@ -56,7 +88,9 @@ async function startDueRenewals() {
   const due = await sql<{ id: string }>`
     SELECT p.id FROM live_packages p
     JOIN LATERAL (
-      SELECT status, ends_at FROM live_package_cycles c WHERE c.package_id = p.id ORDER BY cycle_number DESC LIMIT 1
+      SELECT status, ends_at FROM live_package_cycles c
+      WHERE c.package_id = p.id AND c.status <> 'cancelled'
+      ORDER BY cycle_number DESC LIMIT 1
     ) last ON TRUE
     WHERE p.status = 'active' AND p.auto_renew AND last.status = 'paid' AND last.ends_at <= now() + interval '2 days'
     LIMIT 50
@@ -64,6 +98,11 @@ async function startDueRenewals() {
   for (const row of due.rows) await startLiveRenewal(row.id);
 }
 
+/**
+ * Raises and polls renewal debits. A debit that could not be raised by a day after the cycle
+ * starts fails, unless Cashfree turns out to hold it. Cycles failed or cancelled in the last
+ * three days with a raised debit are polled too, so a late debit still completes them.
+ */
 async function raiseAndPollCharges() {
   const cycles = await db
     .selectFrom("livePackageCycles")
@@ -75,13 +114,26 @@ async function raiseAndPollCharges() {
   for (const c of cycles) {
     if (!c.chargeRequestedAt) {
       if (new Date(c.startsAt).getTime() + DAY_MS < Date.now()) {
-        await failRenewal(c.id, "We could not set up the autopay debit.");
+        if (!(await confirmRaisedCharge(c.id))) await failRenewal(c.id, "We could not set up the autopay debit.");
       } else {
         await raiseRenewalCharge(c.id);
       }
       continue;
     }
     await settleLiveRenewal(c.id).catch((error) => console.error(`[liveTeachingSweep] renewal ${c.id}:`, error));
+  }
+
+  const late = await db
+    .selectFrom("livePackageCycles")
+    .select("id")
+    .where("status", "in", ["failed", "cancelled"])
+    .where("paymentId", "is not", null)
+    .where("chargeRequestedAt", "is not", null)
+    .where("updatedAt", ">", new Date(Date.now() - 3 * DAY_MS))
+    .limit(50)
+    .execute();
+  for (const c of late) {
+    await settleLiveRenewal(c.id).catch((error) => console.error(`[liveTeachingSweep] late renewal ${c.id}:`, error));
   }
 }
 
@@ -102,7 +154,9 @@ async function endLapsedPackages() {
   const finished = await sql<{ id: string }>`
     SELECT p.id FROM live_packages p
     JOIN LATERAL (
-      SELECT status, ends_at FROM live_package_cycles c WHERE c.package_id = p.id ORDER BY cycle_number DESC LIMIT 1
+      SELECT status, ends_at FROM live_package_cycles c
+      WHERE c.package_id = p.id AND c.status <> 'cancelled'
+      ORDER BY cycle_number DESC LIMIT 1
     ) last ON TRUE
     WHERE p.status = 'active' AND NOT p.auto_renew AND last.status = 'paid' AND last.ends_at < now()
     LIMIT 50
@@ -205,7 +259,7 @@ async function settleFinishedClasses() {
       });
       return returnCredit(trx, creditId);
     });
-    await sendClassRefundedEmail(b.id, outcome);
+    if (outcome) await sendClassRefundedEmail(b.id, outcome);
   }
 }
 
@@ -278,6 +332,7 @@ async function sendReminders() {
 
 export async function runLiveTeachingSweep(): Promise<void> {
   await part("checkouts", settleStaleCheckouts);
+  await part("abandoned mandates", settleAbandonedMandates);
   await part("renewals", startDueRenewals);
   await part("charges", raiseAndPollCharges);
   await part("lapsed", endLapsedPackages);

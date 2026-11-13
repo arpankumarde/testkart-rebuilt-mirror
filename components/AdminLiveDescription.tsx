@@ -1,10 +1,9 @@
 import React from "react";
-import { CalendarCheck2, DoorOpen, Flag, Users, Video } from "lucide-react";
+import { CalendarCheck2, DoorOpen, Flag, Video } from "lucide-react";
 import { AdminLivePolicyCard } from "./AdminLivePolicyCard";
 import {
   BOOKING_MIN_NOTICE_MINUTES,
   FREE_CANCELLATION_CUTOFF_HOURS,
-  GROUP_LESSON_MAX_CAPACITY,
   ISSUE_REPORT_WINDOW_HOURS,
   JOIN_WINDOW_MINUTES_AFTER,
   JOIN_WINDOW_MINUTES_BEFORE,
@@ -19,12 +18,6 @@ const STEPS = [
     tone: "powder",
     title: "1:1 sessions",
     body: `Learners book an approved teacher for ${MENTORSHIP_SESSION_DURATIONS.join(" or ")} minutes, as a trial or as part of a ${PACKAGE_WEEKS}-week package, at least ${BOOKING_MIN_NOTICE_MINUTES} minutes ahead.`,
-  },
-  {
-    icon: <Users />,
-    tone: "lavender",
-    title: "Group lessons",
-    body: `Teachers schedule a lesson with a seat limit of up to ${GROUP_LESSON_MAX_CAPACITY} learners, and learners buy a seat.`,
   },
   {
     icon: <DoorOpen />,
@@ -52,11 +45,11 @@ export const AdminLiveDescription: React.FC = () => (
     <section className={styles.overview} aria-labelledby="live-overview-title">
       <div className={styles.overviewHead}>
         <h2 id="live-overview-title" className={styles.title}>
-          How Testkart Live Lessons work
+          How 1:1 live classes work
         </h2>
         <p className={styles.lead}>
-          Teachers run live classes on Testkart in two formats, 1:1 sessions and group lessons. Learners pay up front and join
-          the live room from the app or the website.
+          Approved teachers give 1:1 live classes on Testkart. Learners pay up front and join the live room from the app or the
+          website. Multi-week live batches are run as live courses, managed on their own admin page.
         </p>
       </div>
       <ol className={styles.steps}>

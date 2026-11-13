@@ -4,7 +4,7 @@ import { schema, InputType, OutputType } from "./purchase_POST.schema";
 import { isTeacherSlotBookable } from "../../helpers/mentorshipSlots";
 import { CHECKOUT_HOLD_MINUTES } from "../../helpers/liveLessonConfig";
 import { isLiveClassMinutes, pricesMeetFloors, resolveLivePrices, trialPriceFor } from "../../helpers/livePricing";
-import { getLiveBalance, getLivePackageFor, getTrialState, isStudentFree, roundMoney } from "../../helpers/livePackages";
+import { getLiveBalance, getLivePackageFor, getTrialState, isStudentFree, roundMoney, studentBalanceLock } from "../../helpers/livePackages";
 import { ensureOrderCompletionSideEffects } from "../../helpers/ensureOrderCompletionSideEffects";
 import superjson from "superjson";
 import { nanoid } from "nanoid";
@@ -13,8 +13,8 @@ import { getTeacherPlatformFee, DEFAULT_TEACHER_PLATFORM_FEE } from "../../helpe
 import { getOrderClientInfo } from "../../helpers/orderClientInfo";
 import { getOrderAttribution } from "../../helpers/getOrderAttribution";
 import { recordFunnelEvent } from "../../helpers/recordFunnelEvent";
-import { openCashfreeSession } from "../../helpers/cashfreeOrders";
-import { getCashfreeConfig } from "../../helpers/cashfree";
+import { openCashfreeSession, settleCashfreeOrder } from "../../helpers/cashfreeOrders";
+import { cashfreeGatewayEnv, terminateCashfreeOrder } from "../../helpers/cashfree";
 import { liveBookingPath } from "../../helpers/liveBookingRoutes";
 
 export async function handle(request: Request) {
@@ -58,6 +58,26 @@ export async function handle(request: Request) {
       throw new Error("This teacher does not currently offer 1:1 sessions.");
     }
 
+    // A newer checkout replaces an older unpaid one, so a stale order cannot later book a different
+    // slot. Each is terminated at Cashfree first; one Cashfree will not terminate (it may be paid)
+    // is settled and otherwise left pending, never cancelled while it can still take money.
+    const older = await db
+      .selectFrom("orders")
+      .select(["id", "paymentTransactionId"])
+      .where("userId", "=", user.id)
+      .where("status", "=", "pending")
+      .where("paymentMethod", "=", "cashfree")
+      .where("paymentTransactionId", "like", `mentorship-${teacherId}-%`)
+      .execute();
+    const terminated: number[] = [];
+    for (const o of older) {
+      if (o.paymentTransactionId && (await terminateCashfreeOrder(o.paymentTransactionId))) {
+        terminated.push(o.id);
+      } else {
+        await settleCashfreeOrder(o.id).catch((error) => console.error(`[mentorship/purchase] Could not settle order ${o.id}:`, error));
+      }
+    }
+
     const [trialState, livePackage] = await Promise.all([getTrialState(user.id, teacherId), getLivePackageFor(user.id, teacherId)]);
     if (livePackage) throw new Error("You already have a package with this teacher. Book from your classes page.");
     if (trialState === "booked") throw new Error("Your trial with this teacher is already booked.");
@@ -70,25 +90,24 @@ export async function handle(request: Request) {
     }
 
     const price = roundMoney(trialPriceFor(prices, durationMinutes));
-    const balance = await getLiveBalance(user.id);
-    const balanceUsed = roundMoney(Math.max(0, Math.min(balance, price)));
-    const toPay = roundMoney(price - balanceUsed);
-    const coveredHere = toPay <= 0;
-
-    if (!coveredHere) getCashfreeConfig();
-
     const cashfreeOrderId = `mentorship-${teacherId}-${durationMinutes}-${nanoid(12)}`;
     const platformFeePercentage = await getTeacherPlatformFee(teacherId).catch(() => DEFAULT_TEACHER_PLATFORM_FEE);
 
-    const orderId = await db.transaction().execute(async (trx) => {
-      // A newer checkout replaces an older unpaid one, so a stale order cannot later book a different slot.
-      await trx
-        .updateTable("orders")
-        .set({ status: "cancelled" })
-        .where("userId", "=", user.id)
-        .where("status", "=", "pending")
-        .where("paymentTransactionId", "like", `mentorship-${teacherId}-%`)
-        .execute();
+    const created = await db.transaction().execute(async (trx) => {
+      if (terminated.length > 0) {
+        await trx
+          .updateTable("orders")
+          .set({ status: "cancelled", updatedAt: new Date() })
+          .where("id", "in", terminated)
+          .where("status", "=", "pending")
+          .execute();
+      }
+
+      await studentBalanceLock(user.id).execute(trx);
+      const balance = await getLiveBalance(user.id, trx);
+      const balanceUsed = roundMoney(Math.max(0, Math.min(balance, price)));
+      const toPay = roundMoney(price - balanceUsed);
+      const coveredHere = toPay <= 0;
 
       const newOrder = await trx
         .insertInto("orders")
@@ -102,7 +121,7 @@ export async function handle(request: Request) {
           paymentTransactionId: cashfreeOrderId,
           liveBalanceUsed: balanceUsed.toFixed(2),
           liveHoldUntil: new Date(Date.now() + CHECKOUT_HOLD_MINUTES * 60000),
-          ...(coveredHere ? { paidAt: new Date() } : {}),
+          ...(coveredHere ? { paidAt: new Date() } : { gatewayEnv: cashfreeGatewayEnv() }),
         })
         .returning("id")
         .executeTakeFirstOrThrow();
@@ -121,8 +140,9 @@ export async function handle(request: Request) {
         })
         .execute();
 
-      return newOrder.id;
+      return { orderId: newOrder.id, toPay, coveredHere };
     });
+    const { orderId, toPay, coveredHere } = created;
 
     if (coveredHere) {
       await ensureOrderCompletionSideEffects(orderId);

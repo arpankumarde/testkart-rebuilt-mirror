@@ -6,12 +6,14 @@ import { Skeleton } from "../components/Skeleton";
 import { TeacherOnboardingQuiz } from "../components/TeacherOnboardingQuiz";
 import { TeamStatusBanner } from "../components/TeamStatusBanner";
 import { teacherConsoleClass } from "../components/TeacherConsoleTheme";
-import { BRAND_LOGO_LIGHT } from "../helpers/brandAssets";
+import { getBrandLogo } from "../helpers/brandAssets";
+import { useDarkModeObserver } from "../helpers/useDarkModeObserver";
 import styles from "./teacher.onboarding.module.css";
 
 export default function TeacherOnboardingPage() {
   const { authState } = useAuth();
   const navigate = useNavigate();
+  const isDarkMode = useDarkModeObserver();
 
   // Redirect if already onboarded, or a team manager, who works in the owner's academy
   useEffect(() => {
@@ -48,7 +50,7 @@ export default function TeacherOnboardingPage() {
         <header className={styles.topBar}>
           <Link to="/" className={styles.logo}>
             <img
-              src={BRAND_LOGO_LIGHT}
+              src={getBrandLogo(isDarkMode)}
               alt="Testkart"
               className={styles.logoImage}
             />

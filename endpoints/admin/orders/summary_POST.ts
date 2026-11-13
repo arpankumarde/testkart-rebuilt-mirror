@@ -66,7 +66,7 @@ export async function handle(request: Request) {
         .select([
           sql<string>`count(*)`.as("orders"),
           sql<string>`count(*) filter (where orders.status = 'completed')`.as("completed"),
-          sql<string>`coalesce(sum(orders.total_amount) filter (where orders.status = 'completed'), 0)`.as("revenue"),
+          sql<string>`coalesce(sum(orders.total_amount) filter (where orders.status = 'completed' and orders.gateway_env is distinct from 'sandbox'), 0)`.as("revenue"),
           sql<string>`count(*) filter (where orders.status = 'pending')`.as("pending"),
           sql<string>`count(*) filter (where orders.status = 'failed')`.as("failed"),
           sql<string>`count(*) filter (where orders.status = 'cancelled')`.as("cancelled"),
@@ -82,7 +82,7 @@ export async function handle(request: Request) {
           KEY_EXPR[input.breakdown].as("key"),
           sql<string>`count(*)`.as("orders"),
           sql<string>`count(*) filter (where orders.status = 'completed')`.as("completed"),
-          sql<string>`coalesce(sum(orders.total_amount) filter (where orders.status = 'completed'), 0)`.as("revenue"),
+          sql<string>`coalesce(sum(orders.total_amount) filter (where orders.status = 'completed' and orders.gateway_env is distinct from 'sandbox'), 0)`.as("revenue"),
         ])
         .where(where)
         .groupBy(sql`1`)

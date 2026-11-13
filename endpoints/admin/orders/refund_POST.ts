@@ -5,6 +5,7 @@ import superjson from "superjson";
 import { revokeOrderAccess, RevokeOrderAccessResult } from "../../../helpers/revokeOrderAccess";
 import { sendEmail } from "../../../helpers/sendEmail";
 import { emailTemplatesExtra } from "../../../helpers/emailTemplatesExtra";
+import { stopLivePackage } from "../../../helpers/livePackages";
 
 export async function handle(request: Request) {
   try {
@@ -71,8 +72,15 @@ export async function handle(request: Request) {
     });
 
     if (revoked) {
-      const { removed, cancelledBookingIds } = revoked as RevokeOrderAccessResult;
+      const { removed, cancelledBookingIds, livePackageId } = revoked as RevokeOrderAccessResult;
       await emailCancelledBookings(cancelledBookingIds, reason);
+      if (livePackageId) {
+        try {
+          await stopLivePackage(livePackageId, { by: "admin", reason: `Order refunded: ${reason}`, finalStatus: "cancelled" });
+        } catch (stopError) {
+          console.error(`[RefundOrder] Could not stop live package ${livePackageId}:`, stopError);
+        }
+      }
 
       const accessNote =
         removed > 0

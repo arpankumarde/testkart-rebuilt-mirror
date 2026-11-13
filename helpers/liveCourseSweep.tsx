@@ -4,12 +4,14 @@ import { AUTO_COMPLETE_AFTER_MINUTES } from "./liveLessonConfig";
 import { recordSessionEvent } from "./liveSessionLifecycle";
 import { SWEEP_TEACHER_ABSENT_REASON } from "./adminLiveLessonsSql";
 import { sendClassReminder } from "./liveCourseNotices";
-import { fetchCashfreeRefund } from "./cashfree";
+import { cashfreeGatewayEnv, fetchCashfreeRefund, terminateCashfreeOrder } from "./cashfree";
+import { settleCashfreeOrder } from "./cashfreeOrders";
 
 /*
  * Live course upkeep, run from the live teaching sweep every 15 minutes: class reminders 24 hours
  * and 1 hour ahead, closing classes once they end (held when the teacher joined the classroom,
- * missed when not), closing courses whose last class is over, and refreshing open refund statuses.
+ * missed when not), closing courses whose last class is over, refreshing open refund statuses,
+ * and settling or expiring every pending one-time Cashfree order (1:1, pay-now and live courses).
  */
 
 const MIN_MS = 60000;
@@ -142,6 +144,57 @@ async function syncRefundStatuses() {
   }
 }
 
+const SETTLE_PENDING_AFTER_MS = 30 * MIN_MS;
+const EXPIRE_PENDING_AFTER_MS = 24 * HOUR_MS;
+const EXPIRED_MESSAGE = "The payment was not completed within 24 hours.";
+
+/**
+ * A student who closes checkout leaves a pending Cashfree order that no return or webhook settles.
+ * Re-read pending orders older than 30 minutes (each at most every 30 minutes), and stop the ones
+ * still unpaid after 24 hours at Cashfree before marking them failed.
+ */
+async function settlePendingCashfreeOrders() {
+  const env = cashfreeGatewayEnv();
+  const cutoff = new Date(Date.now() - SETTLE_PENDING_AFTER_MS);
+  const pending = await db
+    .selectFrom("orders")
+    .select(["id", "createdAt", "paymentTransactionId"])
+    .where("paymentMethod", "=", "cashfree")
+    .where("status", "=", "pending")
+    .where("paymentTransactionId", "is not", null)
+    .where("createdAt", "<", cutoff)
+    .where((eb) => eb.or([eb("updatedAt", "is", null), eb("updatedAt", "<", cutoff)]))
+    .where((eb) => eb.or([eb("gatewayEnv", "is", null), eb("gatewayEnv", "=", env)]))
+    .orderBy("updatedAt", "asc")
+    .limit(50)
+    .execute();
+
+  for (const o of pending) {
+    try {
+      await settleCashfreeOrder(o.id);
+      const expired = o.createdAt && new Date(o.createdAt).getTime() < Date.now() - EXPIRE_PENDING_AFTER_MS;
+      if (expired && o.paymentTransactionId) {
+        const row = await db.selectFrom("orders").select("status").where("id", "=", o.id).executeTakeFirst();
+        if (row?.status === "pending") {
+          if (await terminateCashfreeOrder(o.paymentTransactionId)) {
+            await db
+              .updateTable("orders")
+              .set({ status: "failed", paymentGatewayStatus: "TERMINATED", paymentErrorMessage: EXPIRED_MESSAGE, updatedAt: new Date() })
+              .where("id", "=", o.id)
+              .where("status", "=", "pending")
+              .execute();
+          } else {
+            await settleCashfreeOrder(o.id);
+          }
+        }
+      }
+    } catch (error) {
+      console.warn(`[liveCourseSweep] settling pending Cashfree order ${o.id}:`, error);
+    }
+    await db.updateTable("orders").set({ updatedAt: new Date() }).where("id", "=", o.id).where("status", "=", "pending").execute();
+  }
+}
+
 async function closeFinishedCourses() {
   await sql`
     UPDATE live_courses lc SET status = 'completed', updated_at = now()
@@ -156,4 +209,5 @@ export async function runLiveCourseSweep(part: (name: string, work: () => Promis
   await part("course classes", closeFinishedClasses);
   await part("courses", closeFinishedCourses);
   await part("course refunds", syncRefundStatuses);
+  await part("pending Cashfree orders", settlePendingCashfreeOrders);
 }

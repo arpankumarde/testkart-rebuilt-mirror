@@ -183,14 +183,14 @@ export async function handle(request: Request): Promise<Response> {
 
         sql<Row>`
           SELECT
-            (SELECT coalesce(sum(total_amount), 0) FROM orders WHERE status = 'completed' AND created_at >= ${currentStart}) AS revenue_cur,
-            (SELECT coalesce(sum(total_amount), 0) FROM orders WHERE status = 'completed' AND created_at >= ${previousStart} AND created_at < ${currentStart}) AS revenue_prev,
+            (SELECT coalesce(sum(total_amount), 0) FROM orders WHERE status = 'completed' AND gateway_env IS DISTINCT FROM 'sandbox' AND created_at >= ${currentStart}) AS revenue_cur,
+            (SELECT coalesce(sum(total_amount), 0) FROM orders WHERE status = 'completed' AND gateway_env IS DISTINCT FROM 'sandbox' AND created_at >= ${previousStart} AND created_at < ${currentStart}) AS revenue_prev,
             (SELECT coalesce(sum(amount), 0) FROM subscription_transactions WHERE status = 'completed' AND transaction_date >= ${currentStart}) AS sub_cur,
             (SELECT coalesce(sum(amount), 0) FROM subscription_transactions WHERE status = 'completed' AND transaction_date >= ${previousStart} AND transaction_date < ${currentStart}) AS sub_prev,
             (SELECT count(*) FROM orders WHERE status = 'completed' AND created_at >= ${currentStart}) AS orders_cur,
             (SELECT count(*) FROM orders WHERE status = 'completed' AND created_at >= ${previousStart} AND created_at < ${currentStart}) AS orders_prev,
-            (SELECT count(*) FROM orders WHERE status = 'completed' AND total_amount > 0 AND created_at >= ${currentStart}) AS paid_cur,
-            (SELECT count(*) FROM orders WHERE status = 'completed' AND total_amount > 0 AND created_at >= ${previousStart} AND created_at < ${currentStart}) AS paid_prev,
+            (SELECT count(*) FROM orders WHERE status = 'completed' AND total_amount > 0 AND gateway_env IS DISTINCT FROM 'sandbox' AND created_at >= ${currentStart}) AS paid_cur,
+            (SELECT count(*) FROM orders WHERE status = 'completed' AND total_amount > 0 AND gateway_env IS DISTINCT FROM 'sandbox' AND created_at >= ${previousStart} AND created_at < ${currentStart}) AS paid_prev,
             (SELECT count(*) FROM orders WHERE status = 'failed' AND created_at >= ${currentStart}) AS failed_cur,
             (SELECT count(*) FROM orders WHERE status = 'failed' AND created_at >= ${previousStart} AND created_at < ${currentStart}) AS failed_prev,
             (SELECT count(*) FROM users WHERE role = 'teacher' AND created_at >= ${currentStart}) AS teachers_cur,
@@ -209,7 +209,7 @@ export async function handle(request: Request): Promise<Response> {
           ),
           o AS (
             SELECT (created_at AT TIME ZONE ${IST})::date AS d, sum(total_amount) AS revenue, count(*) AS orders
-            FROM orders WHERE status = 'completed' AND created_at >= ${currentStart} GROUP BY 1
+            FROM orders WHERE status = 'completed' AND gateway_env IS DISTINCT FROM 'sandbox' AND created_at >= ${currentStart} GROUP BY 1
           ),
           s AS (
             SELECT (transaction_date AT TIME ZONE ${IST})::date AS d, sum(amount) AS revenue
@@ -243,7 +243,7 @@ export async function handle(request: Request): Promise<Response> {
           WITH win AS (
             SELECT o.id, o.total_amount, o.bundle_id,
                    EXISTS (SELECT 1 FROM live_test_enrollments e WHERE e.payment_order_id = o.id) AS is_live
-            FROM orders o WHERE o.status = 'completed' AND o.created_at >= ${currentStart}
+            FROM orders o WHERE o.status = 'completed' AND o.gateway_env IS DISTINCT FROM 'sandbox' AND o.created_at >= ${currentStart}
           ),
           items AS (
             SELECT oi.price_at_purchase * coalesce(oi.quantity, 1) AS amt,
@@ -267,7 +267,7 @@ export async function handle(request: Request): Promise<Response> {
           WITH win AS (
             SELECT o.id, o.total_amount, o.bundle_id,
                    EXISTS (SELECT 1 FROM live_test_enrollments e WHERE e.payment_order_id = o.id) AS is_live
-            FROM orders o WHERE o.status = 'completed' AND o.created_at >= ${currentStart}
+            FROM orders o WHERE o.status = 'completed' AND o.gateway_env IS DISTINCT FROM 'sandbox' AND o.created_at >= ${currentStart}
           ),
           items AS (
             SELECT oi.price_at_purchase * coalesce(oi.quantity, 1) AS amt,
@@ -303,7 +303,7 @@ export async function handle(request: Request): Promise<Response> {
           WITH win AS (
             SELECT o.id, o.total_amount, o.bundle_id,
                    EXISTS (SELECT 1 FROM live_test_enrollments e WHERE e.payment_order_id = o.id) AS is_live
-            FROM orders o WHERE o.status = 'completed' AND o.created_at >= ${currentStart}
+            FROM orders o WHERE o.status = 'completed' AND o.gateway_env IS DISTINCT FROM 'sandbox' AND o.created_at >= ${currentStart}
           ),
           items AS (
             SELECT oi.price_at_purchase * coalesce(oi.quantity, 1) AS amt,
@@ -365,7 +365,7 @@ export async function handle(request: Request): Promise<Response> {
             (SELECT count(*) FROM live_tests WHERE is_active = true AND end_time > now()) AS active_live_tests,
             (SELECT count(*) FROM teacher_subscriptions WHERE status = 'active' AND end_date > now()) AS active_subscriptions,
             (SELECT count(*) FROM orders WHERE status = 'completed') AS completed_orders,
-            (SELECT coalesce(sum(total_amount), 0) FROM orders WHERE status = 'completed')
+            (SELECT coalesce(sum(total_amount), 0) FROM orders WHERE status = 'completed' AND gateway_env IS DISTINCT FROM 'sandbox')
               + (SELECT coalesce(sum(amount), 0) FROM subscription_transactions WHERE status = 'completed') AS lifetime_revenue
         `.execute(db),
       ]);

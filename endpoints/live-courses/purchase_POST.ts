@@ -7,8 +7,8 @@ import { getTeacherPlatformFee, DEFAULT_TEACHER_PLATFORM_FEE } from "../../helpe
 import { getOrderClientInfo } from "../../helpers/orderClientInfo";
 import { getOrderAttribution } from "../../helpers/getOrderAttribution";
 import { recordFunnelEvent } from "../../helpers/recordFunnelEvent";
-import { openCashfreeSession } from "../../helpers/cashfreeOrders";
-import { getCashfreeConfig } from "../../helpers/cashfree";
+import { openCashfreeSession, settleCashfreeOrder } from "../../helpers/cashfreeOrders";
+import { cashfreeGatewayEnv, terminateCashfreeOrder } from "../../helpers/cashfree";
 import { liveCoursePath } from "../../helpers/liveCourseRules";
 import { schema, type OutputType } from "./purchase_POST.schema";
 
@@ -19,8 +19,32 @@ export async function handle(request: Request) {
     if (user.role !== "student") throw new NotAuthenticatedError("Only students can enrol in live courses.");
     const { liveCourseId } = schema.parse(superjson.parse(await request.text()));
 
-    getCashfreeConfig();
+    const gatewayEnv = cashfreeGatewayEnv();
     const cashfreeOrderId = `live-course-${liveCourseId}-${nanoid(12)}`;
+
+    // An earlier checkout for this course is stopped at Cashfree before it is cancelled here, so it
+    // cannot be paid later. If Cashfree refuses (already paid), it is settled instead: a paid one
+    // enrols the student and the check below then turns this purchase away.
+    const earlier = await db
+      .selectFrom("orders")
+      .select(["id", "paymentTransactionId"])
+      .where("userId", "=", user.id)
+      .where("status", "=", "pending")
+      .where("paymentMethod", "=", "cashfree")
+      .where("paymentTransactionId", "like", `live-course-${liveCourseId}-%`)
+      .execute();
+    for (const o of earlier) {
+      if (o.paymentTransactionId && (await terminateCashfreeOrder(o.paymentTransactionId))) {
+        await db
+          .updateTable("orders")
+          .set({ status: "cancelled", paymentGatewayStatus: "TERMINATED", updatedAt: new Date() })
+          .where("id", "=", o.id)
+          .where("status", "=", "pending")
+          .execute();
+      } else {
+        await settleCashfreeOrder(o.id).catch((error) => console.error(`Could not settle earlier live course order ${o.id}:`, error));
+      }
+    }
 
     const created = await db.transaction().execute(async (trx) => {
       const course = await trx.selectFrom("liveCourses").selectAll().where("id", "=", liveCourseId).executeTakeFirst();
@@ -48,14 +72,6 @@ export async function handle(request: Request) {
         .executeTakeFirst();
       if (existing) throw new Error("You are already enrolled in this live course.");
 
-      await trx
-        .updateTable("orders")
-        .set({ status: "cancelled" })
-        .where("userId", "=", user.id)
-        .where("status", "=", "pending")
-        .where("paymentTransactionId", "like", `live-course-${course.id}-%`)
-        .execute();
-
       const amount = Number(course.price).toFixed(2);
       const order = await trx
         .insertInto("orders")
@@ -67,6 +83,7 @@ export async function handle(request: Request) {
           status: "pending",
           paymentMethod: "cashfree",
           paymentTransactionId: cashfreeOrderId,
+          gatewayEnv,
         })
         .returning("id")
         .executeTakeFirstOrThrow();

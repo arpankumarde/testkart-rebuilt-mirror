@@ -9,6 +9,7 @@ import {
   type CashfreePayment,
 } from "./cashfree";
 import type { CashfreeCheckoutSession } from "./cashfreeCheckout";
+import { refundUnfulfilledCashfreeOrder } from "./liveCourseServer";
 
 export type CashfreeSettleResult = {
   orderId: number;
@@ -18,6 +19,10 @@ export type CashfreeSettleResult = {
 
 const DEAD_ORDER_STATUSES = ["EXPIRED", "TERMINATED", "TERMINATION_REQUESTED"];
 const FAILED_PAYMENT_STATUSES = ["FAILED", "USER_DROPPED", "CANCELLED", "VOID"];
+
+const LATE_PAYMENT_REFUNDED = "This payment came in after the order was closed, so it is being refunded in full.";
+const UNFULFILLED_PAYMENT_REFUNDED =
+  "This payment could not be used (you already have this course, or it closed), so it is being refunded in full.";
 
 const describeFailure = (payment: CashfreePayment): string =>
   payment.error_details?.error_description ||
@@ -44,6 +49,10 @@ export async function settleCashfreeOrder(orderId: number): Promise<CashfreeSett
 
   if (order.status === "completed") {
     await ensureOrderCompletionSideEffects(order.id);
+    const after = await db.selectFrom("orders").select("status").where("id", "=", order.id).executeTakeFirst();
+    if (after?.status === "refunded") {
+      return { orderId: order.id, orderStatus: "refunded", message: UNFULFILLED_PAYMENT_REFUNDED };
+    }
     return { orderId: order.id, orderStatus: "completed", message: "Order already completed." };
   }
   if (order.status === "refunded") {
@@ -59,6 +68,19 @@ export async function settleCashfreeOrder(orderId: number): Promise<CashfreeSett
   const successfulPayment = payments.find((p) => p.payment_status === "SUCCESS");
 
   if (cashfreeOrder.order_status === "PAID" && successfulPayment) {
+    // Paid after we closed the order (replaced by a newer checkout, expired, or marked failed): the
+    // slot, seat or cycle may be gone or bought again, so the money goes back instead.
+    if (order.status === "cancelled" || order.status === "failed") {
+      const refunded = await refundUnfulfilledCashfreeOrder({
+        orderId: order.id,
+        reason: `Paid after the order was ${order.status}.`,
+        amount: Number(cashfreeOrder.order_amount),
+      });
+      return refunded
+        ? { orderId: order.id, orderStatus: "refunded", message: LATE_PAYMENT_REFUNDED }
+        : { orderId: order.id, orderStatus: order.status, message: "This payment came in after the order was closed. Support will refund it." };
+    }
+
     if (Math.abs(Number(cashfreeOrder.order_amount) - Number(order.totalAmount)) > 0.009) {
       console.error(
         `[Cashfree] Amount mismatch on order ${order.id}: Cashfree ${cashfreeOrder.order_amount}, ours ${order.totalAmount}. Not completing.`
@@ -82,10 +104,18 @@ export async function settleCashfreeOrder(orderId: number): Promise<CashfreeSett
         updatedAt: new Date(),
       })
       .where("id", "=", order.id)
-      .where("status", "in", ["pending", "failed", "cancelled"])
+      .where("status", "=", "pending")
       .execute();
 
     await ensureOrderCompletionSideEffects(order.id);
+    const after = await db.selectFrom("orders").select("status").where("id", "=", order.id).executeTakeFirst();
+    if (after?.status === "refunded") {
+      return { orderId: order.id, orderStatus: "refunded", message: UNFULFILLED_PAYMENT_REFUNDED };
+    }
+    if (after?.status !== "completed") {
+      // A parallel settle closed the order between our read and the update; settle again from that state.
+      return settleCashfreeOrder(order.id);
+    }
     return { orderId: order.id, orderStatus: "completed", message: "Payment verified and order completed." };
   }
 

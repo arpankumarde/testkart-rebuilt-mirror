@@ -1919,6 +1919,7 @@ export interface Orders {
   emailsSentAt: Timestamp | null;
   firstTouchAt: Timestamp | null;
   firstTouchSource: string | null;
+  gatewayEnv: string | null;
   id: Generated<number>;
   invoiceEmailSentAt: Timestamp | null;
   invoiceNumber: string | null;

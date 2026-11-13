@@ -80,7 +80,7 @@ function describeCashfreeSetup(config: CashfreeConfig): string {
   ].join(", ");
 }
 
-export async function cashfreeRequest<T>(config: CashfreeConfig, method: "GET" | "POST", path: string, body?: unknown): Promise<T> {
+export async function cashfreeRequest<T>(config: CashfreeConfig, method: "GET" | "POST" | "PATCH", path: string, body?: unknown): Promise<T> {
   const response = await fetch(`${config.baseUrl}${path}`, {
     method,
     headers: {
@@ -155,6 +155,26 @@ export async function fetchCashfreeOrder(cashfreeOrderId: string): Promise<Cashf
   const config = getCashfreeConfig();
   return cashfreeRequest<CashfreeOrder>(config, "GET", `/orders/${encodeURIComponent(cashfreeOrderId)}`);
 }
+
+/**
+ * Stops an unpaid Cashfree order so its checkout can no longer be paid. Returns false when Cashfree
+ * refuses because the order is already paid (or otherwise final); the caller then settles it instead.
+ */
+export async function terminateCashfreeOrder(cashfreeOrderId: string): Promise<boolean> {
+  const config = getCashfreeConfig();
+  try {
+    await cashfreeRequest<CashfreeOrder>(config, "PATCH", `/orders/${encodeURIComponent(cashfreeOrderId)}`, {
+      order_status: "TERMINATED",
+    });
+    return true;
+  } catch (error) {
+    console.error(`[Cashfree] could not terminate ${cashfreeOrderId}:`, error);
+    return false;
+  }
+}
+
+/** The gateway mode a new Cashfree order is created in, stored on orders.gateway_env. */
+export const cashfreeGatewayEnv = (): "sandbox" | "production" => getCashfreeConfig().mode;
 
 export async function fetchCashfreePayments(cashfreeOrderId: string): Promise<CashfreePayment[]> {
   const config = getCashfreeConfig();

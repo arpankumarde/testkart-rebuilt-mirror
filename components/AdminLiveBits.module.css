@@ -53,46 +53,6 @@
   background: var(--muted);
 }
 
-.kind {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.3125rem;
-  flex-shrink: 0;
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: var(--radius);
-}
-
-.kind svg {
-  width: 1.0625rem;
-  height: 1.0625rem;
-}
-
-.kindLabelled {
-  width: auto;
-  height: auto;
-  padding: 0.1875rem 0.5625rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  border-radius: var(--radius-full);
-}
-
-.kindLabelled svg {
-  width: 0.8125rem;
-  height: 0.8125rem;
-}
-
-.kindBooking {
-  background: var(--pastel-powder);
-  color: var(--pastel-powder-ink);
-}
-
-.kindGroup {
-  background: var(--pastel-lavender);
-  color: var(--pastel-lavender-ink);
-}
-
 .avatar {
   display: inline-flex;
   align-items: center;

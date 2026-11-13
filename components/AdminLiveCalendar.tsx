@@ -32,10 +32,10 @@ import { CALENDAR_EVENT_LIMIT, type LiveCalendarEvent } from "../endpoints/admin
 import styles from "./AdminLiveCalendar.module.css";
 
 /*
- * The admin Live Lessons calendar, built on the teacher 1:1 bookings calendar: the shared mini
+ * The admin 1:1 live classes calendar, built on the teacher 1:1 bookings calendar: the shared mini
  * month picker and a filters card on the left, the calendar card on the right, and the same
- * tinted event cards (1:1 blue, group lavender). Only sessions by teachers approved for live
- * teaching come back from the API. All dates are IST.
+ * tinted event cards. Only sessions by teachers approved for live teaching come back from the API.
+ * Live course classes are on the Live courses admin page. All dates are IST.
  */
 
 const VIEWS: { value: CalendarView; label: string }[] = [
@@ -54,7 +54,7 @@ const STATUS_OPTIONS = [
 ] as const;
 
 type StatusFilter = (typeof STATUS_OPTIONS)[number]["value"];
-type Filters = { q: string; status: StatusFilter; teacherId: string; kinds: { booking: boolean; group: boolean } };
+type Filters = { q: string; status: StatusFilter; teacherId: string };
 
 const HOUR_PX = 64;
 const MONTH_VISIBLE = 2;
@@ -62,11 +62,11 @@ const AGENDA_PAGE = 60;
 
 const isView = (v: string | null): v is CalendarView => v === "day" || v === "week" || v === "month" || v === "agenda";
 
-const eventName = (e: LiveCalendarEvent) => (e.kind === "booking" ? e.studentName ?? "1:1 session" : e.title);
-const typeLabel = (e: LiveCalendarEvent) => (e.kind === "group" ? "Group" : "1:1");
+const eventName = (e: LiveCalendarEvent) => e.studentName ?? "1:1 session";
+const typeLabel = (e: LiveCalendarEvent) => (e.isTrial ? "Trial" : "1:1");
 const eventLabel = (e: LiveCalendarEvent) =>
   `${e.title}, ${formatTime(e.start)} to ${formatTime(e.end)}, ${e.teacherName ?? "unknown teacher"}, ${e.status}`;
-const toneOf = (e: LiveCalendarEvent): LiveDotTone => (e.status === "cancelled" ? "muted" : e.kind === "group" ? "lavender" : "blue");
+const toneOf = (e: LiveCalendarEvent): LiveDotTone => (e.status === "cancelled" ? "muted" : "blue");
 
 /* Session status chip: a scheduled session has none, except while it is happening. */
 const chipOf = (e: LiveCalendarEvent, now: number) => {
@@ -81,7 +81,7 @@ const chipOf = (e: LiveCalendarEvent, now: number) => {
 
 const cardClass = (e: LiveCalendarEvent, now: number) =>
   [
-    e.kind === "group" ? styles.kind_group : styles.kind_booking,
+    styles.kind_booking,
     e.status === "cancelled" || e.status === "missed" ? styles.isCancelled : "",
     e.status === "completed" || (e.status === "scheduled" && new Date(e.end).getTime() <= now) ? styles.isDone : "",
   ].join(" ");
@@ -94,7 +94,7 @@ export const AdminLiveCalendar: React.FC<{ active: boolean }> = ({ active }) => 
   const view: CalendarView = isView(params.get("view")) ? (params.get("view") as CalendarView) : fallbackView;
   const anchor: DayKey = isDayKey(params.get("date")) ? (params.get("date") as DayKey) : todayKey();
 
-  const [filters, setFilters] = useState<Filters>({ q: "", status: "all", teacherId: "all", kinds: { booking: true, group: true } });
+  const [filters, setFilters] = useState<Filters>({ q: "", status: "all", teacherId: "all" });
   const [debouncedQ] = useDebounce(filters.q.trim(), 300);
   const [selected, setSelected] = useState<LiveCalendarEvent | null>(null);
   const [now, setNow] = useState(() => Date.now());
@@ -122,7 +122,6 @@ export const AdminLiveCalendar: React.FC<{ active: boolean }> = ({ active }) => 
     );
 
   const apiFilters = {
-    kinds: filters.kinds.booking && filters.kinds.group ? undefined : filters.kinds.booking ? "booking" : "group",
     status: filters.status === "all" ? undefined : filters.status,
     teacherId: filters.teacherId === "all" ? undefined : Number(filters.teacherId),
     q: debouncedQ || undefined,
@@ -138,14 +137,8 @@ export const AdminLiveCalendar: React.FC<{ active: boolean }> = ({ active }) => 
   const teachers = useAdminLiveTeachersQuery();
 
   const events = data?.events ?? [];
-  const filtersActive =
-    !!filters.q || filters.status !== "all" || filters.teacherId !== "all" || !filters.kinds.booking || !filters.kinds.group;
-  const resetFilters = () => setFilters({ q: "", status: "all", teacherId: "all", kinds: { booking: true, group: true } });
-  const toggleKind = (k: "booking" | "group") =>
-    setFilters((prev) => {
-      const kinds = { ...prev.kinds, [k]: !prev.kinds[k] };
-      return kinds.booking || kinds.group ? { ...prev, kinds } : prev;
-    });
+  const filtersActive = !!filters.q || filters.status !== "all" || filters.teacherId !== "all";
+  const resetFilters = () => setFilters({ q: "", status: "all", teacherId: "all" });
 
   const byDay = useMemo(() => groupByDay(events), [events]);
   const pickerDots = useMemo(() => {
@@ -159,7 +152,7 @@ export const AdminLiveCalendar: React.FC<{ active: boolean }> = ({ active }) => 
 
   return (
     <div className={styles.root}>
-      <section className={styles.board} aria-label="Live lessons calendar">
+      <section className={styles.board} aria-label="1:1 live classes calendar">
         <aside className={styles.rail}>
           <LiveMonthPicker
             month={pickerMonth}
@@ -227,22 +220,7 @@ export const AdminLiveCalendar: React.FC<{ active: boolean }> = ({ active }) => 
               </SelectContent>
             </Select>
 
-            <div className={styles.legend} role="group" aria-label="Session type">
-              {(["booking", "group"] as const).map((k) => (
-                <button
-                  key={k}
-                  type="button"
-                  aria-pressed={filters.kinds[k]}
-                  className={`${styles.legendRow} ${k === "group" ? styles.kind_group : styles.kind_booking} ${filters.kinds[k] ? "" : styles.legendOff}`}
-                  onClick={() => toggleKind(k)}
-                >
-                  <span className={styles.swatch} aria-hidden="true" />
-                  <span className={styles.legendLabel}>{k === "group" ? "Group lessons" : "1:1 sessions"}</span>
-                  <span className={styles.legendState}>{filters.kinds[k] ? "Shown" : "Hidden"}</span>
-                </button>
-              ))}
-            </div>
-            <p className={styles.note}>Only sessions by teachers approved for live teaching appear here.</p>
+            <p className={styles.note}>Only 1:1 sessions by teachers approved for live teaching appear here. Live course classes are under Live courses.</p>
           </section>
         </aside>
 
@@ -316,7 +294,7 @@ export const AdminLiveCalendar: React.FC<{ active: boolean }> = ({ active }) => 
                   icon={filtersActive ? <SearchX /> : <CalendarPlus />}
                   title={filtersActive ? "No sessions match these filters" : "No sessions this month"}
                   description={
-                    filtersActive ? "Try another teacher, status or search term." : "Approved teachers' 1:1 sessions and group lessons appear here once scheduled."
+                    filtersActive ? "Try another teacher, status or search term." : "Approved teachers' 1:1 sessions appear here once booked."
                   }
                   action={
                     filtersActive ? (
@@ -605,7 +583,7 @@ const DayColumn: React.FC<{
         const meta = [
           typeLabel(e),
           e.teacherName,
-          detailed ? (e.kind === "group" ? `${e.studentCount}/${e.maxCapacity ?? "-"} seats` : `${e.durationMinutes} min`) : null,
+          detailed ? `${e.durationMinutes} min` : null,
         ]
           .filter(Boolean)
           .join(" · ");
@@ -742,12 +720,10 @@ const AgendaRow: React.FC<{ event: LiveCalendarEvent; now: number; onSelect: (e:
           <span className={styles.agendaTitle}>
             <span className={styles.agendaName}>{eventName(e)}</span>
             <span className={styles.agendaKind}>
-              {e.kind === "group" ? "Group lesson" : "1:1 session"}, {e.durationMinutes} min
+              {e.isTrial ? "1:1 trial" : "1:1 session"}, {e.durationMinutes} min
             </span>
           </span>
-          <span className={styles.agendaTeacher}>
-            {e.teacherName ?? "Unknown teacher"} · {e.kind === "group" ? `${e.studentCount} of ${e.maxCapacity ?? "-"} seats booked` : "1 learner"}
-          </span>
+          <span className={styles.agendaTeacher}>{e.teacherName ?? "Unknown teacher"}</span>
         </span>
         {chip ? <span className={`${styles.chip} ${chip.cls}`}>{chip.label}</span> : <span />}
       </button>

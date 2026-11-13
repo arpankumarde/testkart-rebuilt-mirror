@@ -21,8 +21,8 @@ type ListSqlRow = SessionSqlRow & {
 };
 
 /*
- * Every session (1:1 and group), whatever its status, payment or date: one row per session with
- * the learner count and what was received. Learners and their attendance are in the session drawer.
+ * Every 1:1 session, whatever its status, payment or date: one row per session with what was
+ * received. The learner and their attendance are in the session drawer.
  */
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -74,7 +74,7 @@ export async function handle(request: Request): Promise<Response> {
         ...toLiveSession(r),
         amountReceived: Number(r.amountReceived ?? 0),
         paidCount: Number(r.paidCount ?? 0),
-        paymentStatus: r.kind === "booking" ? r.singlePayment : null,
+        paymentStatus: r.singlePayment,
       })),
       total,
       page,

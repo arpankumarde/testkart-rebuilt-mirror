@@ -2,8 +2,8 @@ import { z } from "zod";
 import superjson from "superjson";
 
 export const schema = z.object({
-  /** "booking" with a 1:1 booking id, or "group" with a group lesson enrollment id. */
-  type: z.enum(["booking", "group"]),
+  /** A 1:1 booking id. Live course attendance is set on the Live courses admin page. */
+  type: z.literal("booking"),
   id: z.string().uuid(),
   attendance: z.enum(["attended", "missed"]),
   reason: z.string().trim().max(500).optional(),

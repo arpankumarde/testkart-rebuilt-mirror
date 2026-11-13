@@ -1,7 +1,7 @@
 import type { Kysely, Selectable } from "kysely";
 import { db } from "./db";
 import type { DB, LiveCourses, Users } from "./schema";
-import { createCashfreeRefund } from "./cashfree";
+import { createCashfreeRefund, fetchCashfreeRefund, type CashfreeRefund } from "./cashfree";
 import { LIVE_COURSE_REFUND_CLOSES_AT_CLASS, liveCourseSlugBase } from "./liveCourseRules";
 
 /*
@@ -113,6 +113,77 @@ export function isRefundable(enrolledAt: Date, closesAt: Date | null, now = new 
 export type RefundOutcome = { enrollmentId: string; amount: number; refundStatus: string };
 
 /**
+ * Starts a Cashfree refund under our own refund id. If the call fails (a timeout, or a retry after
+ * the first call landed), the refund is looked up by the same id and an existing one counts as started.
+ */
+export async function startCashfreeRefund(args: {
+  cashfreeOrderId: string;
+  refundId: string;
+  amount: number;
+  note: string;
+}): Promise<CashfreeRefund> {
+  try {
+    return await createCashfreeRefund(args);
+  } catch (error) {
+    const existing = await fetchCashfreeRefund(args.cashfreeOrderId, args.refundId).catch(() => null);
+    if (existing?.refund_id) return existing;
+    throw error;
+  }
+}
+
+/**
+ * Refunds in full a paid Cashfree order that cannot be fulfilled (paid after it was cancelled or
+ * failed, a second payment for a live course the student already has, or a course that closed while
+ * they paid) and marks the order refunded. The refund id is fixed per order, so retries never refund
+ * twice. Returns false when the refund could not be started; the order is left as it was.
+ */
+export async function refundUnfulfilledCashfreeOrder(args: {
+  orderId: number;
+  reason: string;
+  amount?: number;
+}): Promise<boolean> {
+  const order = await db
+    .selectFrom("orders")
+    .select(["id", "status", "paymentMethod", "paymentTransactionId", "totalAmount"])
+    .where("id", "=", args.orderId)
+    .executeTakeFirst();
+  if (!order) return false;
+  if (order.status === "refunded") return true;
+  if (order.paymentMethod !== "cashfree" || !order.paymentTransactionId) {
+    console.error(`[refundUnfulfilledCashfreeOrder] Order ${order.id} was not paid through Cashfree; refund it by hand. ${args.reason}`);
+    return false;
+  }
+
+  const refundId = `dup-${order.id}`;
+  let refund: CashfreeRefund;
+  try {
+    refund = await startCashfreeRefund({
+      cashfreeOrderId: order.paymentTransactionId,
+      refundId,
+      amount: args.amount ?? Number(order.totalAmount),
+      note: "Automatic refund",
+    });
+  } catch (error) {
+    console.error(`[refundUnfulfilledCashfreeOrder] Refund for order ${order.id} could not be started:`, error);
+    return false;
+  }
+
+  await db
+    .updateTable("orders")
+    .set({
+      status: "refunded",
+      refundedAt: new Date(),
+      refundReason: `${args.reason} Cashfree refund ${refundId} (${refund.refund_status ?? "PENDING"}).`.slice(0, 500),
+      updatedAt: new Date(),
+    })
+    .where("id", "=", order.id)
+    .where("status", "!=", "refunded")
+    .execute();
+  console.log(`[refundUnfulfilledCashfreeOrder] Order ${order.id} refunded automatically (${refundId}): ${args.reason}`);
+  return true;
+}
+
+/**
  * Refunds one enrolment in full through Cashfree and frees the seat. `force` skips the refund
  * window (admins, and a cancelled course). The Cashfree call runs outside any transaction; the
  * refund id is fixed per enrolment, so a retry never refunds twice.
@@ -163,9 +234,9 @@ export async function refundLiveCourseEnrollment(args: {
   if (!claimed) throw new LiveCourseError("A refund for this enrolment is already being processed.");
 
   const amount = Number(row.amountPaid);
-  let refund;
+  let refund: CashfreeRefund;
   try {
-    refund = await createCashfreeRefund({
+    refund = await startCashfreeRefund({
       cashfreeOrderId: row.paymentTransactionId,
       refundId: `lc-refund-${row.id}`,
       amount,

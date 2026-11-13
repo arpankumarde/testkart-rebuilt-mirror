@@ -119,6 +119,7 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
     CROSS JOIN LATERAL (SELECT ${teacherItemDiscountSql("oi", "o")} AS amount) td
     JOIN mock_tests mt ON oi.mock_test_id = mt.id
     WHERE o.status = 'completed'
+      AND o.gateway_env IS DISTINCT FROM 'sandbox'
       ${teacherFilter("mt.teacher_id", teacherIdExpr)}
       ${windowFilter("o.created_at", window)}
       AND (o.payment_method IS NULL OR o.payment_method != 'teacher_sponsored')
@@ -149,6 +150,7 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
     CROSS JOIN LATERAL (SELECT ${teacherItemDiscountSql("oi", "o")} AS amount) td
     JOIN courses c ON oi.course_id = c.id
     WHERE o.status = 'completed'
+      AND o.gateway_env IS DISTINCT FROM 'sandbox'
       ${teacherFilter("c.teacher_id", teacherIdExpr)}
       ${windowFilter("o.created_at", window)}
       AND (o.payment_method IS NULL OR o.payment_method != 'teacher_sponsored')
@@ -175,6 +177,7 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
     CROSS JOIN LATERAL (SELECT ${teacherItemDiscountSql("oi", "o")} AS amount) td
     JOIN digital_products dp ON oi.digital_product_id = dp.id
     WHERE o.status = 'completed'
+      AND o.gateway_env IS DISTINCT FROM 'sandbox'
       ${teacherFilter("dp.teacher_id", teacherIdExpr)}
       ${windowFilter("o.created_at", window)}
       AND (o.payment_method IS NULL OR o.payment_method != 'teacher_sponsored')
@@ -214,6 +217,7 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
     FROM orders o
     JOIN course_bundles cb ON o.bundle_id = cb.id
     WHERE o.status = 'completed'
+      AND o.gateway_env IS DISTINCT FROM 'sandbox'
       AND o.bundle_id IS NOT NULL
       ${teacherFilter("cb.teacher_id", teacherIdExpr)}
       ${windowFilter("o.created_at", window)}
@@ -243,7 +247,12 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
  *   - group class: the class was not cancelled, its end time has passed and
  *     the buyer still holds the seat (not left, not removed).
  * Bookings made before order_items.mentorship_teacher_id existed are not
- * counted. A refund moves the order off 'completed', so it drops out here.
+ * counted. A refund moves the order off 'completed', so it drops out here; a
+ * credit with an order counts only while that order is completed. Live courses
+ * pay teachers nothing yet, so they have no branch.
+ *
+ * Every branch here and in earningsRowsFragment skips Cashfree sandbox orders
+ * (orders.gateway_env = 'sandbox'): test money is never earnings.
  *
  * Kept out of earningsRowsFragment on purpose: the analytics breakdowns built
  * on buildTeacherSaleRowsSql group by product kind and have no bucket for
@@ -279,6 +288,7 @@ function liveSessionRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: Teacher
       LIMIT 1
     ) mb ON TRUE
     WHERE o.status = 'completed'
+      AND o.gateway_env IS DISTINCT FROM 'sandbox'
       AND oi.mentorship_teacher_id IS NOT NULL
       AND NOT EXISTS (SELECT 1 FROM live_class_credits lcc_old WHERE lcc_old.order_id = o.id)
       ${teacherFilter("oi.mentorship_teacher_id", teacherIdExpr)}
@@ -299,7 +309,9 @@ function liveSessionRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: Teacher
            lcc.platform_fee_percentage AS fee_percentage
     FROM live_class_credits lcc
     JOIN mentorship_bookings b ON b.id = lcc.booking_id
+    LEFT JOIN orders lcc_o ON lcc_o.id = lcc.order_id
     WHERE lcc.status = 'spent'
+      AND (lcc.order_id IS NULL OR (lcc_o.status = 'completed' AND lcc_o.gateway_env IS DISTINCT FROM 'sandbox'))
       AND b.earning_status = 'earned'
       AND (b.scheduled_at AT TIME ZONE 'UTC') + make_interval(mins => b.duration_minutes) + interval '24 hours' <= NOW()
       AND (b.issue_reported_at IS NULL OR b.issue_resolution = 'rejected')
@@ -324,6 +336,7 @@ function liveSessionRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: Teacher
     CROSS JOIN LATERAL (SELECT ${teacherItemDiscountSql("oi", "o")} AS amount) td
     JOIN group_lessons gl ON oi.group_lesson_id = gl.id
     WHERE o.status = 'completed'
+      AND o.gateway_env IS DISTINCT FROM 'sandbox'
       AND gl.status != 'cancelled'
       AND gl.start_time + make_interval(mins => gl.duration_minutes) <= NOW()
       AND EXISTS (
@@ -461,6 +474,7 @@ export function buildTeacherPrizeDeductionsSql(teacherIdExpr?: TeacherIdExpr) {
           JOIN order_items oi ON oi.order_id = o.id
           WHERE lte.live_test_id = lt.id
             AND o.status = 'completed'
+            AND o.gateway_env IS DISTINCT FROM 'sandbox'
             AND oi.mock_test_id IS NOT NULL
             AND (o.payment_method IS NULL OR o.payment_method != 'teacher_sponsored')
         ), 0)))

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { toast } from "sonner";
-import { CheckCircle2, UserCheck, Users, UserX, Video, XCircle } from "lucide-react";
+import { CheckCircle2, UserCheck, UserX, XCircle } from "lucide-react";
 import { useAdminCancelLiveLessonMutation } from "../helpers/useAdminLiveLessons";
 import { useAdminLiveAttendanceMutation, useAdminLiveOutcomeMutation } from "../helpers/useAdminLiveModule";
 import { Button } from "./Button";
@@ -14,7 +14,7 @@ import type { LiveAttendanceStatus } from "../endpoints/admin/live-lessons/sessi
 import styles from "./AdminLiveBits.module.css";
 
 /*
- * Small shared pieces of the admin Live Lessons module. Two status sets, one colour scheme:
+ * Small shared pieces of the admin 1:1 live classes module. Two status sets, one colour scheme:
  * blue = not happened yet, green = happened, red = missed, grey = cancelled.
  */
 
@@ -64,15 +64,6 @@ export const LivePaymentPill: React.FC<{ status: LivePaymentStatus }> = ({ statu
   <span className={`${styles.pill} ${styles.pillSoft} ${styles[`tone_${PAYMENT[status].tone}`]}`}>{PAYMENT[status].label}</span>
 );
 
-export const LiveKindBadge: React.FC<{ kind: "booking" | "group"; withLabel?: boolean }> = ({ kind, withLabel }) => (
-  <span className={`${styles.kind} ${kind === "group" ? styles.kindGroup : styles.kindBooking} ${withLabel ? styles.kindLabelled : ""}`}>
-    {kind === "group" ? <Users aria-hidden="true" /> : <Video aria-hidden="true" />}
-    {withLabel ? (kind === "group" ? "Group" : "1:1") : null}
-  </span>
-);
-
-export const liveKindLabel = (kind: "booking" | "group") => (kind === "group" ? "Group lesson" : "1:1 session");
-
 export const initialsOf = (name: string | null | undefined) => {
   if (!name) return "?";
   const words = name.trim().split(/\s+/).filter(Boolean);
@@ -116,9 +107,9 @@ export const copyText = async (text: string, label: string) => {
   }
 };
 
-export type SessionTarget = { kind: "booking" | "group"; id: string; title: string };
+export type SessionTarget = { kind: "booking"; id: string; title: string };
 
-/* Cancel a 1:1 session or a whole group lesson, through the existing cancel endpoint. */
+/* Cancel a 1:1 session. */
 export const LiveCancelDialog: React.FC<{ target: SessionTarget | null; onOpenChange: (open: boolean) => void }> = ({
   target,
   onOpenChange,
@@ -154,11 +145,7 @@ export const LiveCancelDialog: React.FC<{ target: SessionTarget | null; onOpenCh
       <ConsoleDialogContent size="md">
         <ConsoleDialogHeader
           title={`Cancel "${target?.title ?? ""}"?`}
-          description={
-            target?.kind === "group"
-              ? "The lesson is cancelled for every enrolled learner. Payments are not refunded automatically: refund from Orders if needed."
-              : "The session is cancelled. A class paid with a trial or package credit goes back to the learner. Order payments are not refunded automatically: refund from Orders if needed."
-          }
+          description="The session is cancelled. A class paid with a trial or package credit goes back to the learner. Order payments are not refunded automatically: refund from Orders if needed."
         />
         <ConsoleDialogBody>
           <Textarea
@@ -195,12 +182,8 @@ export const LiveSessionOutcomeDialog: React.FC<{
 
   const missed = target?.action === "missed";
   const description = missed
-    ? target?.kind === "group"
-      ? "The teacher did not hold this lesson. The teacher is not paid for it. Learners' payments are not refunded automatically: refund from Orders if needed."
-      : "The teacher did not hold this session. The teacher is not paid. A class paid with a credit goes back to the learner, who is emailed. Order payments are not refunded automatically."
-    : target?.kind === "group"
-      ? "The teacher held this lesson. Learner attendance stays as it is; set it per learner below."
-      : "The teacher held this session. A class paid with a trial or package credit is settled now and the teacher is paid. Learner attendance is set separately.";
+    ? "The teacher did not hold this session. The teacher is not paid. A class paid with a credit goes back to the learner, who is emailed. Order payments are not refunded automatically."
+    : "The teacher held this session. A class paid with a trial or package credit is settled now and the teacher is paid. Learner attendance is set separately.";
 
   return (
     <ConsoleConfirmDialog
@@ -239,7 +222,7 @@ export const LiveSessionOutcomeDialog: React.FC<{
   );
 };
 
-export type AttendanceTarget = { type: "booking" | "group"; id: string; name: string; attendance: "attended" | "missed" };
+export type AttendanceTarget = { type: "booking"; id: string; name: string; attendance: "attended" | "missed" };
 
 /* Set one learner's attendance. It does not change the session status or any payment. */
 export const LiveAttendanceDialog: React.FC<{ target: AttendanceTarget | null; onOpenChange: (open: boolean) => void }> = ({

@@ -4,7 +4,7 @@ import type { LiveCalendarEvent } from "./calendar_GET.schema";
 import type { LivePaymentStatus } from "./bookings_GET.schema";
 
 export const schema = z.object({
-  kind: z.enum(["booking", "group"]),
+  kind: z.literal("booking"),
   id: z.string().uuid(),
 });
 
@@ -24,10 +24,10 @@ export type LiveSessionDetail = LiveCalendarEvent & {
 /** Did this learner attend: upcoming | attended | missed | cancelled (their place was cancelled). */
 export type LiveAttendanceStatus = "upcoming" | "attended" | "missed" | "cancelled";
 
-/** One learner's place: the 1:1 booking, or a group lesson enrollment. */
+/** The learner's place: the 1:1 booking. */
 export type LiveAttendeeRow = {
-  type: "booking" | "group";
-  /** The booking id (1:1) or enrollment id (group). */
+  type: "booking";
+  /** The booking id. */
   id: string;
   sessionId: string;
   studentId: number | null;

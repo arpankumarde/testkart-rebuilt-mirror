@@ -92,6 +92,7 @@ export async function handle(request: Request): Promise<Response> {
         .selectFrom("orders")
         .select((eb) => eb.fn.sum<string>("totalAmount").as("revenue"))
         .where("status", "=", "completed")
+        .where(sql<boolean>`gateway_env IS DISTINCT FROM 'sandbox'`)
         .executeTakeFirst(),
 
       // Total revenue from completed subscription transactions (all time)
@@ -113,6 +114,7 @@ export async function handle(request: Request): Promise<Response> {
         .selectFrom("orders")
         .select((eb) => eb.fn.sum<string>("totalAmount").as("revenue"))
         .where("status", "=", "completed")
+        .where(sql<boolean>`gateway_env IS DISTINCT FROM 'sandbox'`)
         .where(
           sql`date_trunc('month', created_at)`,
           "=",
@@ -202,6 +204,7 @@ export async function handle(request: Request): Promise<Response> {
           sql<string>`SUM(total_amount)`.as("revenue"),
         ])
         .where("status", "=", "completed")
+        .where(sql<boolean>`gateway_env IS DISTINCT FROM 'sandbox'`)
         .groupBy(sql`to_char(created_at, 'YYYY-MM')`)
         .orderBy(sql`to_char(created_at, 'YYYY-MM')`, "desc")
         .limit(6)

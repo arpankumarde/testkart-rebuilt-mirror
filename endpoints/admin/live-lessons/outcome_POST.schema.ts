@@ -2,7 +2,7 @@ import { z } from "zod";
 import superjson from "superjson";
 
 export const schema = z.object({
-  kind: z.enum(["booking", "group"]),
+  kind: z.literal("booking"),
   id: z.string().uuid(),
   /** complete: the teacher held it. missed: the teacher did not. Learner attendance is set separately. */
   action: z.enum(["complete", "missed"]),

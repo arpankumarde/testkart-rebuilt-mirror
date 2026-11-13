@@ -18,7 +18,7 @@ import {
 } from "../helpers/useLivePackages";
 import { startCashfreeCheckout } from "../helpers/cashfreeCheckout";
 import { postMentorshipReview } from "../endpoints/mentorship/review_POST.schema";
-import { formatRupees, PACKAGE_CLASSES_PER_WEEK_OPTIONS } from "../helpers/livePricing";
+import { formatClassLength, formatRupees, PACKAGE_CLASSES_PER_WEEK_OPTIONS } from "../helpers/livePricing";
 import { CREDIT_SCHEDULE_MAX_DAYS } from "../helpers/liveLessonConfig";
 import type { LivePackageView, TrialFollowUp } from "../endpoints/mentorship/packages/list_GET.schema";
 import styles from "./LivePackagesPanel.module.css";
@@ -153,7 +153,7 @@ const PackageCard: React.FC<{ pkg: LivePackageView }> = ({ pkg }) => {
         <div className={styles.headText}>
           <h3 className={styles.cardTitle}>{pkg.teacher.displayName}</h3>
           <p className={styles.meta}>
-            {pkg.classesPerWeek} a week, {pkg.classMinutes} min, {formatRupees(pkg.pricePerClass)} a class
+            {pkg.classesPerWeek} a week, {formatClassLength(pkg.classMinutes).toLowerCase()}, {formatRupees(pkg.pricePerClass)} a class
           </p>
         </div>
         <span className={`${styles.chip} ${due ? styles.chipDue : styles.chipActive}`}>{due ? "Payment due" : "Active"}</span>
@@ -281,7 +281,7 @@ const ScheduleDialog: React.FC<{ pkg: LivePackageView; creditId: string; onClose
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <ConsoleDialogContent size="md">
-        <ConsoleDialogHeader title={`Book a class with ${pkg.teacher.displayName}`} description={`${pkg.classMinutes} minutes, already paid.`} />
+        <ConsoleDialogHeader title={`Book a class with ${pkg.teacher.displayName}`} description={`${formatClassLength(pkg.classMinutes)}, already paid.`} />
         <ConsoleDialogBody>
           <LiveSlotPicker teacherId={pkg.teacher.id} minutes={pkg.classMinutes} range={range} mode="single" selected={picked} onChange={setPicked} />
         </ConsoleDialogBody>

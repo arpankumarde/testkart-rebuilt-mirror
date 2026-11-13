@@ -4,7 +4,7 @@ import type { LiveCalendarEvent } from "./calendar_GET.schema";
 
 export const BOOKINGS_MAX_PAGE_SIZE = 100;
 
-/* The Bookings tab: every session, newest first, with a search and a session date range. */
+/* The Bookings tab: every 1:1 session, newest first, with a search and a session date range. */
 export const schema = z.object({
   /** Matches the session title, teacher, session id, and any learner's name, email, booking id or order number. */
   q: z.string().trim().max(120).optional(),
@@ -24,7 +24,7 @@ export type LiveSessionListRow = LiveCalendarEvent & {
   amountReceived: number;
   /** Learners whose payment completed or came from a class credit. */
   paidCount: number;
-  /** The 1:1 learner's payment status; null for a group lesson. */
+  /** The learner's payment status. */
   paymentStatus: LivePaymentStatus | null;
 };
 

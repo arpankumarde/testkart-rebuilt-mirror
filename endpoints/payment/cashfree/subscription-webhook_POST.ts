@@ -1,7 +1,7 @@
 import { db } from "../../../helpers/db";
 import { isValidCashfreeWebhookSignature } from "../../../helpers/cashfree";
 import { DEAD_SUBSCRIPTION_STATUSES } from "../../../helpers/cashfreeSubscriptions";
-import { settleLivePackageCheckout, settleLiveRenewal } from "../../../helpers/livePackages";
+import { reconcileAbandonedMandate, settleLivePackageCheckout, settleLiveRenewal } from "../../../helpers/livePackages";
 import { schema, OutputType } from "./subscription-webhook_POST.schema";
 
 const reply = (body: string, status = 200) => new Response(body, { status });
@@ -35,8 +35,9 @@ export async function handle(request: Request) {
 
     const mandate = await db
       .selectFrom("liveMandates")
-      .select(["id", "packageId", "status"])
-      .where("subscriptionId", "=", subscriptionId)
+      .innerJoin("livePackages", "livePackages.id", "liveMandates.packageId")
+      .select(["liveMandates.id", "liveMandates.packageId", "liveMandates.status", "livePackages.status as packageStatus"])
+      .where("liveMandates.subscriptionId", "=", subscriptionId)
       .executeTakeFirst();
     if (!mandate) {
       console.error(`[Cashfree Subscription Webhook] No mandate for ${subscriptionId} (${type})`);
@@ -54,7 +55,10 @@ export async function handle(request: Request) {
       await db.updateTable("livePackages").set({ autoRenew: false, updatedAt: new Date() }).where("id", "=", mandate.packageId).execute();
     }
 
-    if (data.payment_id && (data.payment_type ?? "").toUpperCase() === "CHARGE") {
+    if (mandate.status === "failed" && mandate.packageStatus === "failed") {
+      // An abandoned or replaced checkout: cancel the mandate and keep any authorisation it took as balance.
+      await reconcileAbandonedMandate(subscriptionId);
+    } else if (data.payment_id && (data.payment_type ?? "").toUpperCase() === "CHARGE") {
       const cycle = await db.selectFrom("livePackageCycles").select("id").where("paymentId", "=", data.payment_id).executeTakeFirst();
       if (cycle) await settleLiveRenewal(cycle.id);
     } else if (mandate.status === "initialized") {

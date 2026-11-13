@@ -7,7 +7,7 @@ import { Skeleton } from "./Skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./Select";
 import { AdminLiveEmptyState } from "./AdminLiveEmptyState";
 import { AdminLiveSessionDrawer } from "./AdminLiveSessionDrawer";
-import { LiveKindBadge, LivePaymentPill, LiveSessionStatusPill, rupees } from "./AdminLiveBits";
+import { LivePaymentPill, LiveSessionStatusPill, rupees } from "./AdminLiveBits";
 import { useAdminLiveBookingsQuery } from "../helpers/useAdminLiveModule";
 import { addDays, dayKeyOf, dayStart, formatShortDate, formatTime, isDayKey, type DayKey } from "../helpers/liveCalendarDates";
 import type { InputType as BookingsInput, LiveSessionListRow } from "../endpoints/admin/live-lessons/bookings_GET.schema";
@@ -15,7 +15,7 @@ import styles from "./AdminLiveBookings.module.css";
 
 const PAGE_SIZES = [25, 50, 100];
 
-/* Every 1:1 session and group lesson, newest first. Learners and attendance are in the session drawer. */
+/* Every 1:1 session, newest first. The learner's attendance and payment details are in the session drawer. */
 export const AdminLiveBookings: React.FC<{ active: boolean }> = ({ active }) => {
   const [q, setQ] = useState("");
   const [debouncedQ] = useDebounce(q.trim(), 300);
@@ -127,7 +127,7 @@ export const AdminLiveBookings: React.FC<{ active: boolean }> = ({ active }) => 
                 }
               />
             ) : (
-              <AdminLiveEmptyState tone="mint" icon={<Inbox />} title="No sessions yet" description="1:1 sessions and group lessons appear here as soon as they are booked or scheduled." />
+              <AdminLiveEmptyState tone="mint" icon={<Inbox />} title="No sessions yet" description="1:1 sessions appear here as soon as they are booked." />
             )
           ) : (
             <table className={`${styles.table} ${isFetching ? styles.tableBusy : ""}`}>
@@ -135,9 +135,8 @@ export const AdminLiveBookings: React.FC<{ active: boolean }> = ({ active }) => 
                 <tr>
                   <th scope="col">Session</th>
                   <th scope="col" className={styles.colTeacher}>Teacher</th>
-                  <th scope="col" className={styles.colStudents}>Students</th>
+                  <th scope="col" className={styles.colStudents}>Learner</th>
                   <th scope="col" className={styles.colWhen}>Session date</th>
-                  <th scope="col" className={styles.colType}>Type</th>
                   <th scope="col" className={styles.colPay}>Payment</th>
                   <th scope="col" className={styles.colStatus}>Session status</th>
                   <th scope="col" className={styles.colActions}>
@@ -147,7 +146,7 @@ export const AdminLiveBookings: React.FC<{ active: boolean }> = ({ active }) => 
               </thead>
               <tbody>
                 {rows.map((r) => (
-                  <SessionRow key={`${r.kind}-${r.id}`} row={r} onOpen={() => setSelected(r)} />
+                  <SessionRow key={r.id} row={r} onOpen={() => setSelected(r)} />
                 ))}
               </tbody>
             </table>
@@ -206,8 +205,13 @@ const SessionRow: React.FC<{ row: LiveSessionListRow; onOpen: () => void }> = ({
         {r.teacherName ?? "-"}
       </span>
     </td>
-    <td className={styles.cellStudents} data-label="Students">
-      <span className={styles.value}>{r.kind === "group" ? `${r.studentCount}${r.maxCapacity ? ` / ${r.maxCapacity}` : ""}` : "1"}</span>
+    <td className={styles.cellStudents} data-label="Learner">
+      <span className={styles.stack}>
+        <span className={styles.value} title={r.studentName ?? undefined}>
+          {r.studentName ?? "-"}
+        </span>
+        {r.isTrial ? <span className={styles.secondary}>Trial</span> : null}
+      </span>
     </td>
     <td className={styles.cellWhen} data-label="Session date">
       <span className={styles.stack}>
@@ -217,16 +221,13 @@ const SessionRow: React.FC<{ row: LiveSessionListRow; onOpen: () => void }> = ({
         <span className={styles.secondary}>{formatTime(r.start)}</span>
       </span>
     </td>
-    <td className={styles.cellType} data-label="Type">
-      <LiveKindBadge kind={r.kind} withLabel />
-    </td>
     <td className={styles.cellPay} data-label="Payment">
       <span className={styles.stack}>
         <span className={styles.amount}>{rupees(r.amountReceived)}</span>
         {r.paymentStatus ? (
           <LivePaymentPill status={r.paymentStatus} />
         ) : (
-          <span className={styles.secondary}>{r.price > 0 ? `${r.paidCount} paid` : "Free lesson"}</span>
+          <span className={styles.secondary}>{r.price > 0 ? "Not paid" : "Free"}</span>
         )}
       </span>
     </td>

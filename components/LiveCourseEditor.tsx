@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ArrowDown, ArrowUp, Ban, CalendarPlus, Edit2, MoreHorizontal, Plus, Repeat, Trash2, Video } from "lucide-react";
+import { ArrowDown, ArrowUp, Ban, CalendarPlus, CheckCircle2, Edit2, MoreHorizontal, Plus, Repeat, Trash2, Video, XCircle } from "lucide-react";
 import type { LiveCourseClass, LiveCourseDetail, LiveCourseModule } from "../helpers/liveCourseData";
 import type { InputType as DetailsInput } from "../endpoints/teacher/live-courses/upsert_POST.schema";
 import type { OutputType as RosterOutput } from "../endpoints/teacher/live-courses/students_GET.schema";
@@ -368,7 +368,9 @@ export const LiveCourseSchedule: React.FC<{
   /** Admins cancel classes through their own action; teachers get the full editor. */
   mode: "teacher" | "admin";
   onAdminCancel?: (c: LiveCourseClass) => void;
-}> = ({ course, refundClosesAt, mode, onAdminCancel }) => {
+  /** Admins only: record whether the teacher held a class that has started. */
+  onAdminOutcome?: (c: LiveCourseClass, outcome: "held" | "missed") => void;
+}> = ({ course, refundClosesAt, mode, onAdminCancel, onAdminOutcome }) => {
   const [single, setSingle] = useState<LiveCourseClass | "new" | null>(null);
   const [pattern, setPattern] = useState(false);
   const [cancelTarget, setCancelTarget] = useState<LiveCourseClass | null>(null);
@@ -417,6 +419,16 @@ export const LiveCourseSchedule: React.FC<{
                     <DropdownMenuItem onSelect={() => setSingle(c)}>
                       <Edit2 size={14} /> Edit or reschedule
                     </DropdownMenuItem>
+                  )}
+                  {mode === "admin" && onAdminOutcome && new Date(c.startTime).getTime() <= now && (
+                    <>
+                      <DropdownMenuItem onSelect={() => onAdminOutcome(c, "held")}>
+                        <CheckCircle2 size={14} /> Mark held
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => onAdminOutcome(c, "missed")}>
+                        <XCircle size={14} /> Mark missed
+                      </DropdownMenuItem>
+                    </>
                   )}
                   <DropdownMenuItem onSelect={() => (mode === "admin" ? onAdminCancel?.(c) : setCancelTarget(c))}>
                     <Ban size={14} /> {course.status === "draft" ? "Remove class" : "Cancel class"}
@@ -720,8 +732,12 @@ export const LiveCourseStudents: React.FC<{
   loading: boolean;
   canMark: boolean;
   onRefund?: (enrollmentId: string, name: string) => void;
-}> = ({ roster, loading, canMark, onRefund }) => {
+  /** Admins save marks through their own action instead of the teacher endpoint. */
+  onSaveMarks?: (classId: string, marks: { studentId: number; present: boolean }[]) => void;
+  savingMarks?: boolean;
+}> = ({ roster, loading, canMark, onRefund, onSaveMarks, savingMarks }) => {
   const save = useSaveAttendanceMutation();
+  const saving = onSaveMarks ? !!savingMarks : save.isPending;
   const classes = roster?.classes ?? [];
   const [classId, setClassId] = useState<string>("");
   const [marks, setMarks] = useState<Record<number, boolean>>({});
@@ -832,18 +848,20 @@ export const LiveCourseStudents: React.FC<{
           {canMark && enrolled.length > 0 && (
             <div className={styles.actions}>
               <Button
-                disabled={save.isPending}
-                onClick={() =>
+                disabled={saving}
+                onClick={() => {
+                  const list = enrolled.map((s) => ({ studentId: s.studentId, present: !!marks[s.studentId] }));
+                  if (onSaveMarks) return onSaveMarks(classId, list);
                   save.mutate(
-                    { classId, marks: enrolled.map((s) => ({ studentId: s.studentId, present: !!marks[s.studentId] })) },
+                    { classId, marks: list },
                     {
                       onSuccess: () => toast.success("Attendance saved."),
                       onError: (e) => toast.error(e instanceof Error ? e.message : "Could not save attendance."),
                     }
-                  )
-                }
+                  );
+                }}
               >
-                {save.isPending ? "Saving..." : "Save attendance"}
+                {saving ? "Saving..." : "Save attendance"}
               </Button>
             </div>
           )}

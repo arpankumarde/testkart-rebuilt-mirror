@@ -6,17 +6,20 @@ import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
 import { schema, OutputType } from "./checkout_POST.schema";
 import { isTeacherSlotBookable } from "../../../helpers/mentorshipSlots";
 import { getTeacherPlatformFee } from "../../../helpers/getTeacherPlatformFee";
-import { getCashfreeConfig } from "../../../helpers/cashfree";
+import { cashfreeGatewayEnv, getCashfreeConfig } from "../../../helpers/cashfree";
 import { createCashfreeSubscription } from "../../../helpers/cashfreeSubscriptions";
 import { CHECKOUT_HOLD_MINUTES, PACKAGE_CYCLE_DAYS, PACKAGE_WEEKS } from "../../../helpers/liveLessonConfig";
 import { classPriceFor, packageMandateMax, pricesMeetFloors, resolveLivePrices } from "../../../helpers/livePricing";
 import {
   abandonPendingPackage,
+  cancelAbandonedMandates,
   getLiveBalance,
   getLivePackageFor,
   getTrialState,
   isStudentFree,
+  PACKAGE_CHECKOUT_HOLD_MS,
   roundMoney,
+  studentBalanceLock,
   teacherBookingLock,
 } from "../../../helpers/livePackages";
 import { getOrderClientInfo } from "../../../helpers/orderClientInfo";
@@ -86,6 +89,7 @@ export async function handle(request: Request) {
     const holdUntil = new Date(now + CHECKOUT_HOLD_MINUTES * 60000);
 
     const created = await db.transaction().execute(async (trx) => {
+      await studentBalanceLock(user.id).execute(trx);
       const stale = await trx
         .selectFrom("livePackages")
         .select("id")
@@ -93,7 +97,8 @@ export async function handle(request: Request) {
         .where("teacherId", "=", teacherId)
         .where("status", "=", "pending")
         .execute();
-      for (const s of stale) await abandonPendingPackage(trx, s.id, "Replaced by a newer checkout.");
+      const staleSubscriptionIds: string[] = [];
+      for (const s of stale) staleSubscriptionIds.push(...(await abandonPendingPackage(trx, s.id, "Replaced by a newer checkout.")));
 
       await teacherBookingLock(teacherId).execute(trx);
       for (const t of startTimes) {
@@ -122,6 +127,7 @@ export async function handle(request: Request) {
         .executeTakeFirstOrThrow();
       const subscriptionId = `lp_${pkg.id.replace(/-/g, "")}`;
 
+      // The balance stays held until the checkout is settled or abandoned, not just while the slots are held.
       const order = await trx
         .insertInto("orders")
         .values({
@@ -133,7 +139,8 @@ export async function handle(request: Request) {
           paymentMethod: "cashfree_mandate",
           paymentTransactionId: subscriptionId,
           liveBalanceUsed: balanceUsed.toFixed(2),
-          liveHoldUntil: holdUntil,
+          liveHoldUntil: new Date(now + PACKAGE_CHECKOUT_HOLD_MS),
+          gatewayEnv: cashfreeGatewayEnv(),
           emailsSentAt: new Date(),
         })
         .returning("id")
@@ -185,8 +192,10 @@ export async function handle(request: Request) {
         })
         .execute();
 
-      return { packageId: pkg.id, subscriptionId, orderId: order.id, toPay, authAmount };
+      return { packageId: pkg.id, subscriptionId, orderId: order.id, toPay, authAmount, staleSubscriptionIds };
     });
+
+    await cancelAbandonedMandates(created.staleSubscriptionIds);
 
     const phone = (user.mobileNumber ?? "").replace(/\D/g, "").slice(-10);
     const customerPhone = phone.length === 10 ? phone : "9999999999";
@@ -224,7 +233,8 @@ export async function handle(request: Request) {
       return new Response(superjson.stringify(output));
     } catch (error) {
       const message = error instanceof Error ? error.message : "Could not start autopay.";
-      await db.transaction().execute((trx) => abandonPendingPackage(trx, created.packageId, message));
+      const abandoned = await db.transaction().execute((trx) => abandonPendingPackage(trx, created.packageId, message));
+      await cancelAbandonedMandates(abandoned);
       throw error;
     }
   } catch (error) {

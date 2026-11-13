@@ -1,0 +1,153 @@
+/* Admin live courses tabs: a toolbar, a hint line and one table per tab. */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  min-width: 0;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.search {
+  width: 100%;
+  max-width: 20rem;
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--card);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.table th {
+  padding: 0.625rem 0.75rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted-foreground);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--foreground);
+  vertical-align: top;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.title,
+.strong {
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.title {
+  text-decoration: none;
+}
+
+.title:hover,
+.subLink:hover {
+  text-decoration: underline;
+}
+
+.sub,
+.subLink {
+  display: block;
+  margin-top: 0.125rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.subLink {
+  color: var(--fc-blue-ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.actionsCell {
+  width: 1%;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.chip {
+  display: inline-flex;
+  padding: 0.125rem 0.5625rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.tone_mint {
+  background: var(--fc-mint-tint);
+  color: var(--fc-mint-ink);
+}
+
+.tone_butter {
+  background: var(--fc-butter-tint);
+  color: var(--fc-butter-ink);
+}
+
+.tone_sage {
+  background: var(--fc-sage-tint);
+  color: var(--fc-sage-ink);
+}
+
+.tone_peach {
+  background: var(--fc-peach-tint);
+  color: var(--fc-peach-ink);
+}
+
+.tone_blue {
+  background: var(--fc-blue-tint);
+  color: var(--fc-blue-ink);
+}
+
+.tone_muted {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.empty,
+.error {
+  margin: 0;
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--muted-foreground);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--card);
+}
+
+.error {
+  color: var(--fc-peach-ink);
+}

@@ -99,6 +99,7 @@ const StudentLiveTeachingPage: React.FC = () => {
         await invalidate();
         if (result.orderStatus === "completed") toast.success("Paid. Your next 4 weeks are booked.");
         else if (result.orderStatus === "pending") toast.warning("Your payment is still being confirmed.");
+        else if (result.orderStatus === "refunded") toast.info("This payment was not needed, so it is being refunded in full to your account.");
         else toast.error(result.message || "The payment did not go through.");
       })
       .catch((err) => {

@@ -1,12 +1,7 @@
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
-import {
-  completeLiveSession,
-  markGroupLessonMissed,
-  markLiveSessionNoShow,
-  type LiveActor,
-} from "../../../helpers/liveSessionLifecycle";
+import { completeLiveSession, markLiveSessionNoShow, type LiveActor } from "../../../helpers/liveSessionLifecycle";
 import { schema, OutputType } from "./outcome_POST.schema";
 
 /* An admin sets the teacher's session status: completed or missed. Settles a credit-paid class at once. */
@@ -18,14 +13,11 @@ export async function handle(request: Request): Promise<Response> {
 
     let output: OutputType;
     if (input.action === "complete") {
-      const r = await completeLiveSession({ kind: input.kind, id: input.id, actor, settleNow: true, reason: input.reason });
+      const r = await completeLiveSession({ kind: "booking", id: input.id, actor, settleNow: true, reason: input.reason });
       output = { status: "completed", changed: r.changed, creditReturned: null };
-    } else if (input.kind === "booking") {
+    } else {
       const r = await markLiveSessionNoShow({ id: input.id, party: "teacher", actor, settleNow: true, reason: input.reason });
       output = { status: "missed", changed: r.changed, creditReturned: r.creditReturned };
-    } else {
-      const r = await markGroupLessonMissed({ id: input.id, actor, reason: input.reason });
-      output = { status: "missed", changed: r.changed, creditReturned: null };
     }
     return new Response(superjson.stringify(output));
   } catch (error) {

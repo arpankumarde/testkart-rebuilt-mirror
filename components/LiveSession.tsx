@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Clock, Video } from "lucide-react";
 import { handleClassroomLinkClick } from "../helpers/openClassroom";
+import { formatClassLength } from "../helpers/livePricing";
 import styles from "./LiveSession.module.css";
 
 /*
@@ -110,7 +111,7 @@ export const LiveSessionRow: React.FC<RowProps> = ({
           <span aria-hidden="true">&middot;</span>
           {formatSessionTime(startTime, timeZone)}
           <span aria-hidden="true">&middot;</span>
-          {durationMinutes} min
+          {formatClassLength(durationMinutes)}
         </p>
         {extra}
         {note && <p className={styles.rowNote}>{note}</p>}
@@ -150,7 +151,7 @@ export const LiveSessionNextCard: React.FC<NextCardProps> = ({
         <p className={styles.nextMeta}>
           <Clock size={15} aria-hidden="true" />
           {relative ? `${relative}, ` : `${formatWeekdayDate(startTime, timeZone)}, `}
-          {formatSessionTime(startTime, timeZone)} &middot; {durationMinutes} min
+          {formatSessionTime(startTime, timeZone)} &middot; {formatClassLength(durationMinutes)}
         </p>
       </div>
       {actions && <div className={styles.nextActions}>{actions}</div>}
@@ -309,7 +310,7 @@ export const LiveSessionCard: React.FC<CardProps> = ({
             <span>
               <strong className={styles.cardWhenDay}>{relative ?? formatWeekdayDate(startTime, timeZone)}</strong>
               {", "}
-              {formatSessionTime(startTime, timeZone)} &middot; {durationMinutes} min
+              {formatSessionTime(startTime, timeZone)} &middot; {formatClassLength(durationMinutes)}
             </span>
           </span>
         </div>

@@ -1,7 +1,7 @@
 import superjson from "superjson";
 import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
-import { LIVE_PACKAGE_STATUSES } from "../../../helpers/livePackages";
+import { cancelRenewalCharges, cancelUpcomingRenewals, LIVE_PACKAGE_STATUSES, type RaisedCharge } from "../../../helpers/livePackages";
 import { schema, OutputType } from "./update_POST.schema";
 
 const fail = (error: string, status = 400) => new Response(superjson.stringify({ error }), { status });
@@ -28,17 +28,23 @@ export async function handle(request: Request) {
       if (!mandate) return fail("Autopay was turned off for this package. Start a new package to renew.");
     }
 
-    await db
-      .updateTable("livePackages")
-      .set({
-        ...(input.autoRenew !== undefined ? { autoRenew: input.autoRenew } : {}),
-        ...(input.nextClassesPerWeek !== undefined
-          ? { nextClassesPerWeek: input.nextClassesPerWeek === pkg.classesPerWeek ? null : input.nextClassesPerWeek }
-          : {}),
-        updatedAt: new Date(),
-      })
-      .where("id", "=", input.packageId)
-      .execute();
+    // Turning autopay off also calls off a renewal already set up for the next cycle, and its debit at Cashfree.
+    const charges = await db.transaction().execute(async (trx): Promise<RaisedCharge[]> => {
+      await trx.selectFrom("livePackages").select("id").where("id", "=", input.packageId).forUpdate().executeTakeFirst();
+      await trx
+        .updateTable("livePackages")
+        .set({
+          ...(input.autoRenew !== undefined ? { autoRenew: input.autoRenew } : {}),
+          ...(input.nextClassesPerWeek !== undefined
+            ? { nextClassesPerWeek: input.nextClassesPerWeek === pkg.classesPerWeek ? null : input.nextClassesPerWeek }
+            : {}),
+          updatedAt: new Date(),
+        })
+        .where("id", "=", input.packageId)
+        .execute();
+      return input.autoRenew === false ? cancelUpcomingRenewals(trx, input.packageId, "Autopay was turned off.") : [];
+    });
+    await cancelRenewalCharges(input.packageId, charges);
 
     const output: OutputType = { success: true };
     return new Response(superjson.stringify(output));

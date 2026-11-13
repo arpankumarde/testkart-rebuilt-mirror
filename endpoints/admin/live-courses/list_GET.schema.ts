@@ -14,7 +14,7 @@ export const getAdminLiveCourses = async (input: InputType = {}, init?: RequestI
   const params = new URLSearchParams();
   if (input.status) params.set("status", input.status);
   if (input.q) params.set("q", input.q);
-  const result = await fetch(`/_api/admin/live-lessons/courses/list?${params.toString()}`, {
+  const result = await fetch(`/_api/admin/live-courses/list?${params.toString()}`, {
     method: "GET",
     ...init,
     headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },

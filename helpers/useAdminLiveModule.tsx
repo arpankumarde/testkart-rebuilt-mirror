@@ -24,7 +24,7 @@ export const useAdminLiveTeachersQuery = () =>
     staleTime: 10 * 60 * 1000,
   });
 
-export const useAdminLiveSessionQuery = (target: { kind: "booking" | "group"; id: string } | null) =>
+export const useAdminLiveSessionQuery = (target: { kind: "booking"; id: string } | null) =>
   useQuery({
     queryKey: [...ADMIN_LIVE_KEY, "session", target?.kind, target?.id],
     queryFn: () => getAdminLiveSession(target!),

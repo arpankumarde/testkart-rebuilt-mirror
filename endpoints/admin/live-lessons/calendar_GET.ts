@@ -4,7 +4,6 @@ import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import {
   sessionsSource,
-  SESSION_KINDS,
   approvedTeacherOnly,
   containsPattern,
   andAll,
@@ -19,17 +18,11 @@ export async function handle(request: Request): Promise<Response> {
     const url = new URL(request.url);
     const input = schema.parse(Object.fromEntries(url.searchParams.entries()));
 
-    const kinds = (input.kinds ?? "")
-      .split(",")
-      .map((k) => k.trim())
-      .filter((k): k is (typeof SESSION_KINDS)[number] => (SESSION_KINDS as readonly string[]).includes(k));
-
     const conds: RawBuilder<unknown>[] = [
       approvedTeacherOnly,
       sql`s.start_time < ${input.to}`,
       sql`s.start_time + make_interval(mins => s.duration_minutes) > ${input.from}`,
     ];
-    if (kinds.length === 1) conds.push(sql`s.kind = ${kinds[0]}`);
     if (input.status) conds.push(sql`s.status = ${input.status}`);
     if (input.teacherId) conds.push(sql`s.teacher_id = ${input.teacherId}`);
     if (input.q) {

@@ -53,6 +53,7 @@ export async function handle(request: Request): Promise<Response> {
     sql<string>`COUNT(*)`.as('orders')]
     ).
     where('status', '=', 'completed').
+    where(sql<boolean>`gateway_env IS DISTINCT FROM 'sandbox'`).
     where('createdAt', '>=', cutoff).
     groupBy(truncMapOrder[period]).
     execute(),

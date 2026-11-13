@@ -12,7 +12,7 @@ export const schema = z.object({
 
 export type InputType = z.infer<typeof schema>;
 
-/** "completed" when the live class balance (or a free trial) covered it and the class is booked. */
+/** "completed" when the live class balance covered it and the class is booked. */
 export type OutputType =
   | { kind: "checkout"; session: CashfreeCheckoutSession }
   | { kind: "completed"; orderId: number };

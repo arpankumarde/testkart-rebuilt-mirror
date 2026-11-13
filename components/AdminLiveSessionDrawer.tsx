@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Ban, CalendarClock, CheckCircle2, Clock, Copy, IndianRupee, ListChecks, Timer, UserRound, Users, XCircle } from "lucide-react";
+import { Ban, CalendarClock, CheckCircle2, Clock, Copy, IndianRupee, ListChecks, Timer, UserRound, XCircle } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from "./Sheet";
 import { Button } from "./Button";
 import { Skeleton } from "./Skeleton";
@@ -8,14 +8,12 @@ import {
   LiveAttendancePill,
   LiveAvatar,
   LiveCancelDialog,
-  LiveKindBadge,
   LivePaymentPill,
   LiveSessionOutcomeDialog,
   LiveSessionStatusPill,
   actorLabel,
   attendanceLabel,
   copyText,
-  liveKindLabel,
   rupees,
   sessionStatusLabel,
   type AttendanceTarget,
@@ -45,7 +43,6 @@ export const AdminLiveSessionDrawer: React.FC<Props> = ({ event, onClose }) => {
   const started = !!s && new Date(s.start).getTime() <= Date.now();
   const canResolve = s?.status === "scheduled" && started;
   const canCancel = s?.status === "scheduled";
-  const isGroup = s?.kind === "group";
   const sessionTarget: SessionTarget | null = s ? { kind: s.kind, id: s.id, title: s.title } : null;
 
   return (
@@ -55,10 +52,11 @@ export const AdminLiveSessionDrawer: React.FC<Props> = ({ event, onClose }) => {
           {s ? (
             <div className={styles.body}>
               <header className={styles.header}>
-                <div className={styles.chips}>
-                  <LiveKindBadge kind={s.kind} withLabel />
-                  {s.isTrial ? <span className={styles.trial}>Trial</span> : null}
-                </div>
+                {s.isTrial ? (
+                  <div className={styles.chips}>
+                    <span className={styles.trial}>Trial</span>
+                  </div>
+                ) : null}
                 <SheetTitle className={styles.title}>{s.title}</SheetTitle>
                 <SheetDescription className={styles.when}>
                   {formatLongDate(s.start)} · {formatTime(s.start)} - {formatTime(s.end)} IST
@@ -91,14 +89,9 @@ export const AdminLiveSessionDrawer: React.FC<Props> = ({ event, onClose }) => {
                     {formatDuration(s.durationMinutes)}
                   </Fact>
                   <Fact icon={<ListChecks />} label="Type">
-                    {liveKindLabel(s.kind)}
+                    {s.isTrial ? "1:1 trial session" : "1:1 session"}
                   </Fact>
-                  {isGroup ? (
-                    <Fact icon={<Users />} label="Seats">
-                      {s.studentCount} of {s.maxCapacity ?? "-"} taken
-                    </Fact>
-                  ) : null}
-                  <Fact icon={<IndianRupee />} label={isGroup ? "Price per learner" : "Session price"}>
+                  <Fact icon={<IndianRupee />} label="Session price">
                     {rupees(s.price)}
                   </Fact>
                 </dl>
@@ -122,7 +115,7 @@ export const AdminLiveSessionDrawer: React.FC<Props> = ({ event, onClose }) => {
                     </Button>
                   </div>
                 ) : data && data.attendees.length === 0 ? (
-                  <p className={styles.muted}>No learners enrolled.</p>
+                  <p className={styles.muted}>No learner on this booking.</p>
                 ) : (
                   <ul className={styles.attendees}>
                     {data?.attendees.map((a) => (

@@ -10,7 +10,6 @@ import {
   buildTeacherPrizeDeductionsSql,
   buildTeacherSubscriptionWalletPaymentsSql,
   buildTeacherCampaignCreditsSql,
-  teacherItemDiscountSql,
 } from "../../../helpers/teacherEarningsSql";
 import {
   startOfDay,
@@ -99,11 +98,13 @@ export async function handle(request: Request): Promise<Response> {
     // --- Queries ---
 
     // 1. Revenue (Flow metric: filtered by date)
-    // Excludes sponsored orders (teacher_sponsored payment method and orders linked to teacherSponsoredEnrollments)
+    // Excludes sponsored orders (teacher_sponsored payment method and orders linked to
+    // teacherSponsoredEnrollments) and Cashfree sandbox orders, which are test money.
     let revenueQuery = db
       .selectFrom("orders")
       .select(db.fn.sum<string>("totalAmount").as("total"))
       .where("status", "=", "completed")
+      .where(sql<boolean>`orders.gateway_env IS DISTINCT FROM 'sandbox'`)
       .where("paymentMethod", "!=", "teacher_sponsored")
       .where("id", "not in", (eb) =>
         eb
@@ -115,32 +116,14 @@ export async function handle(request: Request): Promise<Response> {
     if (startDate) revenueQuery = revenueQuery.where("createdAt", ">=", startDate);
     if (endDate) revenueQuery = revenueQuery.where("createdAt", "<=", endDate);
 
-    // 2. Platform Fee & Teacher Earnings (Flow metrics: filtered by date)
-    // Excludes sponsored orders. The platform fee is what the student paid minus the teacher's
-    // share, so it absorbs the whole discount on a Testkart-funded coupon.
-    const teacherDiscount = teacherItemDiscountSql("order_items", "orders");
-    let itemsQuery = db
-      .selectFrom("orderItems")
-      .innerJoin("orders", "orderItems.orderId", "orders.id")
-      .select([
-        sql<string>`SUM((order_items.price_at_purchase - order_items.discount_amount) - (order_items.price_at_purchase - ${teacherDiscount}) * (1 - order_items.platform_fee_percentage / 100))`.as(
-          "totalPlatformFee"
-        ),
-        sql<string>`SUM((order_items.price_at_purchase - ${teacherDiscount}) * (1 - order_items.platform_fee_percentage / 100))`.as(
-          "totalTeacherEarnings"
-        ),
-      ])
-      .where("orders.status", "=", "completed")
-      .where("orders.paymentMethod", "!=", "teacher_sponsored")
-      .where("orders.id", "not in", (eb) =>
-        eb
-          .selectFrom("teacherSponsoredEnrollments")
-          .select("teacherSponsoredEnrollments.orderId")
-          .where("teacherSponsoredEnrollments.orderId", "is not", null)
-      );
-
-    if (startDate) itemsQuery = itemsQuery.where("orders.createdAt", ">=", startDate);
-    if (endDate) itemsQuery = itemsQuery.where("orders.createdAt", "<=", endDate);
+    // 2. Teacher Earnings (Flow metric: filtered by date) come from the same net earnings SQL the
+    // teacher wallet uses, so only money a teacher has actually earned counts (held 1:1 classes,
+    // ended live tests; nothing for live courses yet). The platform fee is the rest of revenue.
+    const earningsWindow =
+      startDate || endDate
+        ? { start: startDate ?? new Date(0), end: endDate ? new Date(endDate.getTime() + 1) : undefined }
+        : undefined;
+    const windowEarningsQuery = buildTeacherNetEarningsSql(undefined, earningsWindow);
 
     // 3. Disbursed (Flow metric: filtered by date)
     let disbursedQuery = db
@@ -238,6 +221,7 @@ export async function handle(request: Request): Promise<Response> {
         ),
       ])
       .where("o.status", "=", "completed")
+      .where(sql<boolean>`o.gateway_env IS DISTINCT FROM 'sandbox'`)
       .where("o.paymentMethod", "!=", "teacher_sponsored")
       .where("o.id", "not in", (eb) =>
         eb
@@ -294,7 +278,7 @@ export async function handle(request: Request): Promise<Response> {
     // Execute all queries in parallel
     const [
       revenueResult,
-      itemsResult,
+      windowEarningsResult,
       disbursedResult,
       allTimeEarningsResult,
       allTimeWithdrawalsResult,
@@ -316,7 +300,7 @@ export async function handle(request: Request): Promise<Response> {
       allTimeCampaignCreditsResult,
     ] = await Promise.all([
       revenueQuery.executeTakeFirst(),
-      itemsQuery.executeTakeFirst(),
+      windowEarningsQuery.execute(db),
       disbursedQuery.executeTakeFirst(),
       allTimeEarningsQuery.execute(db),
       allTimeWithdrawalsQuery.execute(db),
@@ -340,8 +324,8 @@ export async function handle(request: Request): Promise<Response> {
 
     // Parse results
     const totalRevenue = parseFloat(revenueResult?.total || "0");
-    const totalPlatformFee = parseFloat(itemsResult?.totalPlatformFee || "0");
-    const totalTeacherEarnings = parseFloat(itemsResult?.totalTeacherEarnings || "0");
+    const totalTeacherEarnings = Math.round(parseFloat(windowEarningsResult.rows[0]?.total || "0") * 100) / 100;
+    const totalPlatformFee = Math.round((totalRevenue - totalTeacherEarnings) * 100) / 100;
     const totalDisbursed = parseFloat(disbursedResult?.total || "0");
 
     const allTimeEarnings = parseFloat(allTimeEarningsResult.rows[0]?.total || "0");

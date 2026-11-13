@@ -1,26 +1,25 @@
 import { sql, type RawBuilder } from "kysely";
 
 /*
- * Server-only SQL sources for the admin Live Lessons module.
+ * Server-only SQL sources for the admin 1:1 live classes module. Live course classes (group_lessons
+ * rows) are managed on the separate Live courses admin page and never appear here.
  *
- * A "session" is something that happens on the calendar: a 1:1 mentorship booking or a group
- * lesson. An "attendee" is one learner's place in a session: the 1:1 booking itself, or a group
- * lesson enrollment. A 1:1 booking is therefore both, with the same id.
+ * A "session" is a 1:1 mentorship booking on the calendar. An "attendee" is the learner's place in
+ * it, which for a 1:1 booking is the booking itself, with the same id.
  *
  * Two separate statuses, mapped from what is stored:
  *   - Session status (did the teacher hold it): scheduled | completed | missed | cancelled.
- *     A 1:1 learner no-show was held, so it is completed. A 1:1 teacher no-show, and the sweep's
- *     older "The teacher did not join." cancellations, are missed. A group lesson is missed when
- *     missed_at is set (it is stored cancelled so payouts skip it).
- *   - Attendance (did this learner attend): upcoming | attended | missed | cancelled. An admin's
+ *     A learner no-show was held, so it is completed. A teacher no-show, and the sweep's older
+ *     "The teacher did not join." cancellations, are missed.
+ *   - Attendance (did the learner attend): upcoming | attended | missed | cancelled. An admin's
  *     mark wins; then a teacher's learner no-show; then the classroom join record; once the
  *     session has ended without a join it is missed.
  *
  * mentorship_bookings stores UTC wall-clock times in timestamp-without-time-zone columns, so they
- * are converted with AT TIME ZONE 'UTC' to line up with group_lessons' timestamptz columns.
+ * are converted with AT TIME ZONE 'UTC' to compare with now() and timestamptz inputs.
  */
 
-export const SESSION_KINDS = ["booking", "group"] as const;
+export const SESSION_KINDS = ["booking"] as const;
 export type LiveSessionKind = (typeof SESSION_KINDS)[number];
 
 export const SESSION_STATUSES = ["scheduled", "completed", "missed", "cancelled"] as const;
@@ -37,7 +36,6 @@ export const SWEEP_TEACHER_ABSENT_REASON = "The teacher did not join.";
 
 const mbStart = sql`(mb.scheduled_at AT TIME ZONE 'UTC')`;
 const mbEnd = sql`(${mbStart} + make_interval(mins => mb.duration_minutes))`;
-const glEnd = sql`(gl.start_time + make_interval(mins => gl.duration_minutes))`;
 
 const mbTeacherMissed = sql`(
   (mb.status = 'no_show' AND mb.no_show_party = 'teacher')
@@ -50,16 +48,11 @@ const mbSessionStatus = sql`CASE
   WHEN mb.status IN ('completed', 'no_show') THEN 'completed'
   ELSE 'scheduled'
 END`;
-const glSessionStatus = sql`CASE WHEN gl.missed_at IS NOT NULL THEN 'missed' ELSE gl.status::text END`;
 
 const mbUnmarked = sql`(coalesce(mb.status::text, 'scheduled') = 'scheduled' AND ${mbEnd} <= now())`;
-const glUnmarked = sql`(gl.status::text = 'scheduled' AND ${glEnd} <= now())`;
 
 const mbLearnerJoined = sql`EXISTS (
   SELECT 1 FROM live_lesson_attendance la WHERE la.mentorship_booking_id = mb.id AND la.user_id = mb.student_id
-)`;
-const glLearnerJoined = sql`EXISTS (
-  SELECT 1 FROM live_lesson_attendance la WHERE la.group_lesson_id = gl.id AND la.user_id = e.student_id
 )`;
 
 /*
@@ -96,33 +89,6 @@ export const sessionsSource = sql`
   FROM mentorship_bookings mb
   JOIN users t ON t.id = mb.teacher_id
   LEFT JOIN users st ON st.id = mb.student_id
-  UNION ALL
-  SELECT
-    'group'::text,
-    gl.id::text,
-    gl.title,
-    gl.teacher_id,
-    t.display_name,
-    t.avatar_url,
-    t.live_teaching_status,
-    NULL::int,
-    NULL::text,
-    gl.start_time,
-    gl.duration_minutes,
-    ${glSessionStatus},
-    ${glUnmarked},
-    coalesce(gl.enrolled_count, 0),
-    gl.max_capacity,
-    coalesce(gl.price_per_learner, 0),
-    false,
-    CASE WHEN gl.status::text = 'cancelled' AND gl.missed_at IS NULL THEN gl.cancellation_reason END,
-    CASE WHEN gl.missed_at IS NOT NULL THEN gl.cancellation_reason END,
-    gl.completed_at,
-    gl.completed_by,
-    gl.cancelled_at,
-    gl.cancelled_by
-  FROM group_lessons gl
-  JOIN users t ON t.id = gl.teacher_id
 `;
 
 export type SessionSqlRow = {
@@ -152,30 +118,27 @@ export type SessionSqlRow = {
 };
 
 /*
- * Payment state of an attendee. The order decides when there is one: completed is paid, and a
+ * Payment state of a booking. The order decides when there is one: completed is paid, and a
  * failed, cancelled or never-finished order is not. Without an order, a live class credit counts
  * as paid. A price with neither an order nor a credit has no payment record, so it is pending,
  * never paid. Older bookings were created before payment was confirmed, so the stored price on
  * the booking alone does not prove anything was received.
  */
-const paymentStatusOf = (orderId: RawBuilder<unknown>, orderStatus: RawBuilder<unknown>, creditKind: RawBuilder<unknown>, amount: RawBuilder<unknown>) => sql`
+const mbPayment = sql`
   CASE
-    WHEN ${orderId} IS NOT NULL THEN
-      CASE ${orderStatus}
+    WHEN mb.order_id IS NOT NULL THEN
+      CASE o.status::text
         WHEN 'completed' THEN 'paid'
         WHEN 'pending' THEN 'pending'
         WHEN 'refunded' THEN 'refunded'
         ELSE 'failed'
       END
-    WHEN ${creditKind} IS NOT NULL THEN 'credit'
-    WHEN ${amount} > 0 THEN 'pending'
+    WHEN lc.kind IS NOT NULL THEN 'credit'
+    WHEN coalesce(mb.amount_paid, 0) > 0 THEN 'pending'
     ELSE 'free'
   END`;
 
-const mbPayment = paymentStatusOf(sql`mb.order_id`, sql`o.status::text`, sql`lc.kind`, sql`coalesce(mb.amount_paid, 0)`);
-const glPayment = paymentStatusOf(sql`e.order_id`, sql`o.status::text`, sql`NULL::text`, sql`coalesce(e.amount_paid, 0)`);
-
-/* One row per learner place: the 1:1 booking, or a group lesson enrollment. */
+/* One row per learner place: the 1:1 booking. */
 export const attendeesSource = sql`
   SELECT
     'booking'::text AS type,
@@ -218,47 +181,6 @@ export const attendeesSource = sql`
   LEFT JOIN users st ON st.id = mb.student_id
   LEFT JOIN orders o ON o.id = mb.order_id
   LEFT JOIN live_class_credits lc ON lc.id = mb.credit_id
-  UNION ALL
-  SELECT
-    'group'::text,
-    e.id::text,
-    gl.id::text,
-    e.student_id,
-    st.display_name,
-    st.email,
-    e.enrolled_at,
-    coalesce(e.amount_paid, 0),
-    ${glPayment},
-    CASE WHEN ${glPayment} IN ('paid', 'refunded') THEN coalesce(e.amount_paid, 0) ELSE 0 END,
-    e.order_id,
-    o.status::text,
-    o.payment_method,
-    o.paid_at,
-    o.refunded_at,
-    NULL::text,
-    false,
-    CASE
-      WHEN e.status IN ('cancelled', 'removed') THEN 'cancelled'
-      WHEN gl.status::text = 'cancelled' AND gl.missed_at IS NULL THEN 'cancelled'
-      WHEN e.attendance IS NOT NULL THEN e.attendance
-      WHEN ${glLearnerJoined} THEN 'attended'
-      WHEN ${glEnd} <= now() THEN 'missed'
-      ELSE 'upcoming'
-    END,
-    CASE
-      WHEN e.status IN ('cancelled', 'removed') OR (gl.status::text = 'cancelled' AND gl.missed_at IS NULL) THEN NULL
-      WHEN e.attendance IS NOT NULL THEN 'marked'
-      WHEN ${glLearnerJoined} THEN 'classroom'
-      WHEN ${glEnd} <= now() THEN 'no_join'
-    END,
-    e.attendance_marked_by,
-    e.attendance_marked_at,
-    (e.status IN ('cancelled', 'removed') OR (gl.status::text = 'cancelled' AND gl.missed_at IS NULL)),
-    gl.start_time <= now()
-  FROM group_lesson_enrollments e
-  JOIN group_lessons gl ON gl.id = e.group_lesson_id
-  LEFT JOIN users st ON st.id = e.student_id
-  LEFT JOIN orders o ON o.id = e.order_id
 `;
 
 export type AttendeeSqlRow = {

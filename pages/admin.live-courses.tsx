@@ -1,23 +1,47 @@
-import React, { useDeferredValue, useState } from "react";
+import React, { useRef, useState } from "react";
 import { Helmet } from "react-helmet";
-import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
-import { useAdminLiveCoursesQuery } from "../helpers/useLiveCourses";
-import { formatIstDate, formatRupees } from "../helpers/liveCourseRules";
+import { useSearchParams } from "react-router-dom";
+import { CalendarDays, LayoutList, ReceiptText } from "lucide-react";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
-import { Input } from "../components/Input";
-import { Skeleton } from "../components/Skeleton";
-import { SegmentedControl } from "../components/SegmentedControl";
+import { AdminLiveCourseClassesPanel, AdminLiveCourseEnrollmentsPanel, AdminLiveCoursesPanel } from "../components/AdminLiveCoursePanels";
+import { useAdminLiveCourseClassesQuery } from "../helpers/useLiveCourses";
 import styles from "./admin.live-courses.module.css";
 
-type Status = "all" | "draft" | "published" | "completed" | "cancelled";
-const LABEL: Record<string, string> = { draft: "Draft", published: "Live", completed: "Completed", cancelled: "Cancelled" };
+type Tab = "courses" | "classes" | "enrolments";
+
+const TABS: { value: Tab; label: string; short?: string; icon: React.ReactNode }[] = [
+  { value: "courses", label: "Courses", icon: <LayoutList /> },
+  { value: "classes", label: "Classes", icon: <CalendarDays /> },
+  { value: "enrolments", label: "Enrolments & refunds", short: "Enrolments", icon: <ReceiptText /> },
+];
+
+const isTab = (v: string | null): v is Tab => v === "courses" || v === "classes" || v === "enrolments";
 
 const AdminLiveCoursesPage: React.FC = () => {
-  const [status, setStatus] = useState<Status>("all");
-  const [search, setSearch] = useState("");
-  const q = useDeferredValue(search.trim());
-  const { data, isLoading, error } = useAdminLiveCoursesQuery({ status, q: q || undefined });
+  const [params, setParams] = useSearchParams();
+  const tab: Tab = isTab(params.get("tab")) ? (params.get("tab") as Tab) : "courses";
+  const [visited, setVisited] = useState<Set<Tab>>(() => new Set([tab]));
+  if (!visited.has(tab)) setVisited(new Set(visited).add(tab));
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const unmarked = useAdminLiveCourseClassesQuery({ view: "unmarked" }).data?.classes.length ?? 0;
+
+  const go = (next: Tab) =>
+    setParams(
+      (prev) => {
+        const p = new URLSearchParams(prev);
+        p.set("tab", next);
+        return p;
+      },
+      { replace: true }
+    );
+
+  const onTabKey = (e: React.KeyboardEvent, index: number) => {
+    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+    e.preventDefault();
+    const nextIndex = (index + (e.key === "ArrowRight" ? 1 : -1) + TABS.length) % TABS.length;
+    go(TABS[nextIndex].value);
+    tabRefs.current[nextIndex]?.focus();
+  };
 
   return (
     <>
@@ -25,73 +49,66 @@ const AdminLiveCoursesPage: React.FC = () => {
         <title>Live courses - Testkart Admin</title>
       </Helmet>
       <div className={styles.page}>
-        <Link to="/admin/live-lessons" className={styles.back}>
-          <ArrowLeft size={14} /> Live Lessons
-        </Link>
-        <ConsolePageHeader title="Live courses" />
-        <div className={styles.toolbar}>
-          <SegmentedControl
-            aria-label="Status"
-            value={status}
-            onValueChange={setStatus}
-            options={[
-              { value: "all", label: "All" },
-              { value: "published", label: "Live" },
-              { value: "draft", label: "Draft" },
-              { value: "completed", label: "Completed" },
-              { value: "cancelled", label: "Cancelled" },
-            ]}
-          />
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search title or teacher" className={styles.search} />
-        </div>
+        <ConsolePageHeader title="Live courses" description="Multi-week live batches: courses, their classes, enrolments and refunds." />
 
-        {isLoading ? (
-          <Skeleton style={{ height: "14rem" }} />
-        ) : error ? (
-          <p className={styles.error}>{error instanceof Error ? error.message : "Could not load live courses."}</p>
-        ) : !data || data.courses.length === 0 ? (
-          <p className={styles.empty}>No live courses here.</p>
-        ) : (
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th scope="col">Course</th>
-                  <th scope="col">Teacher</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Dates</th>
-                  <th scope="col">Seats</th>
-                  <th scope="col">Price</th>
-                  <th scope="col">Net sales</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.courses.map((c) => (
-                  <tr key={c.id}>
-                    <td>
-                      <Link to={`/admin/live-lessons/courses/${c.id}`} className={styles.title}>
-                        {c.title}
-                      </Link>
-                      {c.examName && <span className={styles.sub}>{c.examName}</span>}
-                    </td>
-                    <td>{c.teacher.name}</td>
-                    <td>
-                      <span className={`${styles.chip} ${styles[`s_${c.status}`]}`}>{LABEL[c.status] ?? c.status}</span>
-                    </td>
-                    <td>{c.startsOn ? `${formatIstDate(c.startsOn)} - ${formatIstDate(c.endsOn ?? c.startsOn)}` : "-"}</td>
-                    <td>
-                      {c.enrolledCount} / {c.seatLimit}
-                    </td>
-                    <td>{formatRupees(c.price)}</td>
-                    <td>
-                      {formatRupees(c.revenue)}
-                      {c.refunds > 0 && <span className={styles.sub}>{formatRupees(c.refunds)} refunded</span>}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <nav className={styles.tabs} role="tablist" aria-label="Live courses sections">
+          {TABS.map((t, i) => (
+            <button
+              key={t.value}
+              ref={(el) => {
+                tabRefs.current[i] = el;
+              }}
+              type="button"
+              role="tab"
+              id={`live-courses-tab-${t.value}`}
+              aria-selected={tab === t.value}
+              aria-controls={`live-courses-panel-${t.value}`}
+              tabIndex={tab === t.value ? 0 : -1}
+              className={`${styles.tab} ${tab === t.value ? styles.tabActive : ""}`}
+              onClick={() => go(t.value)}
+              onKeyDown={(e) => onTabKey(e, i)}
+            >
+              <span className={styles.tabIcon} aria-hidden="true">
+                {t.icon}
+              </span>
+              {t.short ? (
+                <>
+                  <span className={styles.labelFull}>{t.label}</span>
+                  <span className={styles.labelShort} aria-hidden="true">
+                    {t.short}
+                  </span>
+                </>
+              ) : (
+                t.label
+              )}
+              {t.value === "classes" && unmarked > 0 ? (
+                <span className={styles.tabBadge} aria-label={`${unmarked} classes not marked`}>
+                  {unmarked}
+                </span>
+              ) : null}
+            </button>
+          ))}
+        </nav>
+
+        {TABS.map((t) =>
+          visited.has(t.value) ? (
+            <div
+              key={t.value}
+              role="tabpanel"
+              id={`live-courses-panel-${t.value}`}
+              aria-labelledby={`live-courses-tab-${t.value}`}
+              hidden={tab !== t.value}
+              className={styles.panel}
+            >
+              {t.value === "courses" ? (
+                <AdminLiveCoursesPanel />
+              ) : t.value === "classes" ? (
+                <AdminLiveCourseClassesPanel />
+              ) : (
+                <AdminLiveCourseEnrollmentsPanel />
+              )}
+            </div>
+          ) : null
         )}
       </div>
     </>

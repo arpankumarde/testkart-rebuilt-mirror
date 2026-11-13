@@ -8,7 +8,8 @@ import { useMentorshipTeacherOfferingsBySlugQuery, useMentorshipPurchaseMutation
 import { useInvalidateLiveClasses, usePackageVerifyMutation } from "../helpers/useLivePackages";
 import { startCashfreeCheckout } from "../helpers/cashfreeCheckout";
 import { postPaymentCashfreeVerify } from "../endpoints/payment/cashfree/verify_POST.schema";
-import { formatRupees, LiveClassMinutes, LivePrices, trialPriceFor } from "../helpers/livePricing";
+import { formatClassLength, formatRupees, LiveClassMinutes, LivePrices, trialPriceFor } from "../helpers/livePricing";
+import { MENTORSHIP_SESSION_DURATIONS } from "../helpers/liveLessonConfig";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
 import { NotFoundState } from "../components/NotFoundState";
@@ -20,7 +21,7 @@ const STUDENT_CLASSES = "/student/live-teaching";
 
 /**
  * One page per tutor at /live-teaching/book/<teacher slug>, in the order a student meets them: a
- * trial first (25 or 50 minutes), then a package of 1 to 6 classes a week paid by autopay. Returns
+ * trial first (30 or 60 minutes), then a package of 1 to 6 classes a week paid by autopay. Returns
  * from Cashfree land here too.
  */
 const BookMentorshipPage: React.FC = () => {
@@ -52,6 +53,8 @@ const BookMentorshipPage: React.FC = () => {
             navigate(STUDENT_CLASSES);
           } else if (result.orderStatus === "pending") {
             toast.warning("Your payment is still being confirmed. Check your classes in a minute.");
+          } else if (result.orderStatus === "refunded") {
+            toast.info("That checkout had already been replaced, so this payment is being refunded in full. Please book again.");
           } else {
             toast.error(result.message || "The payment did not go through.");
           }
@@ -231,7 +234,9 @@ const TrialBooking: React.FC<{
 }> = ({ teacherId, prices, balance, signedIn, onLogin, onBooked }) => {
   const location = useLocation();
   const requested = Number(new URLSearchParams(location.search).get("duration"));
-  const [minutes, setMinutes] = useState<LiveClassMinutes>(requested === 50 ? 50 : 25);
+  const [minutes, setMinutes] = useState<LiveClassMinutes>(
+    MENTORSHIP_SESSION_DURATIONS.find((m) => m === requested) ?? MENTORSHIP_SESSION_DURATIONS[0]
+  );
   const [picked, setPicked] = useState<number[]>([]);
   const range = useLiveSlotRange(21);
   const purchase = useMentorshipPurchaseMutation();
@@ -258,7 +263,7 @@ const TrialBooking: React.FC<{
   return (
     <>
       <div className={styles.durationRow}>
-        {([25, 50] as const).map((m) => (
+        {MENTORSHIP_SESSION_DURATIONS.map((m) => (
           <button
             key={m}
             type="button"
@@ -269,8 +274,8 @@ const TrialBooking: React.FC<{
               setPicked([]);
             }}
           >
-            <Clock size={14} aria-hidden="true" /> {m} min
-            <span className={styles.durationPrice}>{trialPriceFor(prices, m) > 0 ? formatRupees(trialPriceFor(prices, m)) : "Free"}</span>
+            <Clock size={14} aria-hidden="true" /> {formatClassLength(m)}
+            <span className={styles.durationPrice}>{formatRupees(trialPriceFor(prices, m))}</span>
           </button>
         ))}
       </div>

@@ -20,8 +20,14 @@ import {
  * order grants it. Removing it also removes the student's lesson progress
  * (course_progress cascades).
  *
- * Group lesson seats are cancelled and 1:1 sessions still scheduled are
- * cancelled; the caller emails the 1:1 parties after commit.
+ * Group lesson seats are cancelled and a live course seat is marked refunded
+ * (enrolled_count drops, and the Cashfree refund path then refuses it). 1:1
+ * sessions still scheduled, under the order or one of its live class credits,
+ * are cancelled and every booking of the order is set to earning_status 'void';
+ * the caller emails the 1:1 parties after commit. Unspent credits of the order
+ * (or of the cycle it paid) become void: never bookable and never live class
+ * balance. livePackageId names the package a refunded cycle order belongs to;
+ * the caller stops it after commit.
  *
  * Test attempts and results are not deleted.
  */
@@ -36,6 +42,7 @@ export type RevokeOrderAccessResult = {
   removed: number;
   kept: number;
   cancelledBookingIds: string[];
+  livePackageId: string | null;
 };
 
 export async function revokeOrderAccess(
@@ -200,6 +207,37 @@ export async function revokeOrderAccess(
     removed++;
   }
 
+  const courseSeats = await trx
+    .selectFrom("liveCourseEnrollments")
+    .select(["id", "liveCourseId", "refundRequestedAt"])
+    .where("orderId", "=", orderId)
+    .where("status", "=", "enrolled")
+    .forUpdate()
+    .execute();
+  if (courseSeats.some((seat) => seat.refundRequestedAt !== null)) {
+    throw new Error("A Cashfree refund was already started for this live course seat. Finish it from the live course refunds instead.");
+  }
+  for (const seat of courseSeats) {
+    await trx
+      .updateTable("liveCourseEnrollments")
+      .set((eb) => ({
+        status: "refunded",
+        refundAmount: eb.ref("amountPaid"),
+        refundedAt: new Date(),
+        refundedBy: "admin",
+        updatedAt: new Date(),
+      }))
+      .where("id", "=", seat.id)
+      .execute();
+    await trx
+      .updateTable("liveCourses")
+      .set((eb) => ({ enrolledCount: eb.fn<number>("greatest", [eb("enrolledCount", "-", 1), eb.val(0)]), updatedAt: new Date() }))
+      .where("id", "=", seat.liveCourseId)
+      .execute();
+    removed++;
+  }
+
+  const orderCreditIds = trx.selectFrom("liveClassCredits").select("id").where("orderId", "=", orderId);
   const bookings = await trx
     .updateTable("mentorshipBookings")
     .set({
@@ -207,19 +245,45 @@ export async function revokeOrderAccess(
       cancellationReason: "Order refunded",
       cancelledAt: new Date(),
       cancelledBy: "admin",
+      earningStatus: "void",
       updatedAt: new Date(),
     })
-    .where("orderId", "=", orderId)
+    .where((eb) => eb.or([eb("orderId", "=", orderId), eb("creditId", "in", orderCreditIds)]))
     .where("status", "=", "scheduled")
     .returning("id")
     .execute();
   removed += bookings.length;
 
+  await trx
+    .updateTable("mentorshipBookings")
+    .set({ earningStatus: "void", updatedAt: new Date() })
+    .where((eb) => eb.or([eb("orderId", "=", orderId), eb("creditId", "in", orderCreditIds)]))
+    .where(sql<boolean>`earning_status IS DISTINCT FROM 'void'`)
+    .execute();
+
+  const cycle = await trx
+    .selectFrom("livePackageCycles")
+    .select(["id", "packageId"])
+    .where("orderId", "=", orderId)
+    .executeTakeFirst();
+
+  await trx
+    .updateTable("liveClassCredits")
+    .set({ status: "void", bookingId: null, updatedAt: new Date() })
+    .where((eb) => eb.or([eb("orderId", "=", orderId), ...(cycle ? [eb("cycleId", "=", cycle.id)] : [])]))
+    .where("status", "in", ["unscheduled", "booked"])
+    .execute();
+
   await syncMockTestStudentsEnrolled(mockTestIds, trx);
   await syncLiveTestEnrolledCount(liveTestIds, trx);
   await syncDigitalProductTotalPurchases(productIds, trx);
 
-  return { removed, kept, cancelledBookingIds: bookings.map((b) => b.id) };
+  return {
+    removed,
+    kept,
+    cancelledBookingIds: bookings.map((b) => b.id),
+    livePackageId: cycle?.packageId ?? null,
+  };
 }
 
 async function findOtherGrantingOrder(

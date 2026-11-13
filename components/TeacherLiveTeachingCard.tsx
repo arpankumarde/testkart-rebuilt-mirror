@@ -1,11 +1,11 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Video, Users, ArrowRight } from "lucide-react";
+import { Video, Users, ArrowRight, Clock } from "lucide-react";
 import { useMentorshipTeacherOfferingsQuery } from "../helpers/useMentorship";
 import { useLiveCoursesQuery } from "../helpers/useLiveCourses";
 import { LIVE_COURSE_LIST_PATH, formatIstDate, liveCoursePath } from "../helpers/liveCourseRules";
 import { liveBookingPath } from "../helpers/liveBookingRoutes";
-import { trialPriceFor, LiveClassMinutes } from "../helpers/livePricing";
+import { trialPriceFor, formatClassLength, LiveClassMinutes } from "../helpers/livePricing";
 import { LiveSessionDateTile } from "./LiveSession";
 import styles from "./TeacherLiveTeachingCard.module.css";
 
@@ -18,7 +18,7 @@ interface TeacherLiveTeachingCardProps {
   titleClassName?: string;
 }
 
-const formatPrice = (price: number) => (price > 0 ? `₹${price.toLocaleString("en-IN")}` : "Free");
+const formatPrice = (price: number) => `₹${price.toLocaleString("en-IN")}`;
 
 const TONES = ["lavender", "blue", "sage"] as const;
 
@@ -27,8 +27,9 @@ const TONES = ["lavender", "blue", "sage"] as const;
  * teacher approved for live teaching who has switched on 1:1 sessions (with a
  * valid rate), or who has a live course open for enrolment; everyone else gets
  * nothing, including while it loads, so their profile is unchanged. The intro
- * video sits beside the 1:1 panel on wide screens; the panel lists trial and
- * class prices as compact rows, and every booking link opens the booking page.
+ * video sits beside the 1:1 panel on wide screens; the panel shows one card
+ * per class length (trial price, then the class price) that opens the booking
+ * page at that length.
  * Data comes from mentorship/teacher-offerings_GET and live-courses/list_GET,
  * not from teachers/profile_GET, so the profile's SSR cache and structured data
  * are untouched.
@@ -97,43 +98,34 @@ export const TeacherLiveTeachingCard: React.FC<TeacherLiveTeachingCardProps> = (
               </div>
             </div>
 
-            <dl className={styles.rates}>
-              {!pastTrial && (
-                <div className={styles.rateRow}>
-                  <dt className={styles.rateLabel}>Trial class</dt>
-                  <dd className={styles.rateOptions}>
-                    {durations.map((d) => (
-                      <Link
-                        key={d.durationMinutes}
-                        to={liveBookingPath(teacherRef, d.durationMinutes)}
-                        className={`${styles.rate} ${styles.rateLink}`}
-                      >
-                        <span className={styles.rateLength}>{d.durationMinutes} min</span>
-                        <span className={styles.ratePrice}>
-                          {formatPrice(trialPriceFor(prices, d.durationMinutes as LiveClassMinutes))}
-                        </span>
-                      </Link>
-                    ))}
-                  </dd>
-                </div>
-              )}
-              <div className={styles.rateRow}>
-                <dt className={styles.rateLabel}>{pastTrial ? "Per class" : "After the trial"}</dt>
-                <dd className={styles.rateOptions}>
-                  {durations.map((d) => (
-                    <span key={d.durationMinutes} className={styles.rate}>
-                      <span className={styles.rateLength}>{d.durationMinutes} min</span>
-                      <span className={styles.ratePrice}>{formatPrice(d.price)}</span>
-                    </span>
-                  ))}
-                </dd>
-              </div>
-            </dl>
-            <p className={styles.panelNote}>1 to 6 classes a week, booked 4 weeks at a time.</p>
+            <ul className={styles.options}>
+              {durations.map((d) => {
+                const trial = trialPriceFor(prices, d.durationMinutes as LiveClassMinutes);
+                const showTrial = !pastTrial && trial !== d.price;
+                return (
+                  <li key={d.durationMinutes}>
+                    <Link to={liveBookingPath(teacherRef, d.durationMinutes)} className={styles.option}>
+                      <span className={styles.optionLength}>
+                        <Clock size={15} aria-hidden="true" />
+                        {formatClassLength(d.durationMinutes)}
+                      </span>
+                      <span className={styles.optionPrice}>
+                        {formatPrice(showTrial ? trial : d.price)}
+                        <span className={styles.optionUnit}>{showTrial ? "trial" : "a class"}</span>
+                      </span>
+                      {showTrial && <span className={styles.optionThen}>Then {formatPrice(d.price)} a class</span>}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
 
-            <Link to={liveBookingPath(teacherRef)} className={styles.cta}>
-              {pastTrial ? "Book classes" : "Book trial session"} <ArrowRight size={16} aria-hidden="true" />
-            </Link>
+            <div className={styles.panelFoot}>
+              <p className={styles.panelNote}>1 to 6 classes a week, booked 4 weeks at a time.</p>
+              <Link to={liveBookingPath(teacherRef)} className={styles.cta}>
+                {pastTrial ? "Book classes" : "Book trial session"} <ArrowRight size={16} aria-hidden="true" />
+              </Link>
+            </div>
           </div>
         )}
 

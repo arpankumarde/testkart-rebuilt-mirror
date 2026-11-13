@@ -31,6 +31,7 @@ export function useCashfreeReturn() {
         toast.dismiss(toastId);
         if (r.success && r.orderStatus === "completed") toast.success("Payment received. You're enrolled.");
         else if (r.orderStatus === "pending") toast.warning("Your payment is still being confirmed. Refresh in a minute.");
+        else if (r.orderStatus === "refunded") toast.info("This payment could not get you a seat, so it is being refunded in full to your account.");
         else toast.error(r.message || "The payment did not go through.");
       })
       .catch((e) => {

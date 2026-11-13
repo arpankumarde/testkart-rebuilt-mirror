@@ -1,9 +1,8 @@
 import React, { useRef, useState } from "react";
 import { Helmet } from "react-helmet";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { CalendarDays, Flag, Info, Ticket } from "lucide-react";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
-import { Button } from "../components/Button";
 import { AdminLiveCalendar } from "../components/AdminLiveCalendar";
 import { AdminLiveBookings } from "../components/AdminLiveBookings";
 import { AdminLiveReports } from "../components/AdminLiveReports";
@@ -55,16 +54,12 @@ const AdminLiveLessonsPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Live Lessons - Testkart Admin</title>
+        <title>1:1 live classes - Testkart Admin</title>
       </Helmet>
       <div className={styles.page}>
-        <ConsolePageHeader title="Live Lessons" description="Schedule, bookings and policies for 1:1 sessions and live course classes.">
-          <Button variant="outline" asChild>
-            <Link to="/admin/live-lessons/courses">Live courses</Link>
-          </Button>
-        </ConsolePageHeader>
+        <ConsolePageHeader title="1:1 live classes" description="Calendar, bookings, no-show reports and policies for 1:1 sessions." />
 
-        <nav className={styles.tabs} role="tablist" aria-label="Live lessons sections">
+        <nav className={styles.tabs} role="tablist" aria-label="1:1 live classes sections">
           {TABS.map((t, i) => (
             <button
               key={t.value}

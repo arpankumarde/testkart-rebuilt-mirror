@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getTeacherLiveCourses } from "../endpoints/teacher/live-courses/list_GET.schema";
 import { getTeacherLiveCourse } from "../endpoints/teacher/live-courses/get_GET.schema";
 import { postTeacherLiveCourseUpsert, type InputType as UpsertInput } from "../endpoints/teacher/live-courses/upsert_POST.schema";
@@ -17,6 +17,8 @@ import { getStudentLiveCourses } from "../endpoints/student/live-courses/list_GE
 import { getAdminLiveCourses, type InputType as AdminListInput } from "../endpoints/admin/live-courses/list_GET.schema";
 import { getAdminLiveCourse } from "../endpoints/admin/live-courses/get_GET.schema";
 import { postAdminLiveCourseAction, type InputType as AdminActionInput } from "../endpoints/admin/live-courses/action_POST.schema";
+import { getAdminLiveCourseClasses, type InputType as AdminClassesInput } from "../endpoints/admin/live-courses/classes_GET.schema";
+import { getAdminLiveCourseEnrollments, type InputType as AdminEnrollmentsInput } from "../endpoints/admin/live-courses/enrollments_GET.schema";
 
 /* Live course data changes often and across roles, so these queries refetch whenever a screen mounts. */
 const FRESH = { refetchOnMount: true, staleTime: 15_000 } as const;
@@ -31,6 +33,8 @@ const KEYS = {
   student: ["live-courses", "student"] as const,
   adminList: (input: AdminListInput) => ["live-courses", "admin", "list", input] as const,
   adminOne: (id: string) => ["live-courses", "admin", id] as const,
+  adminClasses: (input: AdminClassesInput) => ["live-courses", "admin", "classes", input] as const,
+  adminEnrollments: (input: AdminEnrollmentsInput) => ["live-courses", "admin", "enrollments", input] as const,
 };
 
 const useInvalidateAll = () => {
@@ -121,6 +125,18 @@ export const useAdminLiveCoursesQuery = (input: AdminListInput) =>
 
 export const useAdminLiveCourseQuery = (id: string) =>
   useQuery({ queryKey: KEYS.adminOne(id), queryFn: () => getAdminLiveCourse({ id }), enabled: !!id, ...FRESH });
+
+export const useAdminLiveCourseClassesQuery = (input: AdminClassesInput, enabled = true) =>
+  useQuery({ queryKey: KEYS.adminClasses(input), queryFn: () => getAdminLiveCourseClasses(input), enabled, placeholderData: keepPreviousData, ...FRESH });
+
+export const useAdminLiveCourseEnrollmentsQuery = (input: AdminEnrollmentsInput, enabled = true) =>
+  useQuery({
+    queryKey: KEYS.adminEnrollments(input),
+    queryFn: () => getAdminLiveCourseEnrollments(input),
+    enabled,
+    placeholderData: keepPreviousData,
+    ...FRESH,
+  });
 
 export const useAdminLiveCourseActionMutation = () => {
   const invalidate = useInvalidateAll();

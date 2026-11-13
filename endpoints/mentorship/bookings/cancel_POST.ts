@@ -59,8 +59,9 @@ export async function handle(request: Request) {
     const charged = isStudent && !!booking.creditId && isLateForStudent(new Date(booking.scheduledAt));
     const now = new Date();
 
+    // Conditional on "scheduled", so a cancel racing the sweep (or another cancel) cannot revive a settled credit.
     const creditOutcome = await db.transaction().execute(async (trx) => {
-      await trx
+      const updated = await trx
         .updateTable("mentorshipBookings")
         .set({
           status: "cancelled",
@@ -71,7 +72,10 @@ export async function handle(request: Request) {
           updatedAt: now,
         })
         .where("id", "=", input.bookingId)
-        .execute();
+        .where("status", "=", "scheduled")
+        .returning("id")
+        .executeTakeFirst();
+      if (!updated) throw new Error("This booking is no longer scheduled.");
       await recordSessionEvent(trx, {
         kind: "booking",
         id: input.bookingId,
@@ -81,10 +85,7 @@ export async function handle(request: Request) {
         reason: input.reason,
       });
       if (!booking.creditId) return null;
-      if (charged) {
-        await spendCredit(trx, booking.creditId);
-        return "spent" as const;
-      }
+      if (charged) return (await spendCredit(trx, booking.creditId)) ? ("spent" as const) : null;
       return returnCredit(trx, booking.creditId);
     });
 

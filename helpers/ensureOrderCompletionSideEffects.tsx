@@ -9,6 +9,7 @@ import { emailTemplatesExtra } from "./emailTemplatesExtra";
 import { completeLiveCycle, cycleForOrder } from "./livePackages";
 import { sendRenewalPaidEmail, type CycleSummary } from "./livePackageEmails";
 import { sendEnrolledNotices } from "./liveCourseNotices";
+import { refundUnfulfilledCashfreeOrder } from "./liveCourseServer";
 
 /**
  * Ensures all completion side effects (digital product purchases, course enrollments, live test enrollments) 
@@ -43,6 +44,7 @@ export async function ensureOrderCompletionSideEffects(orderId: number): Promise
   } | null = null;
   let pendingLiveCycleSummary: CycleSummary | null = null;
   let pendingLiveCourseEnrollment: { courseId: string; studentId: number; amount: number } | null = null;
+  let liveCourseRefundReason: string | null = null;
 
   await db.transaction().execute(async (trx) => {
     // Get the order
@@ -692,7 +694,8 @@ export async function ensureOrderCompletionSideEffects(orderId: number): Promise
     }
 
     // Live course enrolment. A seat race (two students paying for the last seat at once) is let
-    // through rather than refunded; a course cancelled while the student paid needs a manual refund.
+    // through rather than refunded; a course that closed while the student paid, or a second payment
+    // for a course they already have, is refunded through Cashfree after this transaction.
     const liveCourseItem = await trx
       .selectFrom("orderItems")
       .select(["id", "liveCourseId"])
@@ -723,9 +726,11 @@ export async function ensureOrderCompletionSideEffects(orderId: number): Promise
               .executeTakeFirst()
           : undefined;
         if (!course || course.status !== "published") {
-          console.error(`[ensureOrderCompletionSideEffects] Order ${orderId} paid for live course ${liveCourseItem.liveCourseId} but it is not published (${course?.status ?? "missing"}); no enrolment created. Refund by hand.`);
+          console.error(`[ensureOrderCompletionSideEffects] Order ${orderId} paid for live course ${liveCourseItem.liveCourseId} but it is not published (${course?.status ?? "missing"}); no enrolment created, refunding.`);
+          liveCourseRefundReason = `Live course was ${course?.status ?? "removed"} when the payment arrived.`;
         } else if (active) {
-          console.error(`[ensureOrderCompletionSideEffects] Order ${orderId}: student ${beneficiaryUserId} was already enrolled in live course ${course.id}; this second payment needs a refund.`);
+          console.error(`[ensureOrderCompletionSideEffects] Order ${orderId}: student ${beneficiaryUserId} was already enrolled in live course ${course.id}; refunding this second payment.`);
+          liveCourseRefundReason = "Second payment for a live course the student was already enrolled in.";
         } else {
           if (course.enrolledCount >= course.seatLimit) {
             console.warn(`[ensureOrderCompletionSideEffects] Live course ${course.id} goes over its ${course.seatLimit} seats with order ${orderId}.`);
@@ -745,10 +750,11 @@ export async function ensureOrderCompletionSideEffects(orderId: number): Promise
       }
     }
 
-    // A one-time "Pay now" order for a live package cycle whose autopay debit failed.
+    // A one-time "Pay now" order for a live package cycle whose autopay debit failed. A cycle
+    // already paid another way turns this payment into live class balance.
     const liveCycle = await cycleForOrder(trx, orderId);
-    if (liveCycle && liveCycle.status !== "paid") {
-      pendingLiveCycleSummary = await completeLiveCycle(trx, liveCycle.id);
+    if (liveCycle) {
+      pendingLiveCycleSummary = await completeLiveCycle(trx, liveCycle.id, null, orderId);
     }
 
     // Buying anything from a teacher is treated as following them - this
@@ -759,7 +765,11 @@ export async function ensureOrderCompletionSideEffects(orderId: number): Promise
     console.log(`[ensureOrderCompletionSideEffects] Completed side effects check for order ${orderId}`);
   });
 
-  if (orderUserId !== null) {
+  if (liveCourseRefundReason) {
+    await refundUnfulfilledCashfreeOrder({ orderId, reason: liveCourseRefundReason });
+  }
+
+  if (orderUserId !== null && !liveCourseRefundReason) {
     await recordOrderOutcome(orderId, "payment_succeeded");
 
     // After transaction completes, check if we need to send emails

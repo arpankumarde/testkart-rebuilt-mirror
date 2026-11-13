@@ -7,6 +7,7 @@ import { usePackageCheckoutMutation } from "../helpers/useLivePackages";
 import { startCashfreeSubscriptionCheckout } from "../helpers/cashfreeCheckout";
 import {
   classPriceFor,
+  formatClassLength,
   formatRupees,
   LivePrices,
   LiveClassMinutes,
@@ -110,7 +111,7 @@ export const LivePackageBuilder: React.FC<{
               className={`${styles.length} ${minutes === m ? styles.lengthOn : ""}`}
               onClick={() => chooseMinutes(m)}
             >
-              <span>{m} min</span>
+              <span>{formatClassLength(m)}</span>
               <span className={styles.lengthPrice}>{formatRupees(classPriceFor(prices, m))} a class</span>
             </button>
           ))}

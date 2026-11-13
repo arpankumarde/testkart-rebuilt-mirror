@@ -67,5 +67,15 @@ export const packageCycleTotal = (pricePerClass: number, classesPerWeek: number)
 /** The mandate cap: this teacher's biggest package at the chosen class length. */
 export const packageMandateMax = (pricePerClass: number) => pricePerClass * packageClassCount(PACKAGE_MAX_CLASSES_PER_WEEK);
 
+/** Class lengths read as words: 30 is "Half an hour", 60 is "1 hour", 120 is "2 hours". */
+export const formatClassLength = (minutes: number) => {
+  if (minutes === 30) return "Half an hour";
+  if (minutes > 0 && minutes % 60 === 0) {
+    const hours = minutes / 60;
+    return `${hours} hour${hours === 1 ? "" : "s"}`;
+  }
+  return `${minutes} min`;
+};
+
 export const formatRupees = (amount: number) =>
   `₹${Number(amount).toLocaleString("en-IN", { maximumFractionDigits: Number.isInteger(Number(amount)) ? 0 : 2 })}`;

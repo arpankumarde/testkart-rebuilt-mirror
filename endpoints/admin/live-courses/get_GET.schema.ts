@@ -10,7 +10,7 @@ export type OutputType = { course: LiveCourseDetail; roster: Roster; refundClose
 
 export const getAdminLiveCourse = async (input: InputType, init?: RequestInit): Promise<OutputType> => {
   const params = new URLSearchParams({ id: input.id });
-  const result = await fetch(`/_api/admin/live-lessons/courses/get?${params.toString()}`, {
+  const result = await fetch(`/_api/admin/live-courses/get?${params.toString()}`, {
     method: "GET",
     ...init,
     headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },

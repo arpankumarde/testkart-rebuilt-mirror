@@ -1,117 +1,144 @@
-/* Admin live course list: status filter, search and a table. */
+/* Admin live courses: page frame and the tab bar; each tab's content lives in AdminLiveCoursePanels. */
 .page {
+  container: livecourses / inline-size;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-}
-
-.back {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  align-self: flex-start;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--muted-foreground);
-  text-decoration: none;
-}
-
-.back:hover {
-  color: var(--foreground);
-}
-
-.toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.search {
-  max-width: 18rem;
-}
-
-.tableWrap {
-  overflow-x: auto;
-  border: 1px solid var(--border);
-  border-radius: 1rem;
-  background: var(--card);
-}
-
-.table {
+  gap: var(--spacing-4);
+  box-sizing: border-box;
   width: 100%;
-  border-collapse: collapse;
-  font-size: 0.875rem;
+  max-width: 84rem;
+  min-width: 0;
+  margin: 0 auto;
+  padding: var(--spacing-6) clamp(1rem, 2.5vw, 2rem) var(--spacing-12);
 }
 
-.table th {
-  padding: 0.625rem 0.75rem;
-  text-align: left;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--muted-foreground);
-  border-bottom: 1px solid var(--border);
-  white-space: nowrap;
+.tabs {
+  display: flex;
+  align-self: flex-start;
+  gap: 0.25rem;
+  max-width: 100%;
+  padding: 0.3125rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow);
 }
 
-.table td {
-  padding: 0.625rem 0.75rem;
-  border-bottom: 1px solid var(--border);
-  color: var(--foreground);
-  vertical-align: top;
+.tabs::-webkit-scrollbar {
+  display: none;
 }
 
-.table tr:last-child td {
-  border-bottom: none;
-}
-
-.title {
-  font-weight: 700;
-  color: var(--foreground);
-}
-
-.sub {
-  display: block;
-  font-size: 0.75rem;
-  color: var(--muted-foreground);
-}
-
-.chip {
+.tab {
   display: inline-flex;
-  padding: 0.125rem 0.5625rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-
-.s_published {
-  background: var(--fc-mint-tint);
-  color: var(--fc-mint-ink);
-}
-
-.s_draft {
-  background: var(--fc-butter-tint);
-  color: var(--fc-butter-ink);
-}
-
-.s_completed {
-  background: var(--fc-sage-tint);
-  color: var(--fc-sage-ink);
-}
-
-.s_cancelled {
-  background: var(--fc-peach-tint);
-  color: var(--fc-peach-ink);
-}
-
-.empty,
-.error {
-  margin: 0;
-  padding: 1.5rem;
-  text-align: center;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.125rem 0.5rem 0.625rem;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  white-space: nowrap;
   color: var(--muted-foreground);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
 }
 
-.error {
-  color: var(--fc-peach-ink);
+.tab:hover {
+  color: var(--foreground);
+  background: var(--muted);
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 1px;
+}
+
+.tabIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.875rem;
+  height: 1.875rem;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.tabIcon svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.tabActive,
+.tabActive:hover {
+  color: var(--pastel-peach-ink);
+  background: var(--pastel-peach);
+  font-weight: 800;
+}
+
+.tabActive .tabIcon {
+  color: var(--tk-brand-ink);
+  background: var(--tk-brand);
+}
+
+.tabBadge {
+  min-width: 1.25rem;
+  padding: 0 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  line-height: 1.25rem;
+  text-align: center;
+  color: var(--fc-butter-ink);
+  background: var(--fc-butter-tint);
+  border: 1px solid var(--fc-butter-line);
+  border-radius: var(--radius-full);
+}
+
+.labelShort {
+  display: none;
+}
+
+.panel {
+  min-width: 0;
+}
+
+.panel[hidden] {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: var(--spacing-4) var(--spacing-4) var(--spacing-8);
+  }
+}
+
+@container livecourses (max-width: 32rem) {
+  .tabs {
+    align-self: stretch;
+  }
+
+  .tab {
+    flex: 1;
+    justify-content: center;
+    padding: 0.5rem 0.375rem;
+    font-size: 0.8125rem;
+  }
+
+  .tabIcon {
+    display: none;
+  }
+
+  .labelFull {
+    display: none;
+  }
+
+  .labelShort {
+    display: inline;
+  }
 }
