@@ -10,7 +10,7 @@ export type InputType = z.infer<typeof schema>;
 
 export type PurchasedItemDetail = {
   title: string;
-  type: 'test' | 'course' | 'product' | 'live_test' | 'bundle';
+  type: 'test' | 'course' | 'product' | 'live_test' | 'bundle' | 'live_class' | 'live_course';
   url: string;
 };
 

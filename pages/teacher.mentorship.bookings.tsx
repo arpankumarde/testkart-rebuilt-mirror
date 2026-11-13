@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { handleClassroomLinkClick } from "../helpers/openClassroom";
-import { Video, Ban, RotateCcw, CheckCircle2, MoreHorizontal, Settings2, UserX } from "lucide-react";
+import { Video, Ban, RotateCcw, CheckCircle2, MoreHorizontal, Settings2, UserX, MessageSquare } from "lucide-react";
 import {
   useMentorshipBookingsRangeQuery,
   useCancelBookingMutation,
@@ -19,6 +19,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ConsoleConfirmDialog } from "../components/ConsoleConfirmDialog";
 import { Dialog } from "../components/Dialog";
 import { ConsoleDialogContent, ConsoleDialogHeader, ConsoleDialogBody, ConsoleDialogFooter } from "../components/ConsoleDialog";
+import { ClassroomRecapDialog, ClassroomRecapTarget } from "../components/ClassroomRecapDialog";
 import { Input } from "../components/Input";
 import { useTeacherLivePackagesQuery } from "../helpers/useLivePackages";
 import { formatRupees } from "../helpers/livePricing";
@@ -114,6 +115,7 @@ const TeacherMentorshipBookingsPage: React.FC = () => {
   const [cancelTarget, setCancelTarget] = useState<MentorshipBookingRow | null>(null);
   const [rescheduleTarget, setRescheduleTarget] = useState<MentorshipBookingRow | null>(null);
   const [outcomeTarget, setOutcomeTarget] = useState<{ booking: MentorshipBookingRow; outcome: "completed" | "no_show" } | null>(null);
+  const [recapTarget, setRecapTarget] = useState<ClassroomRecapTarget | null>(null);
 
   const windowStart = addMonths(anchor, -1);
   const windowEnd = addMonths(anchor, 3);
@@ -315,18 +317,7 @@ const TeacherMentorshipBookingsPage: React.FC = () => {
         </div>
         {b.status === "scheduled" && (
           <div className={styles.eventActions}>
-            {end > now && (
-              <Button variant="outline" size="sm" asChild>
-                <a
-                  href={`/mentorship/classroom/booking/${b.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => handleClassroomLinkClick(e, `/mentorship/classroom/booking/${b.id}`)}
-                >
-                  <Video size={14} aria-hidden="true" /> Classroom
-                </a>
-              </Button>
-            )}
+            {classroomLink(b, end > now)}
             {awaiting && (
               <Button size="sm" onClick={() => setOutcomeTarget({ booking: b, outcome: "completed" })}>
                 <CheckCircle2 size={14} aria-hidden="true" /> Mark completed
@@ -335,9 +326,33 @@ const TeacherMentorshipBookingsPage: React.FC = () => {
             {menu(b, start <= now)}
           </div>
         )}
+        {(b.status === "completed" || b.status === "no_show") && <div className={styles.eventActions}>{classroomLink(b, false)}</div>}
       </li>
     );
   };
+
+  /* Before the end it opens the live room; afterwards the class's saved chat and whiteboard open here in a dialog. */
+  const classroomLink = (b: MentorshipBookingRow, live: boolean) =>
+    live ? (
+      <Button variant="outline" size="sm" asChild>
+        <a
+          href={`/mentorship/classroom/booking/${b.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => handleClassroomLinkClick(e, `/mentorship/classroom/booking/${b.id}`)}
+        >
+          <Video size={14} aria-hidden="true" /> Classroom
+        </a>
+      </Button>
+    ) : (
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setRecapTarget({ kind: "booking", id: b.id, withName: b.studentName, startTime: b.scheduledAt })}
+      >
+        <MessageSquare size={14} aria-hidden="true" /> Chat and board
+      </Button>
+    );
 
   const nowLine = (
     <li key="now" className={styles.now} data-now="">
@@ -463,6 +478,7 @@ const TeacherMentorshipBookingsPage: React.FC = () => {
       </div>
 
       <CancelDialog booking={cancelTarget} onOpenChange={(open) => !open && setCancelTarget(null)} />
+      <ClassroomRecapDialog target={recapTarget} onOpenChange={(open) => !open && setRecapTarget(null)} />
       <RescheduleDialog booking={rescheduleTarget} onOpenChange={(open) => !open && setRescheduleTarget(null)} />
       <ConsoleConfirmDialog
         open={!!outcomeTarget}

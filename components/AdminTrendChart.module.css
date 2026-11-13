@@ -1,9 +1,9 @@
 .card {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4);
+  gap: var(--spacing-3);
   min-width: 0;
-  padding: var(--spacing-4) var(--spacing-6) var(--spacing-4);
+  padding: var(--spacing-4) var(--spacing-6);
   background-color: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -12,7 +12,7 @@
 
 .head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--spacing-2) var(--spacing-4);
@@ -38,13 +38,41 @@
   color: var(--muted-foreground);
 }
 
-.legend {
+.controls {
   display: flex;
   align-items: center;
-  gap: var(--spacing-4);
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.summary {
+  margin: 0;
   font-size: 0.8125rem;
   color: var(--muted-foreground);
   font-variant-numeric: tabular-nums;
+}
+
+.summaryValue {
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  width: 100%;
+  min-width: 0;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
 }
 
 .legendItem {
@@ -53,7 +81,7 @@
   gap: var(--spacing-2);
 }
 
-.swatchBar {
+.swatch {
   display: inline-block;
   width: 0.625rem;
   height: 0.625rem;
@@ -61,28 +89,28 @@
   background-color: var(--chart-color-1);
 }
 
-.swatchLine {
-  display: inline-block;
-  width: 0.875rem;
-  height: 2px;
-  border-radius: 1px;
-  background-color: var(--foreground);
-}
-
-.chart {
-  width: 100%;
-  min-width: 0;
+.swatchCurrent {
+  background-color: var(--chart-color-2);
 }
 
 .skeleton {
-  height: 240px;
+  height: 260px;
   border-radius: var(--radius);
+}
+
+.error {
+  margin: 0;
+  padding: var(--spacing-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--error-text);
+  font-size: 0.875rem;
 }
 
 .tip {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-1);
+  gap: 2px;
   padding: var(--spacing-2) var(--spacing-3);
   background-color: var(--popup);
   color: var(--popup-foreground);
@@ -93,14 +121,39 @@
   font-variant-numeric: tabular-nums;
 }
 
-.tipDay {
+.tipTitle {
   font-weight: 600;
 }
 
-.tipRow {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-2);
+.tipNote {
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.tipValue {
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.tipMeta {
+  color: var(--muted-foreground);
+}
+
+.tipDelta {
+  font-weight: 600;
+}
+
+.up {
+  color: var(--success-text);
+}
+
+.down {
+  color: var(--error-text);
+}
+
+.flat {
+  color: var(--muted-foreground);
 }
 
 @media (max-width: 640px) {

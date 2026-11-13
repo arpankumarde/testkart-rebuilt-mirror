@@ -23,6 +23,7 @@ import { useAdminLayout } from "../helpers/useAdminLayout";
 import { useAdminAuth } from "../helpers/useAdminAuth";
 import { useAdminOptionsQuery } from "../helpers/useAdminOptions";
 import { slugify } from "../helpers/slugify";
+import { ARTICLE_LIST_HREFS } from "../helpers/adminContentSurfaces";
 import styles from "./admin.blog.e.$id.module.css";
 
 const deriveSlug = (values: { title?: string; seoTitle?: string | null }) =>
@@ -224,7 +225,7 @@ const AdminBlogEditorPage = () => {
 
     upsertMutation.mutate(payload, {
       onSuccess: () => {
-        navigate("/admin/blog");
+        navigate(ARTICLE_LIST_HREFS[payload.type]);
       }
     });
   };
@@ -265,7 +266,12 @@ const AdminBlogEditorPage = () => {
           <header ref={headerRef} className={styles.header}>
             <div className={styles.headerLeft}>
               <Button variant="ghost" size="icon-md" asChild>
-                <Link to="/admin/blog" aria-label="Back to posts"><ArrowLeft size={18} /></Link>
+                <Link
+                  to={ARTICLE_LIST_HREFS[form.values.type]}
+                  aria-label={form.values.type === "knowledge_base" ? "Back to help pages" : "Back to blog posts"}
+                >
+                  <ArrowLeft size={18} />
+                </Link>
               </Button>
               
               {/* Step Indicator */}

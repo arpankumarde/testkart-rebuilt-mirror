@@ -123,7 +123,7 @@ export const LiveCourseDetailsForm: React.FC<{
 
   return (
     <form className={styles.panel} onSubmit={submit}>
-      <div className={styles.field}>
+      <div className={`${styles.field} ${styles.coverField}`}>
         <span className={styles.label}>Cover image</span>
         <ImageUploader
           folder="live-courses"

@@ -1,38 +1,25 @@
 import React from "react";
-import { Helmet } from "react-helmet";
-import { Link, useSearchParams } from "react-router-dom";
-import { Tags } from "lucide-react";
-import { Button } from "../components/Button";
-import { ConsolePageHeader } from "../components/ConsolePageHeader";
-import { AdminBlogContentTab } from "../components/AdminBlogContentTab";
-import { ARTICLE_TABS, SURFACE_LABELS } from "../helpers/adminContentSurfaces";
-import styles from "./admin.blog.module.css";
+import { Navigate, useSearchParams } from "react-router-dom";
+import { AdminArticlesPage } from "../components/AdminArticlesPage";
+import { ARTICLE_LIST_HREFS } from "../helpers/adminContentSurfaces";
 
-/** /admin/blog serves both article types; ?tab=help picks help pages, anything else is blog posts. */
+/*
+ * Blog posts. Help pages moved to /admin/help; links saved from before the split
+ * (/admin/blog?tab=help or ?tab=blog) are sent to the right page with their other params kept.
+ */
 const AdminBlogPage = () => {
   const [searchParams] = useSearchParams();
-  const type = searchParams.get("tab") === ARTICLE_TABS.knowledge_base ? "knowledge_base" : "blog";
-  const title = SURFACE_LABELS[type];
+  const tab = searchParams.get("tab");
 
-  return (
-    <>
-      <Helmet>
-        <title>{title} - Testkart Admin</title>
-      </Helmet>
+  if (tab !== null) {
+    const rest = new URLSearchParams(searchParams);
+    rest.delete("tab");
+    const path = tab === "help" ? ARTICLE_LIST_HREFS.knowledge_base : ARTICLE_LIST_HREFS.blog;
+    const query = rest.toString();
+    return <Navigate replace to={query ? `${path}?${query}` : path} />;
+  }
 
-      <div className={styles.page}>
-        <ConsolePageHeader title={title}>
-          <Button variant="outline" asChild>
-            <Link to="/admin/blog/category">
-              <Tags size={16} /> Categories
-            </Link>
-          </Button>
-        </ConsolePageHeader>
-
-        <AdminBlogContentTab key={type} type={type} />
-      </div>
-    </>
-  );
+  return <AdminArticlesPage type="blog" />;
 };
 
 export default AdminBlogPage;

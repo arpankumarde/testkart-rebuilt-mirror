@@ -10,6 +10,8 @@ import {
 } from './Dialog';
 import { Button } from './Button';
 import { useReviewMutations } from '../helpers/useReviewMutations';
+import { useReviewerName } from '../helpers/useReviewerName';
+import { ReviewerNameField } from './ReviewerNameField';
 import styles from './ReviewDialog.module.css';
 
 interface ReviewDialogProps {
@@ -54,6 +56,8 @@ export const ReviewDialog: React.FC<ReviewDialogProps> = ({
     courseId,
     slug: productSlug 
   });
+  const { needsName, name, setName, nameError, ensureName, isSavingName } = useReviewerName();
+  const isBusy = submitReviewMutation.isPending || isSavingName;
 
   useEffect(() => {
     // Reset or pre-fill state when dialog is closed/reopened
@@ -70,10 +74,11 @@ export const ReviewDialog: React.FC<ReviewDialogProps> = ({
     }
   }, [isOpen, initialRating, initialReviewText]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (rating === 0) {
       return;
     }
+    if (!(await ensureName())) return;
     
     const mutationData: { mockTestId?: number; digitalProductId?: number; courseId?: number; rating: number; reviewText?: string } = {
       rating,
@@ -101,7 +106,7 @@ export const ReviewDialog: React.FC<ReviewDialogProps> = ({
   };
 
   const handleClose = () => {
-    if (submitReviewMutation.isPending) return;
+    if (isBusy) return;
     onClose();
   };
 
@@ -168,22 +173,32 @@ export const ReviewDialog: React.FC<ReviewDialogProps> = ({
           onChange={(e) => setReviewText(e.target.value)}
           rows={4}
           maxLength={1000}
-          disabled={submitReviewMutation.isPending}
+          disabled={isBusy}
         />
+
+        {needsName && (
+          <ReviewerNameField
+            className={styles.nameField}
+            value={name}
+            onChange={setName}
+            error={nameError}
+            disabled={isBusy}
+          />
+        )}
 
         <DialogFooter className={styles.footer}>
           <Button
             variant="secondary"
             onClick={handleClose}
-            disabled={submitReviewMutation.isPending}
+            disabled={isBusy}
           >
             {isReconsider ? 'Keep my rating' : 'Skip'}
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={rating === 0 || submitReviewMutation.isPending}
+            disabled={rating === 0 || isBusy}
           >
-            {submitReviewMutation.isPending ? (
+            {isBusy ? (
               <>
                 <Loader2 className={styles.loaderIcon} />
                 {isEditMode ? 'Updating...' : 'Submitting...'}

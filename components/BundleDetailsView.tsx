@@ -25,6 +25,7 @@ import {
 import { useBundleDetailsQuery } from '../helpers/useBundlesQuery';
 import { usePurchaseBundleMutation } from '../helpers/useStudentBundles';
 import { useAuth } from '../helpers/useAuth';
+import { usePurchaseDetailsGate } from '../helpers/usePurchaseDetailsGate';
 import { trackFunnelEvent } from '../helpers/trackFunnelEvent';
 import { Skeleton } from './Skeleton';
 import { Button } from './Button';
@@ -342,6 +343,7 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
   const isStudent = authState.type === 'authenticated' && authState.user.role === 'student';
   const { data: bundle, isFetching, error } = useBundleDetailsQuery(slug);
   const purchaseMutation = usePurchaseBundleMutation();
+  const ensurePurchaseDetails = usePurchaseDetailsGate();
   const { data: tcoins } = useStudentTcoins(isStudent);
 
   const [promoCodeId, setPromoCodeId] = useState<number | null>(null);
@@ -406,8 +408,11 @@ export const BundleDetailsView: React.FC<BundleDetailsViewProps> = ({ slug, clas
         }
       );
     } else {
-      toast.loading('Redirecting to payment gateway...');
-      window.location.href = getBundleRedirectUrl(bundle.id, promoCodeId, tcoinsUsed > 0);
+      void ensurePurchaseDetails().then((ok) => {
+        if (!ok) return;
+        toast.loading('Redirecting to payment gateway...');
+        window.location.href = getBundleRedirectUrl(bundle.id, promoCodeId, tcoinsUsed > 0);
+      });
     }
   };
 

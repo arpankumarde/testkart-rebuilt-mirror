@@ -1,150 +1,120 @@
-import { db } from '../../../helpers/db';
-import { getAdminServerSessionOrThrow } from '../../../helpers/getAdminSession';
-import { schema, OutputType } from "./trends_GET.schema";
 import superjson from "superjson";
 import { sql } from "kysely";
+import { db } from "../../../helpers/db";
+import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
+import { schema, type OutputType, type TrendBucket, type TrendPeriod } from "./trends_GET.schema";
 
+const IST = "Asia/Kolkata";
+
+const UNITS: Record<TrendPeriod, { unit: "day" | "week" | "month"; count: number }> = {
+  daily: { unit: "day", count: 30 },
+  weekly: { unit: "week", count: 12 },
+  monthly: { unit: "month", count: 12 },
+};
+
+type Row = Record<string, unknown>;
+
+const toCamel = (key: string) => key.replace(/_([a-z0-9])/g, (_, c: string) => c.toUpperCase());
+const get = (row: Row, key: string): unknown => row[key] ?? row[toCamel(key)];
+const num = (value: unknown): number => {
+  const n = Number(value ?? 0);
+  return Number.isFinite(n) ? n : 0;
+};
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** The legacy string labels kept for the MCP trends tool. */
+const legacyLabel = (start: string, period: TrendPeriod) => {
+  const [y, m, d] = start.split("-").map(Number);
+  if (period === "monthly") return `${MONTHS[m - 1]} ${y}`;
+  if (period === "weekly") return `Week of ${MONTHS[m - 1]} ${d}`;
+  return `${MONTHS[m - 1]} ${d}`;
+};
+
+/** Revenue, orders and sign-ups per day, week or month in IST, every bucket present even when empty. */
 export async function handle(request: Request): Promise<Response> {
   try {
     await getAdminServerSessionOrThrow(request);
 
     const url = new URL(request.url);
-    const periodParam = url.searchParams.get("period");
+    const { period } = schema.parse({ period: url.searchParams.get("period") });
+    const { unit, count } = UNITS[period];
+    const unitLit = sql.lit(unit);
+    const span = sql.lit(`${count - 1} ${unit}`);
+    const step = sql.lit(`1 ${unit}`);
 
-    const { period } = schema.parse({ period: periodParam });
- 
-    const now = new Date();
-    const cutoffMap = {
-      daily: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
-      weekly: new Date(now.getTime() - 12 * 7 * 24 * 60 * 60 * 1000),
-      monthly: new Date(now.getFullYear(), now.getMonth() - 12, now.getDate()),
-    };
-    const cutoff = cutoffMap[period];
+    const result = await sql<Row>`
+      WITH series AS (
+        SELECT generate_series(
+          date_trunc(${unitLit}, now() AT TIME ZONE ${IST}) - ${span}::interval,
+          date_trunc(${unitLit}, now() AT TIME ZONE ${IST}),
+          ${step}::interval
+        ) AS b
+      ),
+      lo AS (SELECT min(b) AT TIME ZONE ${IST} AS since FROM series),
+      o AS (
+        SELECT date_trunc(${unitLit}, orders.created_at AT TIME ZONE ${IST}) AS b,
+               sum(orders.total_amount) AS revenue, count(*) AS orders
+        FROM orders, lo
+        WHERE orders.status = 'completed' AND orders.gateway_env IS DISTINCT FROM 'sandbox' AND orders.created_at >= lo.since
+        GROUP BY 1
+      ),
+      s AS (
+        SELECT date_trunc(${unitLit}, st.transaction_date AT TIME ZONE ${IST}) AS b, sum(st.amount) AS revenue
+        FROM subscription_transactions st, lo
+        WHERE st.status = 'completed' AND st.transaction_date >= lo.since
+        GROUP BY 1
+      ),
+      u AS (
+        SELECT date_trunc(${unitLit}, users.created_at AT TIME ZONE ${IST}) AS b,
+               count(*) FILTER (WHERE users.role = 'student') AS students,
+               count(*) FILTER (WHERE users.role = 'teacher') AS teachers
+        FROM users, lo
+        WHERE users.created_at >= lo.since
+        GROUP BY 1
+      )
+      SELECT to_char(series.b, 'YYYY-MM-DD') AS start,
+             coalesce(o.revenue, 0) + coalesce(s.revenue, 0) AS revenue,
+             coalesce(o.orders, 0) AS orders,
+             coalesce(u.students, 0) AS students,
+             coalesce(u.teachers, 0) AS teachers
+      FROM series
+      LEFT JOIN o ON o.b = series.b
+      LEFT JOIN s ON s.b = series.b
+      LEFT JOIN u ON u.b = series.b
+      ORDER BY series.b
+    `.execute(db);
 
-    const truncMapOrder = {
-      daily: sql<Date>`date_trunc('day', created_at)`,
-      weekly: sql<Date>`date_trunc('week', created_at)`,
-      monthly: sql<Date>`date_trunc('month', created_at)`
-    };
-
-    const truncMapSub = {
-      daily: sql<Date>`date_trunc('day', transaction_date)`,
-      weekly: sql<Date>`date_trunc('week', transaction_date)`,
-      monthly: sql<Date>`date_trunc('month', transaction_date)`
-    };
-
-    const [usersQuery, ordersQuery, subsQuery] = await Promise.all([
-    db.selectFrom("users").
-    select([
-    truncMapOrder[period].as('periodDate'),
-    sql<string>`COUNT(*) FILTER (WHERE role = 'teacher')`.as('teachers'),
-    sql<string>`COUNT(*) FILTER (WHERE role = 'student')`.as('students'),
-    sql<string>`COUNT(*)`.as('total')]
-    ).
-    where('createdAt', '>=', cutoff).
-    groupBy(truncMapOrder[period]).
-    orderBy(truncMapOrder[period], 'asc').
-    execute(),
-
-    db.selectFrom("orders").
-    select([
-    truncMapOrder[period].as('periodDate'),
-    sql<string>`SUM(total_amount)`.as('revenue'),
-    sql<string>`COUNT(*)`.as('orders')]
-    ).
-    where('status', '=', 'completed').
-    where(sql<boolean>`gateway_env IS DISTINCT FROM 'sandbox'`).
-    where('createdAt', '>=', cutoff).
-    groupBy(truncMapOrder[period]).
-    execute(),
-
-    db.selectFrom("subscriptionTransactions").
-    select([
-    truncMapSub[period].as('periodDate'),
-    sql<string>`SUM(amount)`.as('revenue')]
-    ).
-    where('status', '=', 'completed').
-    where('transactionDate', '>=', cutoff).
-    groupBy(truncMapSub[period]).
-    execute()]
-    );
-
-    const formatPeriod = (date: Date, p: "daily" | "weekly" | "monthly") => {
-      if (p === "daily") {
-        return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(date);
-      } else if (p === "weekly") {
-        return `Week of ${new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(date)}`;
-      } else {
-        return new Intl.DateTimeFormat('en-US', { month: 'short', year: 'numeric' }).format(date);
-      }
-    };
-
-    const userGrowth = usersQuery.map((row) => {
-      const pd = new Date(row.periodDate);
-      return {
-        period: formatPeriod(pd, period),
-        teachers: Number(row.teachers || 0),
-        students: Number(row.students || 0),
-        total: Number(row.total || 0)
-      };
-    });
-
-    const revenueMap = new Map<number, {periodDate: Date;revenue: number;orders: number;}>();
-
-    for (const row of ordersQuery) {
-      if (!row.periodDate) continue;
-      const pd = new Date(row.periodDate);
-      const time = pd.getTime();
-      revenueMap.set(time, {
-        periodDate: pd,
-        revenue: Number(row.revenue || 0),
-        orders: Number(row.orders || 0)
-      });
-    }
-
-    for (const row of subsQuery) {
-      if (!row.periodDate) continue;
-      const pd = new Date(row.periodDate);
-      const time = pd.getTime();
-      if (revenueMap.has(time)) {
-        const existing = revenueMap.get(time)!;
-        existing.revenue += Number(row.revenue || 0);
-      } else {
-        revenueMap.set(time, {
-          periodDate: pd,
-          revenue: Number(row.revenue || 0),
-          orders: 0
-        });
-      }
-    }
-
-    const revenueTrend = Array.from(revenueMap.values()).
-    sort((a, b) => a.periodDate.getTime() - b.periodDate.getTime()).
-    map((r) => ({
-      period: formatPeriod(r.periodDate, period),
-      revenue: r.revenue,
-      orders: r.orders
+    const buckets: TrendBucket[] = result.rows.map((row) => ({
+      start: String(get(row, "start")),
+      revenue: num(get(row, "revenue")),
+      orders: num(get(row, "orders")),
+      students: num(get(row, "students")),
+      teachers: num(get(row, "teachers")),
     }));
 
     const output: OutputType = {
-      userGrowth,
-      revenueTrend
+      period,
+      buckets,
+      userGrowth: buckets.map((b) => ({
+        period: legacyLabel(b.start, period),
+        teachers: b.teachers,
+        students: b.students,
+        total: b.teachers + b.students,
+      })),
+      revenueTrend: buckets.map((b) => ({ period: legacyLabel(b.start, period), revenue: b.revenue, orders: b.orders })),
     };
 
-    return new Response(superjson.stringify(output), {
-      headers: { "Content-Type": "application/json" }
-    });
-
+    return new Response(superjson.stringify(output), { headers: { "Content-Type": "application/json" } });
   } catch (error) {
     console.error("Error fetching admin dashboard trends:", error);
     if (error instanceof Error && error.name === "NotAuthenticatedError") {
-      return new Response(superjson.stringify({ error: "Not authenticated" }), {
-        status: 401
-      });
+      return new Response(superjson.stringify({ error: "Not authenticated" }), { status: 401 });
+    }
+    if (error instanceof Error && error.name === "ForbiddenError") {
+      return new Response(superjson.stringify({ error: error.message }), { status: 403 });
     }
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
-    return new Response(superjson.stringify({ error: errorMessage }), {
-      status: 500
-    });
+    return new Response(superjson.stringify({ error: errorMessage }), { status: 500 });
   }
 }

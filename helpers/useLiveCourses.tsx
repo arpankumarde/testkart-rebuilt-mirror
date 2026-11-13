@@ -19,6 +19,7 @@ import { getAdminLiveCourse } from "../endpoints/admin/live-courses/get_GET.sche
 import { postAdminLiveCourseAction, type InputType as AdminActionInput } from "../endpoints/admin/live-courses/action_POST.schema";
 import { getAdminLiveCourseClasses, type InputType as AdminClassesInput } from "../endpoints/admin/live-courses/classes_GET.schema";
 import { getAdminLiveCourseEnrollments, type InputType as AdminEnrollmentsInput } from "../endpoints/admin/live-courses/enrollments_GET.schema";
+import { gatePurchase, usePurchaseDetailsGate } from "./usePurchaseDetailsGate";
 
 /* Live course data changes often and across roles, so these queries refetch whenever a screen mounts. */
 const FRESH = { refetchOnMount: true, staleTime: 15_000 } as const;
@@ -110,8 +111,12 @@ export const useLiveCourseQuery = (by: { slug?: string; id?: string }) =>
 export const useStudentLiveCoursesQuery = (enabled = true) =>
   useQuery({ queryKey: KEYS.student, queryFn: () => getStudentLiveCourses(), enabled, ...FRESH });
 
-export const usePurchaseLiveCourseMutation = () =>
-  useMutation({ mutationFn: (liveCourseId: string) => postLiveCoursePurchase({ liveCourseId }) });
+export const usePurchaseLiveCourseMutation = () => {
+  const ensurePurchaseDetails = usePurchaseDetailsGate();
+  return useMutation({
+    mutationFn: gatePurchase(ensurePurchaseDetails, (liveCourseId: string) => postLiveCoursePurchase({ liveCourseId })),
+  });
+};
 
 export const useRefundLiveCourseMutation = () => {
   const invalidate = useInvalidateAll();

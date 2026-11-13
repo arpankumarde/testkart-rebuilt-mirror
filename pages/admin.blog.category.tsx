@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Helmet } from "react-helmet";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { 
   useAdminBlogCategoriesQuery, 
@@ -25,6 +25,7 @@ import { ConsolePageHeader } from "../components/ConsolePageHeader";
 import { ConsoleListEmpty } from "../components/ConsoleListEmpty";
 import { ArrowLeft, Edit, Trash2, Plus, FolderTree, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { ARTICLE_LIST_HREFS } from "../helpers/adminContentSurfaces";
 import styles from "./admin.blog.category.module.css";
 
 const categoryFormSchema = z.object({
@@ -99,6 +100,9 @@ const SORT_ACCESSORS: SortAccessors<CategoryWithCount, "name" | "type" | "sortOr
 
 const AdminBlogCategoriesPage = () => {
   const { data, isFetching, error, refetch } = useAdminBlogCategoriesQuery();
+  // Categories serve both article types; ?from=help sends the back link to the help list.
+  const [searchParams] = useSearchParams();
+  const fromHelp = searchParams.get("from") === "help";
   const { sorted: sortedCategories, ...sort } = useTableSort(data?.categories, SORT_ACCESSORS);
   const upsertMutation = useUpsertBlogCategoryMutation();
   const deleteMutation = useDeleteBlogCategoryMutation();
@@ -317,8 +321,8 @@ const AdminBlogCategoriesPage = () => {
       
       <div className={styles.page}>
         <Button variant="ghost" size="sm" asChild className={styles.backLink}>
-          <Link to="/admin/blog">
-            <ArrowLeft size={14} /> Blog posts
+          <Link to={fromHelp ? ARTICLE_LIST_HREFS.knowledge_base : ARTICLE_LIST_HREFS.blog}>
+            <ArrowLeft size={14} /> {fromHelp ? "Help pages" : "Blog posts"}
           </Link>
         </Button>
 

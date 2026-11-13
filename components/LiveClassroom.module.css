@@ -118,3 +118,28 @@
   min-height: 4rem;
   background: var(--sp-card);
 }
+
+/* After a trial: the way into a weekly plan with this teacher. */
+.planBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+  max-width: 26rem;
+  padding: 1.25rem;
+  background: var(--fc-blue-tint);
+  border: 1px solid var(--fc-blue-line);
+  border-radius: 1.25rem;
+}
+
+.planTitle {
+  font-weight: 800;
+  color: var(--fc-blue-ink);
+  margin: 0;
+}
+
+.planText {
+  color: var(--fc-blue-ink);
+  margin: 0;
+}

@@ -5,6 +5,7 @@ import { useAddToCartMutation, useCartItemsQuery, CART_QUERY_KEY } from '../help
 import { useFreeEnrollmentMutation } from '../helpers/useFreeEnrollmentMutation';
 import { useCourseEnrollment } from '../helpers/useCourseEnrollment';
 import { usePurchaseBundleMutation } from '../helpers/useStudentBundles';
+import { usePurchaseDetailsGate } from '../helpers/usePurchaseDetailsGate';
 import { getBundleRedirectUrl } from '../endpoints/payment/payu/bundle-redirect_GET.schema';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { postShopEnrollFree } from '../endpoints/shop/enroll-free_POST.schema';
@@ -57,6 +58,7 @@ export const MobileStickyPurchaseBar: React.FC<MobileStickyPurchaseBarProps> = (
 
   // Bundle enrollment
   const bundlePurchaseMutation = usePurchaseBundleMutation();
+  const ensurePurchaseDetails = usePurchaseDetailsGate();
 
   // Digital product free enrollment
   const freeDigitalProductEnrollmentMutation = useMutation({
@@ -147,6 +149,7 @@ export const MobileStickyPurchaseBar: React.FC<MobileStickyPurchaseBarProps> = (
           await addToCartMutation.mutateAsync({ digitalProductId: product.id });
           navigate('/cart');
         } else if (product.type === 'bundle') {
+          if (!(await ensurePurchaseDetails())) return;
           toast.loading('Redirecting to payment gateway...');
           window.location.href = getBundleRedirectUrl(product.id, product.promoCodeId, product.useTcoins);
         } else if (product.type === 'liveTest') {

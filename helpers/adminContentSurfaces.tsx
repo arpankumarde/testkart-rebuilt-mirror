@@ -2,10 +2,10 @@ import type { LucideIcon } from "lucide-react";
 import { Newspaper, BookOpen, FileSearch, Layout, Briefcase, Mail } from "lucide-react";
 import type { ArticleSurface, ContentSurface } from "../endpoints/admin/content/dashboard_GET.schema";
 
-/** The ?tab= value on /admin/blog for each article type. */
-export const ARTICLE_TABS = {
-  blog: "blog",
-  knowledge_base: "help",
+/** The admin list page for each article type. */
+export const ARTICLE_LIST_HREFS = {
+  blog: "/admin/blog",
+  knowledge_base: "/admin/help",
 } as const satisfies Record<ArticleSurface, string>;
 
 export const SURFACE_LABELS: Record<ContentSurface, string> = {
@@ -36,8 +36,8 @@ export const SURFACE_COLORS: Record<ContentSurface, string> = {
 };
 
 export const SURFACE_HREFS: Record<ContentSurface, string> = {
-  blog: `/admin/blog?tab=${ARTICLE_TABS.blog}`,
-  knowledge_base: `/admin/blog?tab=${ARTICLE_TABS.knowledge_base}`,
+  blog: ARTICLE_LIST_HREFS.blog,
+  knowledge_base: ARTICLE_LIST_HREFS.knowledge_base,
   exam_page: "/admin/exam-content",
   static_page: "/admin/static-pages",
   career: "/admin/careers",

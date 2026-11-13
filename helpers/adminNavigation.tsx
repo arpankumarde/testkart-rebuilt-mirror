@@ -47,7 +47,7 @@ import {
   History,
 } from "lucide-react";
 import { ANY_ADMIN, EXTRA_PAGE_RULES, hasAdminModule, type AdminModule } from "./adminPermissions";
-import { ARTICLE_TABS } from "./adminContentSurfaces";
+import { ARTICLE_LIST_HREFS } from "./adminContentSurfaces";
 import type { AttentionCounts } from "../endpoints/admin/dashboard/overview_GET.schema";
 
 export type AdminNavItem = {
@@ -213,8 +213,8 @@ const groups: AdminNavGroup[] = [
     items: [
       { href: "/admin/content", label: "Content dashboard", icon: LayoutDashboard, end: true, modules: ["content"], keywords: "site content seo blog guides pages editorial metadata" },
       { href: "/admin/exam-content", label: "Exam content", icon: Library, modules: ["exam_content"], keywords: "exams subjects categories" },
-      { href: `/admin/blog?tab=${ARTICLE_TABS.blog}`, label: "Blog posts", icon: Newspaper, modules: ["blog"], keywords: "articles seo categories" },
-      { href: `/admin/blog?tab=${ARTICLE_TABS.knowledge_base}`, label: "Help pages", icon: BookOpen, modules: ["blog"], keywords: "knowledge base guides articles support help centre categories" },
+      { href: ARTICLE_LIST_HREFS.blog, label: "Blog posts", icon: Newspaper, modules: ["blog"], keywords: "articles seo categories" },
+      { href: ARTICLE_LIST_HREFS.knowledge_base, label: "Help pages", icon: BookOpen, modules: ["blog"], keywords: "knowledge base guides articles support help centre categories" },
       { href: "/admin/blog/comments", label: "Comments", icon: MessageCircle, modules: ["blog_comments"], countKeys: ["blogCommentsPending"], keywords: "moderate blog" },
       {
         href: "/admin/current-affairs",
@@ -302,7 +302,7 @@ const groupCount = (group: AdminNavGroup, attention: AttentionCounts | undefined
 /** An item's route without the query it may link with (the Support inbox opens on ?status=open). */
 const pathOf = (href: string): string => href.split("?")[0];
 
-/** Whether a location's query carries every param an item's href links with (Blog posts and Help pages share /admin/blog). */
+/** Whether a location's query carries every param an item's href links with, to tell apart items that share a path. */
 const queryMatches = (href: string, search: string): boolean => {
   const wanted = [...new URLSearchParams(href.split("?")[1] ?? "")];
   const actual = new URLSearchParams(search);

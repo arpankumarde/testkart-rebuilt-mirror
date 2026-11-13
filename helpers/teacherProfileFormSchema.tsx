@@ -1,7 +1,11 @@
 import { z } from 'zod';
+import { containsEmoji, NAME_EMOJI_MESSAGE } from './nameEmoji';
 
 export const teacherProfileFormSchema = z.object({
-  displayName: z.string().min(2, 'Display name must be at least 2 characters.'),
+  displayName: z
+    .string()
+    .min(2, 'Display name must be at least 2 characters.')
+    .refine((value) => !containsEmoji(value), NAME_EMOJI_MESSAGE),
   academyName: z.string().max(100, 'Academy name must be 100 characters or less.').optional(),
   slug: z.string()
     .min(1, 'Profile URL slug cannot be empty.')

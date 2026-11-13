@@ -67,10 +67,12 @@ interface ClassroomWhiteboardProps {
   /** When given, an expand button lets the board take the whole stage (and back). */
   expanded?: boolean;
   onToggleExpand?: () => void;
+  /** Students only watch the teacher's board: no drawing tools, undo or clear. */
+  readOnly?: boolean;
 }
 
 /** The shared board: a fixed 1600 x 1000 drawing surface scaled to fit, with its own tool bar. */
-export const ClassroomWhiteboard: React.FC<ClassroomWhiteboardProps> = ({ board, onClose, fileName, expanded = false, onToggleExpand }) => {
+export const ClassroomWhiteboard: React.FC<ClassroomWhiteboardProps> = ({ board, onClose, fileName, expanded = false, onToggleExpand, readOnly = false }) => {
   const [tool, setTool] = useState<Tool>("pen");
   const [color, setColor] = useState(COLORS[0].value);
   const [size, setSize] = useState(4);
@@ -149,6 +151,7 @@ export const ClassroomWhiteboard: React.FC<ClassroomWhiteboardProps> = ({ board,
 
   // Ctrl/Cmd+Z and Ctrl/Cmd+Shift+Z (or Ctrl+Y) while the board is open and no field has focus.
   useEffect(() => {
+    if (readOnly) return;
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) return;
@@ -164,7 +167,7 @@ export const ClassroomWhiteboard: React.FC<ClassroomWhiteboardProps> = ({ board,
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [readOnly]);
 
   const toBoard = (e: React.PointerEvent) => {
     const rect = canvasRef.current!.getBoundingClientRect();
@@ -195,6 +198,7 @@ export const ClassroomWhiteboard: React.FC<ClassroomWhiteboardProps> = ({ board,
   };
 
   const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (readOnly) return;
     if (e.button !== 0 && e.pointerType === "mouse") return;
     const { x, y } = toBoard(e);
     if (tool === "text") {
@@ -261,6 +265,9 @@ export const ClassroomWhiteboard: React.FC<ClassroomWhiteboardProps> = ({ board,
   return (
     <section className={styles.board} aria-label="Whiteboard">
       <div className={styles.toolbar} role="toolbar" aria-label="Whiteboard tools">
+        {readOnly && <span className={styles.viewOnly}>Teacher's board &middot; view only</span>}
+        {!readOnly && (
+          <>
         <div className={styles.group}>
           {TOOLS.map((t) => (
             <button
@@ -316,19 +323,25 @@ export const ClassroomWhiteboard: React.FC<ClassroomWhiteboardProps> = ({ board,
             </button>
           ))}
         </div>
+          </>
+        )}
 
         <div className={styles.spacer} />
 
         <div className={styles.group}>
-          <button type="button" className={styles.tool} onClick={board.undo} disabled={!board.canUndo} aria-label="Undo" title="Undo (Ctrl+Z)">
-            <Undo2 size={16} />
-          </button>
-          <button type="button" className={styles.tool} onClick={board.redo} disabled={!board.canRedo} aria-label="Redo" title="Redo (Ctrl+Shift+Z)">
-            <Redo2 size={16} />
-          </button>
-          <button type="button" className={styles.tool} onClick={() => setClearOpen(true)} disabled={isEmpty} aria-label="Clear board" title="Clear board">
-            <Trash2 size={16} />
-          </button>
+          {!readOnly && (
+            <>
+              <button type="button" className={styles.tool} onClick={board.undo} disabled={!board.canUndo} aria-label="Undo" title="Undo (Ctrl+Z)">
+                <Undo2 size={16} />
+              </button>
+              <button type="button" className={styles.tool} onClick={board.redo} disabled={!board.canRedo} aria-label="Redo" title="Redo (Ctrl+Shift+Z)">
+                <Redo2 size={16} />
+              </button>
+              <button type="button" className={styles.tool} onClick={() => setClearOpen(true)} disabled={isEmpty} aria-label="Clear board" title="Clear board">
+                <Trash2 size={16} />
+              </button>
+            </>
+          )}
           <button
             type="button"
             className={styles.tool}
@@ -360,7 +373,7 @@ export const ClassroomWhiteboard: React.FC<ClassroomWhiteboardProps> = ({ board,
         <div className={styles.paper} style={{ width: fit.w, height: fit.h }}>
           <canvas
             ref={canvasRef}
-            className={`${styles.canvas} ${tool === "text" ? styles.canvasText : ""}`}
+            className={`${styles.canvas} ${tool === "text" && !readOnly ? styles.canvasText : ""} ${readOnly ? styles.canvasReadOnly : ""}`}
             style={{ width: fit.w, height: fit.h }}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
@@ -393,7 +406,9 @@ export const ClassroomWhiteboard: React.FC<ClassroomWhiteboardProps> = ({ board,
               onBlur={commitText}
             />
           )}
-          {isEmpty && !textDraft && <p className={styles.hint}>Draw, write or add shapes. Everyone in the call sees it live.</p>}
+          {isEmpty && !textDraft && (
+            <p className={styles.hint}>{readOnly ? "Your teacher's drawings appear here live." : "Draw, write or add shapes. Everyone in the call sees it live."}</p>
+          )}
         </div>
       </div>
 

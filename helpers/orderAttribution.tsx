@@ -2,7 +2,7 @@
  * Shared vocabulary for where an order came from and how it was paid. Pure
  * functions only, so the admin pages and the endpoints read the same labels.
  * The values themselves are captured by helpers/orderClientInfo when an order
- * is created and by the PayU completion paths (payment mode).
+ * is created and by the PayU and Cashfree completion paths (payment mode).
  */
 
 export type OrderClientSource = "web" | "android_app" | "ios_app" | "unknown";
@@ -50,7 +50,7 @@ export const ORDER_DEVICE_TYPE_LABELS: Record<OrderClientDeviceType, string> = {
   unknown: "Not known",
 };
 
-/** Groups of PayU mode codes an admin filters by. */
+/** Groups of payment mode codes an admin filters by. Cashfree modes are stored in the same codes. */
 export const ORDER_PAYMENT_MODES = ["upi", "card", "netbanking", "wallet", "emi", "other", "unknown"] as const;
 export type OrderPaymentModeGroup = (typeof ORDER_PAYMENT_MODES)[number];
 
@@ -58,9 +58,9 @@ export const ORDER_PAYMENT_MODE_GROUP_LABELS: Record<OrderPaymentModeGroup, stri
   upi: "UPI",
   card: "Card",
   netbanking: "Net banking",
-  wallet: "Wallet (via PayU)",
+  wallet: "Wallet (via the gateway)",
   emi: "EMI or pay later",
-  other: "Other PayU mode",
+  other: "Other gateway mode",
   unknown: "Not recorded",
 };
 
@@ -95,7 +95,7 @@ const PAYMENT_MODE_LABELS: Record<string, string> = {
   CLW: "Cardless EMI",
 };
 
-/** PayU's mode code (stored as returned) to a readable label. */
+/** A gateway mode code (stored as returned) to a readable label. */
 export function paymentModeLabel(code: string | null | undefined): string | null {
   if (!code) return null;
   return PAYMENT_MODE_LABELS[code] ?? code;
@@ -107,16 +107,29 @@ export function normalizePaymentMode(mode: string | null | undefined): string | 
   return code && /^[A-Z_]{2,20}$/.test(code) ? code : null;
 }
 
-export const ORDER_GATEWAYS = ["payu", "none"] as const;
+export const ORDER_GATEWAYS = ["payu", "cashfree", "none"] as const;
 export type OrderGateway = (typeof ORDER_GATEWAYS)[number];
 
 export const ORDER_GATEWAY_LABELS: Record<OrderGateway, string> = {
   payu: "PayU",
+  cashfree: "Cashfree",
   none: "No gateway",
 };
 
+/** Live classes and live courses are paid through Cashfree: one-off orders and autopay package cycles. */
+export const CASHFREE_PAYMENT_METHODS = ["cashfree", "cashfree_mandate"] as const;
+
+export function orderGateway(method: string | null | undefined): OrderGateway {
+  if (method === "payu") return "payu";
+  if (method && (CASHFREE_PAYMENT_METHODS as readonly string[]).includes(method)) return "cashfree";
+  return "none";
+}
+
 export const ORDER_PAYMENT_METHOD_LABELS: Record<string, string> = {
   payu: "PayU",
+  cashfree: "Cashfree",
+  cashfree_mandate: "Cashfree autopay",
+  live_balance: "Live class balance",
   wallet: "Testkart wallet",
   free: "Free",
   teacher_sponsored: "Teacher sponsored",

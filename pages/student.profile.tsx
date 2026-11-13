@@ -23,10 +23,15 @@ import { BillingDetailsSection } from '../components/BillingDetailsSection';
 import { ExamFocusSection } from '../components/ExamFocusSection';
 import { ConsolePageHeader } from '../components/ConsolePageHeader';
 
+import { containsEmoji, NAME_EMOJI_MESSAGE } from '../helpers/nameEmoji';
+
 import styles from './student.profile.module.css';
 
 const profileSchema = z.object({
-  displayName: z.string().min(2, 'Display name must be at least 2 characters.'),
+  displayName: z
+    .string()
+    .min(2, 'Display name must be at least 2 characters.')
+    .refine((value) => !containsEmoji(value), NAME_EMOJI_MESSAGE),
   avatarUrl: z.string().url('Please enter a valid URL.').or(z.literal('')).nullable(),
   avatarFileId: z.string().nullable().optional(),
   bio: z.string().max(500, 'Bio must be 500 characters or less.').optional(),

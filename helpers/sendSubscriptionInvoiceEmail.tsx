@@ -5,7 +5,8 @@ import { generateSubscriptionInvoicePdf, InvoiceNotEligibleError } from "./gener
 
 /**
  * Emails the tax invoice PDF for a completed, paid subscription transaction
- * to the teacher. Same idempotency/retry design as sendSalesInvoiceEmail.
+ * to the teacher. Safe to repeat: the send is gated by an atomic claim on
+ * invoice_email_sent_at, made only after the PDF renders.
  */
 export async function sendSubscriptionInvoiceEmail(transactionId: number): Promise<void> {
   try {

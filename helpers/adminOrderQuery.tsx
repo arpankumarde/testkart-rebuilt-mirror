@@ -1,9 +1,16 @@
 import { sql, type RawBuilder, type SqlBool } from "kysely";
 import { db } from "./db";
 import { NOT_CAPTURED, type AdminOrderFilters, type AdminOrderSort } from "./adminOrderFilters";
-import { orderPlatform, PAYMENT_MODE_GROUP_CODES, type OrderClientDeviceType, type OrderClientSource } from "./orderAttribution";
+import {
+  CASHFREE_PAYMENT_METHODS,
+  orderPlatform,
+  PAYMENT_MODE_GROUP_CODES,
+  type OrderClientDeviceType,
+  type OrderClientSource,
+} from "./orderAttribution";
 import { paymentFailureReason } from "./paymentFailureReason";
 import { orderDiscountBreakdown } from "./orderDiscountMethod";
+import { formatClassLength } from "./livePricing";
 import type { AdminOrderRow } from "../endpoints/admin/orders/search_POST.schema";
 import type { PurchasedItemDetail } from "../endpoints/admin/orders_GET.schema";
 
@@ -74,9 +81,16 @@ export const PAYMENT_MODE_GROUP_EXPR = sql<string>`case
 
 const LIVE_TEST_TXN = sql<SqlBool>`coalesce(orders.payment_transaction_id, '') like 'live-test-%'`;
 
+export const CASHFREE_ORDER = sql<SqlBool>`coalesce(orders.payment_method, '') in (${sql.join([...CASHFREE_PAYMENT_METHODS])})`;
+
 function hasItem(column: string): RawBuilder<SqlBool> {
   return sql<SqlBool>`exists (select 1 from order_items oi where oi.order_id = orders.id and ${sql.raw(`oi.${column}`)} is not null)`;
 }
+
+/** A 1:1 order: a single class or trial (order item), or an autopay package cycle (no order items). */
+export const LIVE_CLASS_ORDER = sql<SqlBool>`(exists (select 1 from order_items oi where oi.order_id = orders.id
+    and (oi.mentorship_teacher_id is not null or oi.mentorship_booking_id is not null or oi.group_lesson_id is not null))
+  or exists (select 1 from live_package_cycles lpc where lpc.order_id = orders.id))`;
 
 const PRODUCT_CONDITIONS: Record<string, RawBuilder<SqlBool>> = {
   live_test: LIVE_TEST_TXN,
@@ -84,22 +98,24 @@ const PRODUCT_CONDITIONS: Record<string, RawBuilder<SqlBool>> = {
   course: sql<SqlBool>`(${hasItem("course_id")} and orders.bundle_id is null)`,
   notes: sql<SqlBool>`(${hasItem("digital_product_id")} and orders.bundle_id is null)`,
   bundle: sql<SqlBool>`orders.bundle_id is not null`,
-  mentorship: sql<SqlBool>`exists (select 1 from order_items oi where oi.order_id = orders.id
-    and (oi.mentorship_teacher_id is not null or oi.mentorship_booking_id is not null
-      or oi.group_lesson_id is not null or oi.live_course_id is not null))`,
+  live_class: LIVE_CLASS_ORDER,
+  live_course: hasItem("live_course_id"),
 };
 
-/** The teacher an order is credited to: its first item's teacher, else the bundle's. */
+/** The teacher an order is credited to: its first item's teacher, else the bundle's, else the 1:1 package's. */
 export const TEACHER_ID_EXPR = sql<number | null>`coalesce(
-  (select coalesce(mt.teacher_id, c.teacher_id, dp.teacher_id, lc.teacher_id)
+  (select coalesce(mt.teacher_id, c.teacher_id, dp.teacher_id, lc.teacher_id, oi.mentorship_teacher_id)
      from order_items oi
      left join mock_tests mt on mt.id = oi.mock_test_id
      left join courses c on c.id = oi.course_id
      left join digital_products dp on dp.id = oi.digital_product_id
      left join live_courses lc on lc.id = oi.live_course_id
-    where oi.order_id = orders.id and coalesce(mt.teacher_id, c.teacher_id, dp.teacher_id, lc.teacher_id) is not null
+    where oi.order_id = orders.id
+      and coalesce(mt.teacher_id, c.teacher_id, dp.teacher_id, lc.teacher_id, oi.mentorship_teacher_id) is not null
     order by oi.id limit 1),
-  (select cb.teacher_id from course_bundles cb where cb.id = orders.bundle_id))`;
+  (select cb.teacher_id from course_bundles cb where cb.id = orders.bundle_id),
+  (select lp.teacher_id from live_package_cycles lpc join live_packages lp on lp.id = lpc.package_id
+    where lpc.order_id = orders.id limit 1))`;
 
 export function orderWhere(f: AdminOrderFilters): RawBuilder<SqlBool> {
   const conditions: RawBuilder<SqlBool>[] = [];
@@ -145,9 +161,11 @@ export function orderWhere(f: AdminOrderFilters): RawBuilder<SqlBool> {
   if (f.gateways?.length) {
     conditions.push(
       anyOf(
-        f.gateways.map((g) =>
-          g === "payu" ? sql<SqlBool>`orders.payment_method = 'payu'` : sql<SqlBool>`orders.payment_method is distinct from 'payu'`
-        )
+        f.gateways.map((g) => {
+          if (g === "payu") return sql<SqlBool>`orders.payment_method = 'payu'`;
+          if (g === "cashfree") return CASHFREE_ORDER;
+          return sql<SqlBool>`(orders.payment_method is distinct from 'payu' and not ${CASHFREE_ORDER})`;
+        })
       )
     );
   }
@@ -162,8 +180,12 @@ export function orderWhere(f: AdminOrderFilters): RawBuilder<SqlBool> {
           left join mock_tests mt on mt.id = oi.mock_test_id
           left join courses c on c.id = oi.course_id
           left join digital_products dp on dp.id = oi.digital_product_id
-          where oi.order_id = orders.id and coalesce(mt.teacher_id, c.teacher_id, dp.teacher_id) in (${ids}))`,
+          left join live_courses lc on lc.id = oi.live_course_id
+          where oi.order_id = orders.id
+            and coalesce(mt.teacher_id, c.teacher_id, dp.teacher_id, lc.teacher_id, oi.mentorship_teacher_id) in (${ids}))`,
         sql<SqlBool>`exists (select 1 from course_bundles cb where cb.id = orders.bundle_id and cb.teacher_id in (${ids}))`,
+        sql<SqlBool>`exists (select 1 from live_package_cycles lpc join live_packages lp on lp.id = lpc.package_id
+          where lpc.order_id = orders.id and lp.teacher_id in (${ids}))`,
       ])
     );
   }
@@ -232,13 +254,16 @@ export async function countOrders(filters: AdminOrderFilters): Promise<number> {
   return Number(row?.count ?? 0);
 }
 
-/** Orders that Reconcile all pending would touch: pending ones, and unpaid ones with no PayU reason yet. */
+/**
+ * Orders that Reconcile all pending would touch: pending PayU-era ones, and unpaid ones with no PayU
+ * reason yet. Cashfree orders settle through their webhook and the pending-order sweep instead.
+ */
 export async function countReconcilable(): Promise<number> {
   const row = await db
     .selectFrom("orders")
     .select(sql<string>`count(*)`.as("count"))
     .where(
-      sql<SqlBool>`orders.payment_transaction_id is not null and (orders.status = 'pending'
+      sql<SqlBool>`orders.payment_transaction_id is not null and not ${CASHFREE_ORDER} and (orders.status = 'pending'
         or (orders.status in ('failed', 'cancelled') and orders.payment_error_code is null
           and orders.payment_error_message is null and orders.payment_bank_message is null
           and orders.payment_gateway_status is null))`
@@ -263,7 +288,7 @@ export async function loadOrderRows(ids: number[]): Promise<AdminOrderRow[]> {
     return parts;
   }
 
-  const [orders, items, sponsored] = await Promise.all([
+  const [orders, items, sponsored, packageCycles] = await Promise.all([
     db
       .selectFrom("orders")
       .innerJoin("users", "users.id", "orders.userId")
@@ -320,6 +345,7 @@ export async function loadOrderRows(ids: number[]): Promise<AdminOrderRow[]> {
       .leftJoin("mockTests", "mockTests.id", "orderItems.mockTestId")
       .leftJoin("courses", "courses.id", "orderItems.courseId")
       .leftJoin("digitalProducts", "digitalProducts.id", "orderItems.digitalProductId")
+      .leftJoin("liveCourses", "liveCourses.id", "orderItems.liveCourseId")
       .select([
         "orderItems.id",
         "orderItems.orderId",
@@ -332,6 +358,13 @@ export async function loadOrderRows(ids: number[]): Promise<AdminOrderRow[]> {
         "digitalProducts.title as productTitle",
         "digitalProducts.slug as productSlug",
         "digitalProducts.teacherId as productTeacherId",
+        "liveCourses.id as liveCourseId",
+        "liveCourses.title as liveCourseTitle",
+        "liveCourses.teacherId as liveCourseTeacherId",
+        "orderItems.mentorshipTeacherId",
+        "orderItems.mentorshipBookingId",
+        "orderItems.mentorshipDurationMinutes",
+        "orderItems.groupLessonId",
       ])
       .where("orderItems.orderId", "in", ids)
       .orderBy("orderItems.id")
@@ -347,6 +380,18 @@ export async function loadOrderRows(ids: number[]): Promise<AdminOrderRow[]> {
         "users.id as studentId",
       ])
       .where("teacherSponsoredEnrollments.orderId", "in", ids)
+      .execute(),
+    db
+      .selectFrom("livePackageCycles")
+      .innerJoin("livePackages", "livePackages.id", "livePackageCycles.packageId")
+      .select([
+        "livePackageCycles.orderId",
+        "livePackageCycles.cycleNumber",
+        "livePackageCycles.classCount",
+        "livePackages.classMinutes",
+        "livePackages.teacherId",
+      ])
+      .where("livePackageCycles.orderId", "in", ids)
       .execute(),
   ]);
 
@@ -390,8 +435,37 @@ export async function loadOrderRows(ids: number[]): Promise<AdminOrderRow[]> {
     if (item.productTitle) {
       push(item.orderId, { title: item.productTitle, type: "product", url: `/study-notes/${item.productSlug}` }, item.productTeacherId);
     }
-    const teacherId = item.testTeacherId ?? item.courseTeacherId ?? item.productTeacherId;
+    if (item.liveCourseId && item.liveCourseTitle) {
+      push(
+        item.orderId,
+        { title: item.liveCourseTitle, type: "live_course", url: `/admin/live-courses/${item.liveCourseId}` },
+        item.liveCourseTeacherId
+      );
+    }
+    if (item.mentorshipTeacherId || item.mentorshipBookingId || item.groupLessonId) {
+      const minutes = item.mentorshipDurationMinutes;
+      push(
+        item.orderId,
+        { title: minutes ? `1:1 live class, ${formatClassLength(minutes).toLowerCase()}` : "1:1 live class", type: "live_class", url: "/admin/live-lessons" },
+        item.mentorshipTeacherId
+      );
+    }
+    const teacherId =
+      item.testTeacherId ?? item.courseTeacherId ?? item.productTeacherId ?? item.liveCourseTeacherId ?? item.mentorshipTeacherId;
     if (teacherId && !teacherByOrder.has(item.orderId)) teacherByOrder.set(item.orderId, teacherId);
+  }
+  for (const cycle of packageCycles) {
+    if (cycle.orderId === null) continue;
+    const length = formatClassLength(cycle.classMinutes).toLowerCase();
+    push(
+      cycle.orderId,
+      {
+        title: `1:1 package, ${cycle.classCount} classes of ${length}${cycle.cycleNumber > 1 ? ` (renewal ${cycle.cycleNumber})` : ""}`,
+        type: "live_class",
+        url: "/admin/live-lessons",
+      },
+      cycle.teacherId
+    );
   }
   for (const order of orders) {
     if (order.bundleTeacherId && !teacherByOrder.has(order.id)) teacherByOrder.set(order.id, order.bundleTeacherId);

@@ -16,7 +16,8 @@ export const MIX_LABELS: Record<MixKind, string> = {
   course: "Courses",
   bundle: "Bundles",
   live_test: "Live tests",
-  mentorship: "Mentorship",
+  live_class: "1:1 live classes",
+  live_course: "Live courses",
   subscription: "Subscriptions",
   other: "Other",
 };
@@ -27,7 +28,8 @@ const MIX_COLORS: Record<MixKind, string> = {
   course: "var(--chart-color-5)",
   bundle: "var(--chart-color-3)",
   live_test: "var(--chart-color-4)",
-  mentorship: "var(--info)",
+  live_class: "var(--info)",
+  live_course: "var(--success)",
   subscription: "var(--foreground)",
   other: "var(--muted-foreground)",
 };

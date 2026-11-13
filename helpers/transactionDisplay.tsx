@@ -73,6 +73,8 @@ export const ITEM_TYPE_LABELS: Record<string, string> = {
   course: "Course",
   product: "Study notes",
   bundle: "Bundle",
+  live_class: "1:1 live class",
+  live_course: "Live course",
 };
 
 export const formatDay = (date: Date): string =>

@@ -27,12 +27,14 @@ export async function handle(request: Request) {
     }
     schema.parse(json ?? {});
 
-    // 3. Fetch all pending orders with paymentTransactionId
+    // 3. Fetch all pending orders with paymentTransactionId. Cashfree orders are settled by their webhook
+    // and sweep; asking PayU about them would mark paid live class orders failed.
     const pendingOrders = await db
       .selectFrom("orders")
       .select(["id", "status", "paymentTransactionId", "userId"])
       .where("status", "=", "pending")
       .where("paymentTransactionId", "is not", null)
+      .where(sql<boolean>`coalesce(payment_method, '') not in ('cashfree', 'cashfree_mandate')`)
       .execute();
 
     const summary: OutputType = {

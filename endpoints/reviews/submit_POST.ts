@@ -1,6 +1,7 @@
 import { db } from "../../helpers/db";
 import { schema, OutputType } from "./submit_POST.schema";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
+import { isPlaceholderDisplayName, REVIEW_NAME_REQUIRED_MESSAGE } from "../../helpers/isPlaceholderDisplayName";
 import { emailTemplatesExtra } from "../../helpers/emailTemplatesExtra";
 import { sendEmail } from "../../helpers/sendEmail";
 import superjson from 'superjson';
@@ -12,6 +13,11 @@ export async function handle(request: Request) {
 
     if (user.role !== 'student') {
       return new Response(superjson.stringify({ error: "Only students can submit reviews." }), { status: 403 });
+    }
+
+    // Reviews show the student's name, so a generated User_<id> name is refused. ReviewDialog asks for a name first.
+    if (isPlaceholderDisplayName(user.displayName)) {
+      return new Response(superjson.stringify({ error: REVIEW_NAME_REQUIRED_MESSAGE }), { status: 400 });
     }
 
     const json = superjson.parse(await request.text());

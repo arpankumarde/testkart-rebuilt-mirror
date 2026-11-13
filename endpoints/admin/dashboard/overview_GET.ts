@@ -152,7 +152,8 @@ export async function handle(request: Request): Promise<Response> {
       await Promise.all([
         sql<Row>`
           SELECT
-            (SELECT count(*) FROM orders WHERE status = 'pending' AND created_at < now() - interval '1 hour') AS stale_orders,
+            (SELECT count(*) FROM orders WHERE status = 'pending' AND created_at < now() - interval '1 hour'
+               AND coalesce(payment_method, '') NOT IN ('cashfree', 'cashfree_mandate')) AS stale_orders,
             (SELECT count(*) FROM orders WHERE status = 'failed' AND created_at >= now() - interval '7 days') AS failed_orders_7d,
             (SELECT count(*) FROM teacher_withdrawals WHERE status = 'pending') AS teacher_withdrawals,
             (SELECT coalesce(sum(amount), 0) FROM teacher_withdrawals WHERE status = 'pending') AS teacher_withdrawals_amount,
@@ -250,8 +251,9 @@ export async function handle(request: Request): Promise<Response> {
                    CASE WHEN oi.mock_test_id IS NOT NULL THEN 'mock_test'
                         WHEN oi.course_id IS NOT NULL THEN 'course'
                         WHEN oi.digital_product_id IS NOT NULL THEN 'digital_product'
+                        WHEN oi.live_course_id IS NOT NULL THEN 'live_course'
                         WHEN oi.mentorship_teacher_id IS NOT NULL OR oi.mentorship_booking_id IS NOT NULL
-                          OR oi.group_lesson_id IS NOT NULL OR oi.live_course_id IS NOT NULL THEN 'mentorship'
+                          OR oi.group_lesson_id IS NOT NULL THEN 'live_class'
                         ELSE 'other' END AS kind
             FROM order_items oi JOIN win ON win.id = oi.order_id
             WHERE win.bundle_id IS NULL AND win.is_live = false
@@ -259,6 +261,8 @@ export async function handle(request: Request): Promise<Response> {
           SELECT kind, coalesce(sum(amt), 0) AS revenue, count(*) AS units FROM items GROUP BY kind
           UNION ALL SELECT 'bundle', coalesce(sum(total_amount), 0), count(*) FROM win WHERE bundle_id IS NOT NULL
           UNION ALL SELECT 'live_test', coalesce(sum(total_amount), 0), count(*) FROM win WHERE is_live = true AND bundle_id IS NULL
+          UNION ALL SELECT 'live_class', coalesce(sum(total_amount), 0), count(*)
+                    FROM win WHERE EXISTS (SELECT 1 FROM live_package_cycles lpc WHERE lpc.order_id = win.id)
           UNION ALL SELECT 'subscription', coalesce(sum(amount), 0), count(*)
                     FROM subscription_transactions WHERE status = 'completed' AND transaction_date >= ${currentStart}
         `.execute(db),
@@ -424,12 +428,16 @@ export async function handle(request: Request): Promise<Response> {
       attempts: num(get(row, "attempts")),
     }));
 
-    const mix: MixSlice[] = mixRows.rows
-      .map((row) => ({
-        kind: str(get(row, "kind"), "other") as MixKind,
-        revenue: num(get(row, "revenue")),
-        units: num(get(row, "units")),
-      }))
+    // 1:1 classes arrive twice: single classes as order items, package cycles as whole orders.
+    const mixByKind = new Map<MixKind, MixSlice>();
+    for (const row of mixRows.rows) {
+      const kind = str(get(row, "kind"), "other") as MixKind;
+      const slice = mixByKind.get(kind) ?? { kind, revenue: 0, units: 0 };
+      slice.revenue += num(get(row, "revenue"));
+      slice.units += num(get(row, "units"));
+      mixByKind.set(kind, slice);
+    }
+    const mix: MixSlice[] = [...mixByKind.values()]
       .filter((slice) => slice.units > 0 || slice.revenue > 0)
       .sort((x, y) => y.revenue - x.revenue || y.units - x.units);
 

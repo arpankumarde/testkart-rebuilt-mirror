@@ -66,7 +66,8 @@ export const MixKindValues = [
   "course",
   "bundle",
   "live_test",
-  "mentorship",
+  "live_class",
+  "live_course",
   "subscription",
   "other",
 ] as const;

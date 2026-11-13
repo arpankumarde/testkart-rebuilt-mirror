@@ -164,35 +164,6 @@ export const emailTemplatesExtra = {
     };
   },
 
-  certificateGenerated: (
-    studentName: string,
-    itemName: string,
-    certificateNumber: string
-  ): EmailTemplateResult => {
-    const subject = `Your certificate is ready: ${itemName}`;
-    const html = getBrandedEmailHtml({
-      title: subject,
-      preheaderText: "Congratulations. Your certificate is ready to view.",
-      eyebrow: "Certificate",
-      tone: "mint",
-      heading: "Your certificate is ready",
-      bodyHtml: `
-        <p style="margin:0 0 12px;">Hi ${esc(studentName)},</p>
-        <p style="margin:0;">Congratulations on completing <strong>${esc(itemName)}</strong>.</p>
-      `,
-      table: [{ label: "Certificate number", value: esc(certificateNumber), emphasize: true }],
-      ctaLabel: "View my certificate",
-      ctaUrl: "https://testkart.in/student/certificates",
-      studentAppPromo: true,
-    });
-
-    return {
-      subject,
-      html,
-      text: `Hi ${studentName}, your certificate for "${itemName}" is ready. Certificate number ${certificateNumber}. View it at https://testkart.in/student/certificates`,
-    };
-  },
-
   newReviewReceived: (
     teacherName: string,
     studentName: string,

@@ -7,6 +7,7 @@ import { Button } from "./Button";
 import { Spinner } from "./Spinner";
 import { useAuth } from "../helpers/useAuth";
 import { isPlaceholderDisplayName } from "../helpers/isPlaceholderDisplayName";
+import { containsEmoji, NAME_EMOJI_MESSAGE } from "../helpers/nameEmoji";
 import { useStudentProfileMutations } from "../helpers/useStudentProfileMutations";
 import styles from "./RequiredNameDialog.module.css";
 
@@ -19,7 +20,9 @@ const nameSchema = z.object({
     // Stops the generated placeholder being typed straight back in.
     .refine((value) => !isPlaceholderDisplayName(value), {
       message: "Please enter your real full name",
-    }),
+    })
+    // An emoji-only name would be stored as User_<id> again.
+    .refine((value) => !containsEmoji(value), { message: NAME_EMOJI_MESSAGE }),
 });
 
 /**

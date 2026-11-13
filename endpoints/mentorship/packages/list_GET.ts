@@ -1,7 +1,7 @@
 import superjson from "superjson";
 import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
-import { getLiveBalance, isLateForStudent, LIVE_PACKAGE_STATUSES } from "../../../helpers/livePackages";
+import { getLiveBalance, isLateForStudent, isTrialCreditHeld, LIVE_PACKAGE_STATUSES } from "../../../helpers/livePackages";
 import type { LivePackageView, OutputType, TrialFollowUp } from "./list_GET.schema";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -101,17 +101,31 @@ export async function handle(request: Request) {
       .selectFrom("liveClassCredits")
       .innerJoin("mentorshipBookings", "mentorshipBookings.id", "liveClassCredits.bookingId")
       .innerJoin("users as teacher", "teacher.id", "liveClassCredits.teacherId")
-      .select([
+      .select((eb) => [
         "mentorshipBookings.id as bookingId",
         "mentorshipBookings.scheduledAt",
+        "mentorshipBookings.status as bookingStatus",
+        "mentorshipBookings.durationMinutes",
+        "liveClassCredits.status",
         "liveClassCredits.teacherId",
         "teacher.slug as teacherSlug",
         "teacher.displayName",
         "teacher.avatarUrl",
+        eb
+          .exists(
+            eb
+              .selectFrom("liveLessonAttendance")
+              .innerJoin("users", "users.id", "liveLessonAttendance.userId")
+              .select("liveLessonAttendance.id")
+              .whereRef("liveLessonAttendance.mentorshipBookingId", "=", "mentorshipBookings.id")
+              .where("liveLessonAttendance.role", "=", "teacher")
+              .where("users.role", "=", "teacher")
+          )
+          .as("teacherJoined"),
       ])
       .where("liveClassCredits.studentId", "=", user.id)
       .where("liveClassCredits.kind", "=", "trial")
-      .where("liveClassCredits.status", "=", "spent")
+      .where("liveClassCredits.status", "in", ["booked", "spent"])
       .where("mentorshipBookings.scheduledAt", ">", new Date(Date.now() - 14 * DAY_MS))
       .where(({ not, exists, selectFrom }) =>
         not(
@@ -127,7 +141,8 @@ export async function handle(request: Request) {
       .orderBy("mentorshipBookings.scheduledAt", "desc")
       .execute();
 
-    const trialFollowUps: TrialFollowUp[] = trials.map((t) => ({
+    const nowMs = Date.now();
+    const trialFollowUps: TrialFollowUp[] = trials.filter((t) => isTrialCreditHeld(t, nowMs)).map((t) => ({
       bookingId: t.bookingId,
       teacherId: t.teacherId,
       teacherSlug: t.teacherSlug,

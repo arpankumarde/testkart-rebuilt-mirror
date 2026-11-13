@@ -9,7 +9,6 @@ import {
   Video,
   FileText,
   BookOpenCheck,
-  Award,
   Wallet,
   Receipt,
   Ticket,
@@ -90,7 +89,7 @@ const NAV_GROUPS: StudentNavGroup[] = [
         isActiveFor: (p) => p === '/student/tests' || p.startsWith('/student/tests/'),
       },
       { href: '/student/live', label: 'Live Mock Tests', icon: Radio },
-      { href: '/student/live-teaching', label: 'Live Classes', icon: Video },
+      { href: '/student/live-teaching', label: '1:1 Classes', icon: Video },
       { href: '/student/live-courses', label: 'Live Courses', icon: Video },
       {
         href: '/student/shop',
@@ -104,7 +103,6 @@ const NAV_GROUPS: StudentNavGroup[] = [
         icon: BookOpenCheck,
         isActiveFor: (p) => p === '/student/courses' || p.startsWith('/student/courses/'),
       },
-      { href: '/student/certificates', label: 'Certificates', icon: Award },
     ],
   },
   {

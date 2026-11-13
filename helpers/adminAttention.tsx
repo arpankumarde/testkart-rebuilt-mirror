@@ -12,24 +12,19 @@ import {
   ClipboardCheck,
   UserCheck,
   MessageCircle,
-  CreditCard,
-  Sparkles,
   Flag,
 } from "lucide-react";
 import type { AttentionCounts } from "../endpoints/admin/dashboard/overview_GET.schema";
 import { adminNavigation, type AdminPermissionList } from "./adminNavigation";
 import { hasAdminModule } from "./adminPermissions";
-import { adminFormat } from "./adminFormat";
 
-export type AttentionTone = "money" | "verify" | "inbox" | "sales" | "content" | "system";
+export type AttentionTone = "money" | "verify" | "inbox" | "sales" | "content";
 
 export type AttentionTile = {
   key: keyof AttentionCounts;
   count: number;
-  /** Noun phrase that follows the count, already pluralised. */
+  /** Noun phrase that follows the count, already pluralised and readable on its own. */
   title: string;
-  /** One short line under the title. */
-  detail: string;
   /** Lands on the list already narrowed to exactly the rows counted. */
   href: string;
   icon: LucideIcon;
@@ -41,18 +36,19 @@ export type AttentionTile = {
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
 /**
- * Every work queue an admin can act on, in the order it should be looked at:
+ * Every work queue an admin has to act on, in the order it should be looked at:
  * money first, then verifications, then people waiting on a reply. Zero
  * counts are dropped, and queues that live on a page the admin cannot open are
- * dropped too.
+ * dropped too. Informational counts (expiring subscriptions, failed AI runs)
+ * are not queues and stay off this list.
  */
 const tiles = (attention: AttentionCounts, permissions: AdminPermissionList): AttentionTile[] => {
+  const reviews = attention.reviewsPending + attention.reviewsSenior;
   const all: AttentionTile[] = [
     {
       key: "staleOrders",
       count: attention.staleOrders,
       title: plural(attention.staleOrders, "order stuck pending", "orders stuck pending"),
-      detail: "older than an hour",
       href: "/admin/transactions?status=pending&filter=stale-pending",
       icon: Clock,
       tone: "money",
@@ -61,8 +57,7 @@ const tiles = (attention: AttentionCounts, permissions: AdminPermissionList): At
     {
       key: "teacherWithdrawals",
       count: attention.teacherWithdrawals,
-      title: plural(attention.teacherWithdrawals, "teacher withdrawal", "teacher withdrawals"),
-      detail: `${adminFormat.inr(attention.teacherWithdrawalsAmount)} to pay out`,
+      title: plural(attention.teacherWithdrawals, "teacher withdrawal to pay", "teacher withdrawals to pay"),
       href: "/admin/teachers/withdrawals?status=pending",
       icon: ArrowDownToLine,
       tone: "money",
@@ -70,8 +65,7 @@ const tiles = (attention: AttentionCounts, permissions: AdminPermissionList): At
     {
       key: "studentWithdrawals",
       count: attention.studentWithdrawals,
-      title: plural(attention.studentWithdrawals, "student withdrawal", "student withdrawals"),
-      detail: `${adminFormat.inr(attention.studentWithdrawalsAmount)} to pay out`,
+      title: plural(attention.studentWithdrawals, "student withdrawal to pay", "student withdrawals to pay"),
       href: "/admin/students/withdrawals?status=pending",
       icon: ArrowDownToLine,
       tone: "money",
@@ -79,8 +73,7 @@ const tiles = (attention: AttentionCounts, permissions: AdminPermissionList): At
     {
       key: "teacherBankPending",
       count: attention.teacherBankPending,
-      title: plural(attention.teacherBankPending, "teacher bank detail", "teacher bank details"),
-      detail: "to verify",
+      title: plural(attention.teacherBankPending, "teacher bank detail to verify", "teacher bank details to verify"),
       href: "/admin/teachers/bank-details?status=pending",
       icon: Landmark,
       tone: "verify",
@@ -88,8 +81,7 @@ const tiles = (attention: AttentionCounts, permissions: AdminPermissionList): At
     {
       key: "studentBankPending",
       count: attention.studentBankPending,
-      title: plural(attention.studentBankPending, "student bank detail", "student bank details"),
-      detail: "to verify",
+      title: plural(attention.studentBankPending, "student bank detail to verify", "student bank details to verify"),
       href: "/admin/students/bank-details?status=pending",
       icon: Landmark,
       tone: "verify",
@@ -97,8 +89,7 @@ const tiles = (attention: AttentionCounts, permissions: AdminPermissionList): At
     {
       key: "supportUnread",
       count: attention.supportUnread,
-      title: plural(attention.supportUnread, "support thread", "support threads"),
-      detail: `unread of ${attention.supportOpen} open`,
+      title: plural(attention.supportUnread, "unread support thread", "unread support threads"),
       href: "/admin/support?status=open&filter=unread",
       icon: LifeBuoy,
       tone: "inbox",
@@ -106,8 +97,7 @@ const tiles = (attention: AttentionCounts, permissions: AdminPermissionList): At
     {
       key: "demoRequestsNew",
       count: attention.demoRequestsNew,
-      title: plural(attention.demoRequestsNew, "demo request", "demo requests"),
-      detail: "still marked new",
+      title: plural(attention.demoRequestsNew, "new demo request", "new demo requests"),
       href: "/admin/sales?stage=new&source=demo_request",
       icon: CalendarCheck,
       tone: "sales",
@@ -115,8 +105,7 @@ const tiles = (attention: AttentionCounts, permissions: AdminPermissionList): At
     {
       key: "followupsOverdue",
       count: attention.followupsOverdue,
-      title: plural(attention.followupsOverdue, "follow-up", "follow-ups"),
-      detail: "overdue",
+      title: plural(attention.followupsOverdue, "overdue follow-up", "overdue follow-ups"),
       href: "/admin/sales?filter=overdue",
       icon: PhoneCall,
       tone: "sales",
@@ -124,8 +113,7 @@ const tiles = (attention: AttentionCounts, permissions: AdminPermissionList): At
     {
       key: "inquiriesPending",
       count: attention.inquiriesPending,
-      title: plural(attention.inquiriesPending, "teacher inquiry", "teacher inquiries"),
-      detail: "waiting for a reply",
+      title: plural(attention.inquiriesPending, "teacher inquiry to answer", "teacher inquiries to answer"),
       href: "/admin/teachers/inquiries?status=pending",
       icon: MessageSquare,
       tone: "inbox",
@@ -134,7 +122,6 @@ const tiles = (attention: AttentionCounts, permissions: AdminPermissionList): At
       key: "liveTeachingPending",
       count: attention.liveTeachingPending,
       title: plural(attention.liveTeachingPending, "live teaching application", "live teaching applications"),
-      detail: "to review",
       href: "/admin/teachers/live-teaching",
       icon: UserCheck,
       tone: "verify",
@@ -142,8 +129,7 @@ const tiles = (attention: AttentionCounts, permissions: AdminPermissionList): At
     {
       key: "contactNew",
       count: attention.contactNew,
-      title: plural(attention.contactNew, "contact message", "contact messages"),
-      detail: "unread",
+      title: plural(attention.contactNew, "unread contact message", "unread contact messages"),
       href: "/admin/contact-submissions?status=new",
       icon: Inbox,
       tone: "inbox",
@@ -151,35 +137,24 @@ const tiles = (attention: AttentionCounts, permissions: AdminPermissionList): At
     {
       key: "prizesUndistributed",
       count: attention.prizesUndistributed,
-      title: plural(attention.prizesUndistributed, "live test", "live tests"),
-      detail: "with prizes to distribute",
+      title: plural(attention.prizesUndistributed, "live test prize to distribute", "live test prizes to distribute"),
       href: "/admin/live-tests?filter=prizes-pending",
       icon: Trophy,
       tone: "content",
     },
     {
       key: "reviewsPending",
-      count: attention.reviewsPending,
-      title: plural(attention.reviewsPending, "content review", "content reviews"),
-      detail: "pending",
-      href: "/admin/content-reviews?status=pending",
+      count: reviews,
+      title: plural(reviews, "content review", "content reviews"),
+      // Senior approvals are counted in; the list opens on whichever queue holds the work.
+      href: attention.reviewsPending > 0 ? "/admin/content-reviews?status=pending" : "/admin/content-reviews?status=senior_review",
       icon: ClipboardCheck,
-      tone: "content",
-    },
-    {
-      key: "reviewsSenior",
-      count: attention.reviewsSenior,
-      title: plural(attention.reviewsSenior, "content review", "content reviews"),
-      detail: "waiting for senior approval",
-      href: "/admin/content-reviews?status=senior_review",
-      icon: UserCheck,
       tone: "content",
     },
     {
       key: "blogCommentsPending",
       count: attention.blogCommentsPending,
-      title: plural(attention.blogCommentsPending, "blog comment", "blog comments"),
-      detail: "to moderate",
+      title: plural(attention.blogCommentsPending, "blog comment to moderate", "blog comments to moderate"),
       href: "/admin/blog/comments?status=pending",
       icon: MessageCircle,
       tone: "content",
@@ -187,29 +162,10 @@ const tiles = (attention: AttentionCounts, permissions: AdminPermissionList): At
     {
       key: "contentReportsNew",
       count: attention.contentReportsNew,
-      title: plural(attention.contentReportsNew, "content report", "content reports"),
-      detail: "new from visitors",
+      title: plural(attention.contentReportsNew, "new content report", "new content reports"),
       href: "/admin/content-reports?status=new",
       icon: Flag,
       tone: "content",
-    },
-    {
-      key: "subscriptionsExpiring7d",
-      count: attention.subscriptionsExpiring7d,
-      title: plural(attention.subscriptionsExpiring7d, "subscription", "subscriptions"),
-      detail: "expiring this week",
-      href: "/admin/subscriptions?filter=expiring-7d",
-      icon: CreditCard,
-      tone: "system",
-    },
-    {
-      key: "aiFailed7d",
-      count: attention.aiFailed7d,
-      title: plural(attention.aiFailed7d, "AI generation", "AI generations"),
-      detail: "failed this week",
-      href: "/admin/ai-usage?status=failed&filter=last-7d",
-      icon: Sparkles,
-      tone: "system",
     },
   ];
 

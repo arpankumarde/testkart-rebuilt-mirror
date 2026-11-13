@@ -37,6 +37,8 @@ export async function handle(request: Request) {
       .select(["orders.id", "orders.paymentTransactionId", attemptStartedAt.as("createdAt")])
       .where("orders.userId", "=", user.id)
       .where("orders.status", "=", "pending")
+      // Cashfree orders (live classes) are settled by their webhook and sweep, never by PayU.
+      .where(sql<boolean>`coalesce(orders.payment_method, '') not in ('cashfree', 'cashfree_mandate')`)
       .where(attemptStartedAt, "<", fiveMinutesAgo)
       .where("orders.paymentTransactionId", "is not", null)
       .execute();

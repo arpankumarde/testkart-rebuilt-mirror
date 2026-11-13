@@ -203,7 +203,7 @@ const RateCard: React.FC<{ applying?: boolean }> = ({ applying = false }) => {
   const setRateMutation = useSetTeacherMentorshipRateMutation();
   const [enabled, setEnabled] = useState(false);
   const [prices, setPrices] = useState<Record<PriceKey, string>>({ class30: "", class60: "" });
-  const [trialDiscount, setTrialDiscount] = useState(false);
+  const [trialDiscount, setTrialDiscount] = useState(true);
 
   useEffect(() => {
     if (!data) return;
@@ -346,18 +346,6 @@ const RateCard: React.FC<{ applying?: boolean }> = ({ applying = false }) => {
               </span>
             </div>
             <Switch checked={trialDiscount} onCheckedChange={setTrialDiscount} aria-labelledby="trial-discount-label" />
-          </div>
-
-          <div className={styles.packageStrip}>
-            <span className={styles.packageLabel}>Package price every 4 weeks, 60 min classes</span>
-            <dl className={styles.packageList}>
-              {[1, 3, 6].map((perWeek) => (
-                <div key={perWeek} className={styles.packageItem}>
-                  <dt>{perWeek} a week</dt>
-                  <dd>{problem ? "-" : `₹${(values.class60 * perWeek * 4).toLocaleString("en-IN")}`}</dd>
-                </div>
-              ))}
-            </dl>
           </div>
         </>
       )}

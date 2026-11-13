@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
+import { useQueryClient } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 import { useAdminAuth } from "../helpers/useAdminAuth";
 import { useAdminDashboardOverview } from "../helpers/useAdminDashboardOverview";
+import { ADMIN_TRENDS_QUERY_KEY } from "../helpers/useAdminDashboardTrends";
+import { hasAdminModule } from "../helpers/adminPermissions";
 import { OverviewRange, OverviewRangeValues } from "../endpoints/admin/dashboard/overview_GET.schema";
 import { adminFormat } from "../helpers/adminFormat";
 import { Button } from "../components/Button";
@@ -10,7 +13,7 @@ import { SegmentedControl } from "../components/SegmentedControl";
 import { Skeleton } from "../components/Skeleton";
 import { AdminAttentionBand } from "../components/AdminAttentionBand";
 import { AdminKpiLedger } from "../components/AdminKpiLedger";
-import { AdminRevenueChart } from "../components/AdminRevenueChart";
+import { AdminTrendChart } from "../components/AdminTrendChart";
 import { AdminRevenueMix } from "../components/AdminRevenueMix";
 import { AdminTopSellers } from "../components/AdminTopSellers";
 import { AdminRecentOrders } from "../components/AdminRecentOrders";
@@ -38,6 +41,7 @@ const readStoredRange = (): OverviewRange => {
 
 const AdminDashboardPage: React.FC = () => {
   const { authState } = useAdminAuth();
+  const queryClient = useQueryClient();
   const [range, setRange] = useState<OverviewRange>("7d");
   const [now, setNow] = useState(() => Date.now());
 
@@ -74,6 +78,12 @@ const AdminDashboardPage: React.FC = () => {
   const { admin } = authState;
   const days = data?.days ?? RANGE_DAYS[range];
   const daily = data?.daily ?? [];
+  const canSeeFigures = hasAdminModule(admin.permissions ?? [], ["dashboard"]);
+
+  const refreshAll = () => {
+    refetch();
+    queryClient.invalidateQueries({ queryKey: ADMIN_TRENDS_QUERY_KEY });
+  };
 
   const totals = data
     ? [
@@ -113,7 +123,7 @@ const AdminDashboardPage: React.FC = () => {
             <Button
               variant="outline"
               size="icon-lg"
-              onClick={() => refetch()}
+              onClick={refreshAll}
               disabled={isFetching}
               aria-label="Refresh"
               className={styles.refresh}
@@ -130,14 +140,14 @@ const AdminDashboardPage: React.FC = () => {
         )}
 
         <div className={`${styles.content} ${isFetching && data ? styles.busy : ""}`} aria-busy={isFetching}>
-          <AdminAttentionBand attention={data?.attention} permissions={admin.permissions ?? []} isLoading={isFetching} />
+          <AdminAttentionBand attention={data?.attention} permissions={admin.permissions ?? []} />
 
           <AdminKpiLedger kpis={data?.kpis} daily={daily} days={days} isLoading={isFetching} />
 
           <AiConnectorCard audience="admin" />
 
           <div className={styles.chartRow}>
-            <AdminRevenueChart daily={daily} days={days} isLoading={isFetching} />
+            {canSeeFigures && <AdminTrendChart enabled />}
             <AdminRevenueMix mix={data?.mix ?? []} isLoading={isFetching} />
           </div>
 

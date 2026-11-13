@@ -22,7 +22,7 @@ import {
   type SiteContentQueues,
 } from "../endpoints/admin/content/dashboard_GET.schema";
 import { adminFormat } from "../helpers/adminFormat";
-import { ARTICLE_TABS } from "../helpers/adminContentSurfaces";
+import { ARTICLE_LIST_HREFS } from "../helpers/adminContentSurfaces";
 import styles from "./AdminContentQueues.module.css";
 
 type Props = {
@@ -58,11 +58,11 @@ const ARTICLE_NOUNS: Record<ArticleSurface, [one: string, many: string]> = {
 type ArticleTileSpec = Omit<QueueTile, "key" | "count" | "title" | "href"> & {
   field: keyof ArticleQueueCounts;
   live: boolean;
-  /* status and filter for /admin/blog, matching the dashboard query's condition for this field. */
+  /* status and filter for /admin/blog or /admin/help, matching the dashboard query's condition for this field. */
   params: Record<string, string>;
 };
 
-/* One tile per article type, each linking to that type's tab narrowed to the counted rows. */
+/* One tile per article type, each linking to that type's list narrowed to the counted rows. */
 const articleTiles = (queues: SiteContentQueues, { field, live, params, ...tile }: ArticleTileSpec): QueueTile[] =>
   ARTICLE_TYPES.map((type) => {
     const count = queues.articles[type][field];
@@ -72,7 +72,7 @@ const articleTiles = (queues: SiteContentQueues, { field, live, params, ...tile 
       key: `${field}-${type}`,
       count,
       title: `${live ? "live " : ""}${plural(count, one, many)}`,
-      href: `/admin/blog?${new URLSearchParams({ tab: ARTICLE_TABS[type], ...params }).toString()}`,
+      href: `${ARTICLE_LIST_HREFS[type]}?${new URLSearchParams(params).toString()}`,
     };
   });
 

@@ -20,7 +20,6 @@ import {
   NotebookPen,
   SwitchCamera,
   CircleStop,
-  Clock,
   X,
   Plus,
   Trash2,
@@ -28,6 +27,7 @@ import {
   Crown,
   AlertTriangle,
   Hourglass,
+  ChevronUp,
 } from "lucide-react";
 import type { OutputType as ClassroomDetails } from "../endpoints/mentorship/classroom/details_GET.schema";
 import type { ChatMessageOut, OutputType as ChatList } from "../endpoints/mentorship/classroom/chat/list_GET.schema";
@@ -43,6 +43,8 @@ import {
 } from "../helpers/useLiveClassroom";
 import { CallParticipant, useDailyCall } from "../helpers/useDailyCall";
 import { useClassroomWhiteboard } from "../helpers/useClassroomWhiteboard";
+import { getMentorshipClassroomWhiteboard } from "../endpoints/mentorship/classroom/whiteboard/get_GET.schema";
+import { postMentorshipClassroomWhiteboardSave } from "../endpoints/mentorship/classroom/whiteboard/save_POST.schema";
 import { useMediaQuery } from "../helpers/useMediaQuery";
 import { useDarkModeObserver } from "../helpers/useDarkModeObserver";
 import { getBrandLogo } from "../helpers/brandAssets";
@@ -166,7 +168,13 @@ interface ClassroomSessionProps {
 /**
  * The in-call screen, laid out like a familiar meeting app: a slim header (title, timer, time left,
  * connection), the stage in the middle, an optional utility panel on the right (Chat, Whiteboard,
- * People, Info as tabs, one at a time) and a centred bottom toolbar ending in Leave.
+ * People, Info as tabs, one at a time) and a bottom toolbar: clock on the left, call controls and
+ * Leave in the centre, and the panel buttons (Chat, Whiteboard, People) on the right. Below 1181px
+ * the sides are hidden, so the panel buttons join the centre group. For teachers Leave is a split
+ * button whose left part opens "Leave class" and "End class", each confirmed.
+ *
+ * Only teachers present their screen or draw on the whiteboard. Students see the board view-only,
+ * and its control appears once the teacher has opened or drawn on it.
  *
  * Daily's call object carries audio and video (helpers/useDailyCall.tsx); every tile and control
  * is ours. Switching panels never touches the call. Chat is saved through the chat endpoint and
@@ -187,6 +195,7 @@ export const ClassroomSession: React.FC<ClassroomSessionProps> = ({
   const viewerId = session.ownerUserId;
   const viewerName = session.ownerName;
   const isPhone = useMediaQuery("(max-width: 640px)");
+  const wideBar = useMediaQuery("(min-width: 1181px)");
   const isDark = useDarkModeObserver();
   const queryClient = useQueryClient();
   const isLive = session.provider === "daily";
@@ -197,6 +206,7 @@ export const ClassroomSession: React.FC<ClassroomSessionProps> = ({
   const [panel, setPanel] = useState<PanelKey | null>(null);
   const [boardExpanded, setBoardExpanded] = useState(false);
   const [boardUnseen, setBoardUnseen] = useState(false);
+  const [boardShared, setBoardShared] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [mockMic, setMockMic] = useState(session.prefs.micOn);
   const [mockCam, setMockCam] = useState(session.prefs.camOn);
@@ -242,7 +252,7 @@ export const ClassroomSession: React.FC<ClassroomSessionProps> = ({
       return;
     }
     openPanel(key);
-    if (key === "board") board.announceOpen(viewerName);
+    if (key === "board" && isTeacher) board.announceOpen(viewerName);
   };
 
   /* ------------------------------------------------------------ whiteboard --- */
@@ -254,14 +264,79 @@ export const ClassroomSession: React.FC<ClassroomSessionProps> = ({
     storageKey: `tk-classroom-board-${kind}-${id}`,
     send: (data, to) => sendRef.current(data, to),
     onRemoteChange: () => {
+      setBoardShared(true);
       if (panelRef.current !== "board") setBoardUnseen(true);
     },
     onRemoteOpen: (name) => {
+      setBoardShared(true);
       if (panelRef.current === "board") return;
       setBoardUnseen(true);
       toast(`${name} opened the whiteboard`, { action: { label: "Open", onClick: () => openPanel("board") } });
     },
   });
+  /* Students only watch the teacher's board, so their control appears once the teacher uses it. */
+  const boardAvailable = isTeacher || boardShared || board.ops.length > 0;
+
+  /*
+   * The saved board comes back on join, for everyone. The teacher's copy is saved 2 seconds after
+   * each change and once more on leaving. Until the saved board has loaded nothing is written, and
+   * an empty board is never written over one that could not be read.
+   */
+  const savedBoardRef = useRef<string | null>(null);
+  const boardLoadedRef = useRef(false);
+  const boardOpsRef = useRef(board.ops);
+  boardOpsRef.current = board.ops;
+  const mergeBoard = board.mergeOps;
+
+  useEffect(() => {
+    let cancelled = false;
+    getMentorshipClassroomWhiteboard({ kind, id })
+      .then((saved) => {
+        if (cancelled) return;
+        savedBoardRef.current = JSON.stringify(saved.ops);
+        if (saved.ops.length) mergeBoard(saved.ops);
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (!cancelled) boardLoadedRef.current = true;
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [kind, id, mergeBoard]);
+
+  const saveBoard = useCallback(
+    (keepalive = false) => {
+      if (!isTeacher || !boardLoadedRef.current) return;
+      const ops = boardOpsRef.current;
+      const json = JSON.stringify(ops);
+      if (json === savedBoardRef.current || (ops.length === 0 && savedBoardRef.current === null)) return;
+      const previous = savedBoardRef.current;
+      savedBoardRef.current = json;
+      postMentorshipClassroomWhiteboardSave({ kind, id, ops }, keepalive && json.length < 60000 ? { keepalive: true } : undefined).catch((err) => {
+        savedBoardRef.current = previous;
+        if (!keepalive) toast.error(err instanceof Error ? err.message : "Could not save the whiteboard.");
+      });
+    },
+    [isTeacher, kind, id]
+  );
+  const saveBoardRef = useRef(saveBoard);
+  saveBoardRef.current = saveBoard;
+
+  useEffect(() => {
+    if (!isTeacher) return;
+    const t = setTimeout(() => saveBoardRef.current(), 2000);
+    return () => clearTimeout(t);
+  }, [board.ops, isTeacher]);
+
+  useEffect(() => {
+    const onUnload = () => saveBoardRef.current(true);
+    window.addEventListener("beforeunload", onUnload);
+    return () => {
+      window.removeEventListener("beforeunload", onUnload);
+      saveBoardRef.current();
+    };
+  }, []);
 
   /* ------------------------------------------------------------------ chat --- */
 
@@ -389,7 +464,7 @@ export const ClassroomSession: React.FC<ClassroomSessionProps> = ({
   const sharer = people.find((p) => p.screenVideoTrack) ?? null;
   const isSharing = !!local?.screenVideoTrack;
   const connecting = isLive && daily.status !== "joined" && daily.status !== "reconnecting";
-  const shareAllowed = isLive && !isPhone && canShareScreen() && !(kind === "group" && !isTeacher);
+  const shareAllowed = isLive && isTeacher && !isPhone && canShareScreen();
 
   const tileProps = (p: CallParticipant) => {
     const member = memberOf(p.userId);
@@ -506,6 +581,7 @@ export const ClassroomSession: React.FC<ClassroomSessionProps> = ({
             fileName={boardFileName}
             expanded
             onToggleExpand={() => setBoardExpanded(false)}
+            readOnly={!isTeacher}
           />
         </div>
         {filmstrip}
@@ -549,6 +625,43 @@ export const ClassroomSession: React.FC<ClassroomSessionProps> = ({
 
   const notJoined = details.roster.filter((m) => m.id !== viewerId && !people.some((p) => memberOf(p.userId)?.id === m.id));
   const showPanel = panel && !(panel === "board" && boardExpanded);
+
+  const panelControls = (
+    <>
+      <Control
+        label={unread ? `Chat, ${unread} unread` : "Chat"}
+        text="Chat"
+        active={panel === "chat"}
+        badge={panel === "chat" ? 0 : unread}
+        onClick={() => togglePanel("chat")}
+        withTooltip={false}
+      >
+        <MessageSquare size={18} aria-hidden="true" />
+      </Control>
+      {boardAvailable && (
+        <Control
+          label={panel === "board" ? "Close whiteboard" : isTeacher ? "Whiteboard" : "View the teacher's whiteboard"}
+          text="Whiteboard"
+          active={panel === "board"}
+          dot={boardUnseen && panel !== "board"}
+          onClick={() => togglePanel("board")}
+          withTooltip={false}
+        >
+          <PenTool size={18} aria-hidden="true" />
+        </Control>
+      )}
+      <Control
+        label={`People, ${people.length} in the call`}
+        text={String(people.length)}
+        active={panel === "people"}
+        onClick={() => togglePanel("people")}
+        withTooltip={!isPhone}
+        className={styles.controlPeople}
+      >
+        <Users size={18} aria-hidden="true" />
+      </Control>
+    </>
+  );
 
   return (
     <main className={`${styles.room} tk-flow`}>
@@ -611,7 +724,7 @@ export const ClassroomSession: React.FC<ClassroomSessionProps> = ({
             <div className={styles.panelHead}>
               <span className={styles.sheetGrip} aria-hidden="true" />
               <div className={styles.panelTabs} role="tablist" aria-label="Meeting tools">
-                {PANEL_TABS.map((t) => (
+                {PANEL_TABS.filter((t) => t.key !== "board" || boardAvailable).map((t) => (
                   <button
                     key={t.key}
                     type="button"
@@ -650,6 +763,7 @@ export const ClassroomSession: React.FC<ClassroomSessionProps> = ({
                   onClose={() => togglePanel("board")}
                   fileName={boardFileName}
                   onToggleExpand={isPhone ? undefined : () => setBoardExpanded(true)}
+                  readOnly={!isTeacher}
                 />
               </div>
             )}
@@ -763,36 +877,7 @@ export const ClassroomSession: React.FC<ClassroomSessionProps> = ({
                 {isSharing ? <MonitorX size={18} aria-hidden="true" /> : <MonitorUp size={18} aria-hidden="true" />}
               </Control>
             )}
-            <Control
-              label={unread ? `Chat, ${unread} unread` : "Chat"}
-              text="Chat"
-              active={panel === "chat"}
-              badge={panel === "chat" ? 0 : unread}
-              onClick={() => togglePanel("chat")}
-              withTooltip={false}
-            >
-              <MessageSquare size={18} aria-hidden="true" />
-            </Control>
-            <Control
-              label={panel === "board" ? "Close whiteboard" : "Whiteboard"}
-              text="Whiteboard"
-              active={panel === "board"}
-              dot={boardUnseen && panel !== "board"}
-              onClick={() => togglePanel("board")}
-              withTooltip={false}
-            >
-              <PenTool size={18} aria-hidden="true" />
-            </Control>
-            <Control
-              label={`People, ${people.length} in the call`}
-              text={String(people.length)}
-              active={panel === "people"}
-              onClick={() => togglePanel("people")}
-              withTooltip={!isPhone}
-              className={styles.controlPeople}
-            >
-              <Users size={18} aria-hidden="true" />
-            </Control>
+            {!wideBar && panelControls}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Control label="More options" withTooltip={false}>
@@ -816,27 +901,55 @@ export const ClassroomSession: React.FC<ClassroomSessionProps> = ({
                     <SwitchCamera size={16} aria-hidden="true" /> Switch camera
                   </DropdownMenuItem>
                 )}
-                {isTeacher && (
-                  <>
-                    <DropdownMenuSeparator className={styles.menuSeparator} />
-                    <DropdownMenuItem className={`${styles.menuItem} ${styles.menuDanger}`} onSelect={() => setEndOpen(true)} disabled={isEnding}>
-                      <CircleStop size={16} aria-hidden="true" /> End session for everyone
-                    </DropdownMenuItem>
-                  </>
-                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
           <span className={styles.controlsDivider} aria-hidden="true" />
-          <button type="button" className={styles.leave} onClick={() => setLeaveOpen(true)} aria-label="Leave the call">
-            <PhoneOff size={18} aria-hidden="true" />
-            <span className={styles.leaveLabel}>Leave</span>
-          </button>
+          {isTeacher ? (
+            <div className={styles.leaveGroup}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button type="button" className={styles.leaveMore} aria-label="Leave or end the class">
+                    <ChevronUp size={18} aria-hidden="true" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" side="top" sideOffset={10} className={styles.menu}>
+                  <DropdownMenuItem className={styles.menuItem} onSelect={() => setLeaveOpen(true)}>
+                    <PhoneOff size={16} aria-hidden="true" />
+                    <span className={styles.menuItemText}>
+                      Leave class
+                      <span className={styles.menuHint}>The class goes on without you</span>
+                    </span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className={styles.menuSeparator} />
+                  <DropdownMenuItem className={`${styles.menuItem} ${styles.menuDanger}`} onSelect={() => setEndOpen(true)} disabled={isEnding}>
+                    <CircleStop size={16} aria-hidden="true" />
+                    <span className={styles.menuItemText}>
+                      End class
+                      <span className={styles.menuHint}>Closes the room for everyone</span>
+                    </span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <button type="button" className={styles.leave} onClick={() => setLeaveOpen(true)} aria-label="Leave the class">
+                <PhoneOff size={18} aria-hidden="true" />
+                <span className={styles.leaveLabel}>Leave</span>
+              </button>
+            </div>
+          ) : (
+            <button type="button" className={styles.leave} onClick={() => setLeaveOpen(true)} aria-label="Leave the class">
+              <PhoneOff size={18} aria-hidden="true" />
+              <span className={styles.leaveLabel}>Leave</span>
+            </button>
+          )}
         </div>
 
-        <div className={`${styles.toolbarSide} ${styles.toolbarRight}`} aria-hidden="true">
-          <Clock size={14} />
-          <span>{formatElapsed(elapsed)}</span>
+        <div className={`${styles.toolbarSide} ${styles.toolbarRight}`}>
+          {wideBar && (
+            <div className={styles.sideControls} role="toolbar" aria-label="Panels">
+              {panelControls}
+            </div>
+          )}
         </div>
       </footer>
 
@@ -850,14 +963,14 @@ export const ClassroomSession: React.FC<ClassroomSessionProps> = ({
       <ConsoleConfirmDialog
         open={leaveOpen}
         onOpenChange={setLeaveOpen}
-        title="Leave the call?"
+        title="Leave the class?"
         description={
           remotes.length
-            ? "Only you leave. Everyone else stays in the call, and you can rejoin while the room is open."
+            ? "Only you leave. Everyone else stays in the class, and you can rejoin while the room is open."
             : "You can rejoin from your dashboard while the room is open."
         }
         tone="destructive"
-        confirmLabel="Leave"
+        confirmLabel="Leave class"
         isPending={false}
         onConfirm={() => {
           setLeaveOpen(false);
@@ -867,10 +980,10 @@ export const ClassroomSession: React.FC<ClassroomSessionProps> = ({
       <ConsoleConfirmDialog
         open={endOpen}
         onOpenChange={setEndOpen}
-        title="End this session for everyone?"
-        description="This marks the session as completed and closes the classroom for everyone."
+        title="End the class for everyone?"
+        description="This marks the class as completed and closes the room for everyone."
         tone="destructive"
-        confirmLabel="End session"
+        confirmLabel="End class"
         pendingLabel="Ending..."
         isPending={isEnding}
         onConfirm={async () => {

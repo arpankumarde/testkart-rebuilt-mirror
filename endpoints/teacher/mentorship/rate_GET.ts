@@ -23,7 +23,7 @@ export async function handle(request: Request) {
       enabled: !!row?.mentorshipEnabled,
       durations: [...MENTORSHIP_SESSION_DURATIONS],
       prices,
-      trialDiscount: !!row?.mentorshipTrialDiscount,
+      trialDiscount: row ? row.mentorshipTrialDiscount : true,
       minClassPrice30: minClassPrice(30),
       minClassPrice60: minClassPrice(60),
       trialDiscountPercent30: MENTORSHIP_TRIAL_DISCOUNT_PERCENT[30],

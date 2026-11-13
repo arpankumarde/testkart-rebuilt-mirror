@@ -8,22 +8,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
  *   wb-req / wb-snap            a newcomer asks and anyone already drawing answers with the list,
  *   wb-open                     tells the others someone opened the board.
  * Daily caps one app message at about 4 KB, so anything larger goes out as wb-part chunks.
- * The list also lives in sessionStorage, so a reload in the same tab gets it back.
+ * The list also lives in sessionStorage, so a reload in the same tab gets it back, and the
+ * teacher's copy is saved to the server (ClassroomSession), so the board is still there on a
+ * rejoin from another tab and after the class.
  */
 
 export const BOARD_W = 1600;
 export const BOARD_H = 1000;
 export const BOARD_PAPER = "#fbfaf7";
 
-export type WbStrokeKind = "pen" | "highlighter" | "eraser";
-export type WbShapeKind = "line" | "rect" | "ellipse";
-
-export type WbStroke = { id: string; by: string; kind: WbStrokeKind; color: string; size: number; pts: number[] };
-export type WbShape = { id: string; by: string; kind: WbShapeKind; color: string; size: number; x1: number; y1: number; x2: number; y2: number };
-export type WbText = { id: string; by: string; kind: "text"; color: string; size: number; x: number; y: number; text: string };
-export type WbOp = WbStroke | WbShape | WbText;
-
-export type WbStrokeHead = Omit<WbStroke, "pts">;
+import type { WbOp, WbStroke, WbStrokeHead } from "./classroomWhiteboardTypes";
+export type { WbOp, WbShape, WbShapeKind, WbStroke, WbStrokeHead, WbStrokeKind, WbText } from "./classroomWhiteboardTypes";
 
 type WbMessage =
   | { t: "wb-add"; op: WbOp }
@@ -231,6 +226,15 @@ export function useClassroomWhiteboard({ selfId, storageKey, send, onRemoteChang
     post({ t: "wb-clear" });
   }, [post]);
 
+  /** Adds saved operations this copy does not have yet, keeping their order. */
+  const mergeOps = useCallback((incoming: WbOp[]) => {
+    setOps((prev) => {
+      const known = new Set(prev.map((o) => o.id));
+      const fresh = incoming.filter((o) => isOp(o) && !known.has(o.id));
+      return fresh.length ? [...fresh, ...prev] : prev;
+    });
+  }, []);
+
   const requestSync = useCallback(() => post({ t: "wb-req" }), [post]);
   const announceOpen = useCallback((name: string) => post({ t: "wb-open", name }), [post]);
 
@@ -316,6 +320,7 @@ export function useClassroomWhiteboard({ selfId, storageKey, send, onRemoteChang
     undo,
     redo,
     clear,
+    mergeOps,
     requestSync,
     announceOpen,
     handleMessage,
@@ -323,3 +328,23 @@ export function useClassroomWhiteboard({ selfId, storageKey, send, onRemoteChang
 }
 
 export type ClassroomWhiteboardState = ReturnType<typeof useClassroomWhiteboard>;
+
+const noop = () => undefined;
+
+/** A fixed board for looking back at a saved one after the class: nothing to sync or change. */
+export const staticBoard = (ops: WbOp[]): ClassroomWhiteboardState => ({
+  ops,
+  drafts: [],
+  selfId: "",
+  canUndo: false,
+  canRedo: false,
+  addLocal: noop,
+  draftLocal: noop,
+  undo: noop,
+  redo: noop,
+  clear: noop,
+  mergeOps: noop,
+  requestSync: noop,
+  announceOpen: noop,
+  handleMessage: () => false,
+});

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { postStudentWalletPurchase } from "../endpoints/student/wallet/purchase_POST.schema";
 import { STUDENT_TCOINS_QUERY_KEY } from "./useTcoins";
+import { gatePurchase, usePurchaseDetailsGate } from "./usePurchaseDetailsGate";
 
 /**
  * A hook that exposes a React Query mutation to easily execute wallet-based cart purchases
@@ -8,8 +9,9 @@ import { STUDENT_TCOINS_QUERY_KEY } from "./useTcoins";
  */
 export const useStudentWalletPurchase = () => {
   const queryClient = useQueryClient();
+  const ensurePurchaseDetails = usePurchaseDetailsGate();
   return useMutation({
-    mutationFn: postStudentWalletPurchase,
+    mutationFn: gatePurchase(ensurePurchaseDetails, postStudentWalletPurchase),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cart", "items"] });
       queryClient.invalidateQueries({ queryKey: ["student", "wallet", "balance"] });

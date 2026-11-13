@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { CheckCircle2, Star } from "lucide-react";
 import { useAuth } from "../helpers/useAuth";
@@ -14,9 +14,13 @@ import {
 import { Button } from "./Button";
 import { Skeleton } from "./Skeleton";
 import { Textarea } from "./Textarea";
+import { ReviewerNameField } from "./ReviewerNameField";
+import { useReviewerName } from "../helpers/useReviewerName";
+import { liveBookingPath } from "../helpers/liveBookingRoutes";
 import { NotFoundState } from "./NotFoundState";
 import { LiveClassroomLobby, LobbyJoinPrefs } from "./LiveClassroomLobby";
 import { ClassroomSession, ClassroomSessionInfo } from "./ClassroomSession";
+import { ClassroomRecap } from "./ClassroomRecap";
 import styles from "./LiveClassroom.module.css";
 
 interface LiveClassroomProps {
@@ -34,7 +38,9 @@ interface LiveClassroomProps {
  * Daily API key never reaches the browser) and records attendance; ClassroomSession then runs the
  * call with Daily's call object and our own interface. When the development mock provider is
  * active there is no media connection at all and the session screen says so. Leaving, the call
- * ending, or the teacher ending the session records the leave and shows the post-session screen.
+ * ending, or the teacher ending the session records the leave and shows the post-session screen,
+ * which also shows the class's saved chat and whiteboard (ClassroomRecap) for as long as the
+ * class exists, so both stay reachable from the class lists after the class.
  *
  * Once a call is running nothing outside it may unmount it: a background refetch of the details
  * (window focus), a failed refetch, or a query reset after another account signs in to this
@@ -59,6 +65,8 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
   const reviewMutation = useMentorshipReviewMutation();
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
+  const reviewerName = useReviewerName();
+  const isReviewBusy = reviewMutation.isPending || reviewerName.isSavingName;
 
   useEffect(() => {
     attendanceRef.current = session?.attendanceId ?? null;
@@ -97,6 +105,8 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
     setSession(null);
     setHasEnded(true);
     if (attendanceId) await postLeave(attendanceId);
+    // Picks up a status the teacher set and whether a finished trial can lead into a plan.
+    void detailsQuery.refetch();
   };
 
   const handleEndSession = async () => {
@@ -184,11 +194,12 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
     }
   };
 
-  const handleSubmitReview = () => {
+  const handleSubmitReview = async () => {
     if (reviewRating < 1) {
       toast.error("Pick a star rating first");
       return;
     }
+    if (!(await reviewerName.ensureName())) return;
     reviewMutation.mutate(
       { kind, id, rating: reviewRating, reviewText: reviewText.trim() || undefined },
       {
@@ -198,8 +209,9 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
     );
   };
 
-  // Post-session screen: left the call, or the lesson is already over.
-  const isOver = details.status === "completed" || details.status === "no_show" || details.status === "cancelled";
+  // Post-session screen: left the call, or the lesson is already over (marked, or its join window has closed).
+  const windowClosed = !details.joinWindow.isOpen && Date.now() > new Date(details.joinWindow.closesAt).getTime();
+  const isOver = details.status === "completed" || details.status === "no_show" || details.status === "cancelled" || windowClosed;
   if (hasEnded || (isOver && !session)) {
     return (
       <main className={`${styles.page} tk-flow`}>
@@ -232,10 +244,37 @@ export const LiveClassroom: React.FC<LiveClassroomProps> = ({ kind, id }) => {
                 placeholder="Optional: share more about your experience..."
                 className={styles.reviewTextarea}
               />
-              <Button onClick={handleSubmitReview} disabled={reviewMutation.isPending}>
-                {reviewMutation.isPending ? "Submitting..." : "Submit review"}
+              {reviewerName.needsName && (
+                <ReviewerNameField
+                  value={reviewerName.name}
+                  onChange={reviewerName.setName}
+                  error={reviewerName.nameError}
+                  disabled={isReviewBusy}
+                />
+              )}
+              <Button onClick={() => void handleSubmitReview()} disabled={isReviewBusy}>
+                {isReviewBusy ? "Submitting..." : "Submit review"}
               </Button>
             </div>
+          )}
+
+          {details.viewerRole === "learner" && details.trialFollowUp && (
+            <div className={styles.planBox}>
+              <p className={styles.planTitle}>Keep learning with {details.teacherName}</p>
+              <p className={styles.planText}>Pick 1 to 6 classes a week and lock in your times for the next 4 weeks.</p>
+              <div className={styles.postSessionActions}>
+                <Button asChild>
+                  <Link to={liveBookingPath({ slug: details.trialFollowUp.teacherSlug })}>Choose a plan</Link>
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link to="/expert">Try another tutor</Link>
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {details.status !== "cancelled" && (
+            <ClassroomRecap kind={kind} id={id} viewerId={viewerId} fileName={`class-whiteboard-${id.slice(0, 8)}.png`} />
           )}
 
           <div className={styles.postSessionActions}>

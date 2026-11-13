@@ -3,6 +3,7 @@ import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { getLessonAccessContext, LessonAccessError } from "../../../helpers/mentorshipLessonAccess";
 import { JOIN_WINDOW_MINUTES_BEFORE, JOIN_WINDOW_MINUTES_AFTER } from "../../../helpers/liveLessonConfig";
 import { getVideoProviderKind } from "../../../helpers/videoProvider";
+import { getLivePackageFor, getTrialState } from "../../../helpers/livePackages";
 import { schema, OutputType, ClassroomRosterMember } from "./details_GET.schema";
 import superjson from "superjson";
 
@@ -60,6 +61,25 @@ export async function handle(request: Request) {
       );
     }
 
+    let trialFollowUp: OutputType["trialFollowUp"] = null;
+    if (ctx.kind === "booking" && ctx.viewerRole === "learner") {
+      const trial = await db
+        .selectFrom("mentorshipBookings")
+        .innerJoin("liveClassCredits", "liveClassCredits.id", "mentorshipBookings.creditId")
+        .innerJoin("users as teacher", "teacher.id", "mentorshipBookings.teacherId")
+        .select(["mentorshipBookings.studentId", "teacher.slug as teacherSlug"])
+        .where("mentorshipBookings.id", "=", ctx.id)
+        .where("liveClassCredits.kind", "=", "trial")
+        .executeTakeFirst();
+      if (trial) {
+        const [state, pkg] = await Promise.all([
+          getTrialState(trial.studentId, ctx.teacherId),
+          getLivePackageFor(trial.studentId, ctx.teacherId),
+        ]);
+        if (state === "done" && !pkg) trialFollowUp = { teacherSlug: trial.teacherSlug };
+      }
+    }
+
     const opensAt = new Date(ctx.startTime.getTime() - JOIN_WINDOW_MINUTES_BEFORE * 60000);
     const closesAt = new Date(ctx.startTime.getTime() + ctx.durationMinutes * 60000 + JOIN_WINDOW_MINUTES_AFTER * 60000);
     const now = new Date();
@@ -79,6 +99,7 @@ export async function handle(request: Request) {
       materialsCount,
       joinWindow: { isOpen: now >= opensAt && now <= closesAt && ctx.status !== "cancelled", opensAt, closesAt },
       videoProvider: getVideoProviderKind(),
+      trialFollowUp,
     };
     return new Response(superjson.stringify(output));
   } catch (error) {

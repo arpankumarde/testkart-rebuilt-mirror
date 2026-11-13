@@ -13,11 +13,12 @@ import {
   CircleSlash,
   Eye,
   EyeOff,
+  RotateCcw,
 } from 'lucide-react';
 import { Selectable } from 'kysely';
 import { PromoCodes, PromoCodeAppliesTo } from '../helpers/schema';
 import { useTeacherPromoCodesQuery } from '../helpers/useTeacherPromoCodes';
-import { useDeletePromoCodeMutation } from '../helpers/usePromoCodeMutations';
+import { useDeletePromoCodeMutation, useReactivatePromoCodeMutation } from '../helpers/usePromoCodeMutations';
 import { Button } from './Button';
 import { Skeleton } from './Skeleton';
 import { PromoCodeFormDialog } from './PromoCodeFormDialog';
@@ -91,6 +92,18 @@ const rupees = new Intl.NumberFormat('en-IN', {
 const dateFormat = new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 const timeFormat = new Intl.DateTimeFormat('en-IN', { hour: 'numeric', minute: '2-digit' });
 
+/* Why a deactivated code cannot simply be switched back on, or null when it
+   can. Same checks as teacher/promo-codes/reactivate, which has the final say. */
+const reactivateBlockOf = (pc: PromoCode, now: Date): string | null => {
+  if (pc.validUntil && now >= new Date(pc.validUntil)) {
+    return `Ended ${dateFormat.format(new Date(pc.validUntil))}. Set a later end date in Edit to reuse it.`;
+  }
+  if (pc.usageLimit !== null && pc.usageCount >= pc.usageLimit) {
+    return `All ${pc.usageLimit} uses taken. Raise the limit in Edit to reuse it.`;
+  }
+  return null;
+};
+
 const describeState = (pc: PromoCode, state: RowState, now: Date): string => {
   switch (state) {
     case 'active': {
@@ -108,7 +121,7 @@ const describeState = (pc: PromoCode, state: RowState, now: Date): string => {
     case 'usedUp':
       return `All ${pc.usageLimit} uses taken`;
     case 'off':
-      return 'No longer accepted at checkout';
+      return reactivateBlockOf(pc, now) ?? 'No longer accepted at checkout';
   }
 };
 
@@ -161,12 +174,22 @@ const STUB_CLASS: Record<RowState, string> = {
 interface PromoRowProps {
   promoCode: PromoCode;
   now: Date;
+  isReactivating: boolean;
   onCopy: () => void;
   onEdit: () => void;
   onDeactivate: () => void;
+  onReactivate: () => void;
 }
 
-const PromoRow: React.FC<PromoRowProps> = ({ promoCode: pc, now, onCopy, onEdit, onDeactivate }) => {
+const PromoRow: React.FC<PromoRowProps> = ({
+  promoCode: pc,
+  now,
+  isReactivating,
+  onCopy,
+  onEdit,
+  onDeactivate,
+  onReactivate,
+}) => {
   const state = rowStateOf(pc, now);
   const meta = STATE_META[state];
   const StateIcon = meta.icon;
@@ -174,6 +197,7 @@ const PromoRow: React.FC<PromoRowProps> = ({ promoCode: pc, now, onCopy, onEdit,
   const limit = pc.usageLimit;
   const usedShare = limit ? Math.min(100, Math.round((used / limit) * 100)) : 0;
   const canDeactivate = state === 'active' || state === 'scheduled';
+  const canReactivate = state === 'off' && reactivateBlockOf(pc, now) === null;
   const stubValue = stubValueOf(pc);
 
   return (
@@ -230,6 +254,18 @@ const PromoRow: React.FC<PromoRowProps> = ({ promoCode: pc, now, onCopy, onEdit,
           {meta.label}
         </span>
         <span className={styles.stateDetail}>{describeState(pc, state, now)}</span>
+        {canReactivate && (
+          <button
+            type="button"
+            className={styles.reactivateButton}
+            onClick={onReactivate}
+            disabled={isReactivating}
+            aria-label={`Reactivate ${pc.code}`}
+          >
+            <RotateCcw size={14} aria-hidden="true" />
+            {isReactivating ? 'Reactivating...' : 'Reactivate'}
+          </button>
+        )}
       </div>
 
       <div className={styles.actionsCell}>
@@ -255,6 +291,19 @@ const PromoRow: React.FC<PromoRowProps> = ({ promoCode: pc, now, onCopy, onEdit,
                 <DropdownMenuItem onSelect={onDeactivate} className={`${styles.menuItem} ${styles.menuDanger}`}>
                   <Power size={16} aria-hidden="true" />
                   Deactivate
+                </DropdownMenuItem>
+              </>
+            )}
+            {canReactivate && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onSelect={onReactivate}
+                  disabled={isReactivating}
+                  className={`${styles.menuItem} ${styles.menuBrand}`}
+                >
+                  <RotateCcw size={16} aria-hidden="true" />
+                  Reactivate
                 </DropdownMenuItem>
               </>
             )}
@@ -295,6 +344,11 @@ export const PromoCodeManager: React.FC<{ className?: string }> = ({ className }
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPromoCode, setEditingPromoCode] = useState<Selectable<PromoCodes> | null>(null);
   const [deletingPromoCodeId, setDeletingPromoCodeId] = useState<number | null>(null);
+  const {
+    mutate: reactivatePromoCode,
+    isPending: isReactivatePending,
+    variables: reactivateVariables,
+  } = useReactivatePromoCodeMutation();
 
   const panelId = useId();
   const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
@@ -400,9 +454,11 @@ export const PromoCodeManager: React.FC<{ className?: string }> = ({ className }
                 key={pc.id}
                 promoCode={pc}
                 now={now}
+                isReactivating={isReactivatePending && reactivateVariables?.promoCodeId === pc.id}
                 onCopy={() => handleCopy(pc.code)}
                 onEdit={() => handleEdit(pc)}
                 onDeactivate={() => setDeletingPromoCodeId(pc.id)}
+                onReactivate={() => reactivatePromoCode({ promoCodeId: pc.id })}
               />
             ))}
           </ul>
@@ -485,7 +541,7 @@ const DeactivateDialog: React.FC<{ promoCodeId: number | null; onClose: () => vo
           </DialogTitle>
           <DialogDescription>
             Students will no longer be able to apply it at checkout. Orders already placed with it
-            are unaffected. This cannot be undone.
+            are unaffected. You can reactivate it later from this list.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

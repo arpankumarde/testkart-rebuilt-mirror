@@ -3,6 +3,8 @@ import { sql, type RawBuilder } from "kysely";
 import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import {
+  CASHFREE_ORDER,
+  LIVE_CLASS_ORDER,
   orderWhere,
   PAYMENT_MODE_GROUP_EXPR,
   PLATFORM_EXPR,
@@ -24,15 +26,13 @@ const PRODUCT_EXPR = sql<string>`case
   when exists (select 1 from order_items oi where oi.order_id = orders.id and oi.course_id is not null) then 'course'
   when exists (select 1 from order_items oi where oi.order_id = orders.id and oi.mock_test_id is not null) then 'test'
   when exists (select 1 from order_items oi where oi.order_id = orders.id and oi.digital_product_id is not null) then 'notes'
-  when exists (select 1 from order_items oi where oi.order_id = orders.id
-    and (oi.mentorship_teacher_id is not null or oi.mentorship_booking_id is not null
-      or oi.group_lesson_id is not null or oi.live_course_id is not null))
-    then 'mentorship'
+  when exists (select 1 from order_items oi where oi.order_id = orders.id and oi.live_course_id is not null) then 'live_course'
+  when ${LIVE_CLASS_ORDER} then 'live_class'
   else null end`;
 
-/* "mode:<group>" for PayU orders (UPI, card, ...), "method:<method>" for everything paid without the gateway. */
+/* "mode:<group>" for PayU and Cashfree orders (UPI, card, ...), "method:<method>" for everything paid without a gateway. */
 const PAYMENT_EXPR = sql<string>`case
-  when orders.payment_method = 'payu' then 'mode:' || (${PAYMENT_MODE_GROUP_EXPR})
+  when orders.payment_method = 'payu' or ${CASHFREE_ORDER} then 'mode:' || (${PAYMENT_MODE_GROUP_EXPR})
   when orders.payment_method is null then 'method:__none'
   else 'method:' || orders.payment_method end`;
 

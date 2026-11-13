@@ -1,5 +1,6 @@
 import { db } from "../../../helpers/db";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
+import { orderGateway } from "../../../helpers/orderAttribution";
 import { schema, OutputType } from "./mark-failed_POST.schema";
 import superjson from "superjson";
 
@@ -15,7 +16,7 @@ export async function handle(request: Request) {
     // 3. Fetch the order to verify it exists and is pending
     const order = await db
       .selectFrom("orders")
-      .select(["id", "status", "userId"])
+      .select(["id", "status", "userId", "paymentMethod"])
       .where("id", "=", orderId)
       .executeTakeFirst();
 
@@ -28,6 +29,18 @@ export async function handle(request: Request) {
           order: null,
         } satisfies OutputType),
         { status: 404 }
+      );
+    }
+
+    // A pending Cashfree order holds class slots and balance; its sweep closes it at Cashfree and releases them.
+    if (orderGateway(order.paymentMethod) === "cashfree") {
+      return new Response(
+        superjson.stringify({
+          success: false,
+          message: "This is a Cashfree order. It closes on its own if the student does not finish paying.",
+          order: { id: order.id, previousStatus: order.status, newStatus: order.status },
+        } satisfies OutputType),
+        { status: 400 }
       );
     }
 

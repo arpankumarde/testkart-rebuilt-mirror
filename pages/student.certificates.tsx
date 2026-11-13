@@ -1,22 +1,8 @@
 import React from 'react';
-import { StudentCertificates as StudentCertificatesComponent } from '../components/StudentCertificates';
-import { SEOHead } from '../components/SEOHead';
-import { ConsolePageHeader } from '../components/ConsolePageHeader';
-import styles from './student.certificates.module.css';
+import { Navigate } from 'react-router-dom';
 
-const StudentCertificatesPage = () => {
-  return (
-    <>
-      <SEOHead
-        title="Certificates"
-        description="View, download, and manage all your earned certificates for completed courses and mock tests on Testkart." />
-
-      <div className={styles.page}>
-        <ConsolePageHeader title="Certificates" />
-        <StudentCertificatesComponent />
-      </div>
-    </>
-  );
-};
+// Certificates are no longer issued (since 20-11-2026), so the section is
+// hidden and old links land on the dashboard.
+const StudentCertificatesPage = () => <Navigate to="/student/dashboard" replace />;
 
 export default StudentCertificatesPage;

@@ -222,13 +222,6 @@
   overflow-wrap: anywhere;
 }
 
-.tileDetail {
-  font-size: 0.75rem;
-  font-weight: 500;
-  line-height: 1.3;
-  font-variant-numeric: tabular-nums;
-}
-
 .tileChevron {
   flex-shrink: 0;
   align-self: center;
@@ -285,39 +278,6 @@
   to {
     transform: rotate(360deg);
   }
-}
-
-.skeletonTile {
-  height: 3.75rem;
-  border-radius: var(--radius-md);
-  background-color: hsl(0 0% 100% / 0.45);
-}
-
-.allClear {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-4);
-}
-
-.allClearIcon {
-  flex-shrink: 0;
-  color: var(--adm-ink);
-}
-
-.allClearTitle {
-  margin: 0;
-  font-family: var(--font-family-heading);
-  font-size: 1.25rem;
-  font-weight: 800;
-  line-height: 1.15;
-  letter-spacing: -0.015em;
-}
-
-.allClearText {
-  margin: var(--spacing-1) 0 0;
-  font-size: 0.875rem;
-  line-height: 1.4;
 }
 
 @media (max-width: 640px) {

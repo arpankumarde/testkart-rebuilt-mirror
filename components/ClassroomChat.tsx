@@ -14,10 +14,12 @@ interface ClassroomChatProps {
   isSending: boolean;
   /** Resolves true when the message was saved, so the draft can be cleared. */
   onSend: (body: string) => Promise<boolean>;
+  /** After the class: the saved messages only, with no composer. */
+  readOnly?: boolean;
 }
 
 /** Meeting chat: messages are saved by the chat endpoint and pushed to the others over the call. */
-export const ClassroomChat: React.FC<ClassroomChatProps> = ({ messages, viewerId, isLoading, isSending, onSend }) => {
+export const ClassroomChat: React.FC<ClassroomChatProps> = ({ messages, viewerId, isLoading, isSending, onSend, readOnly = false }) => {
   const [draft, setDraft] = useState("");
   const listRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -29,8 +31,8 @@ export const ClassroomChat: React.FC<ClassroomChatProps> = ({ messages, viewerId
   }, [messages.length]);
 
   useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+    if (!readOnly) inputRef.current?.focus();
+  }, [readOnly]);
 
   useLayoutEffect(() => {
     const el = inputRef.current;
@@ -62,7 +64,13 @@ export const ClassroomChat: React.FC<ClassroomChatProps> = ({ messages, viewerId
         {messages.length === 0 ? (
           <div className={styles.empty}>
             <MessageSquare size={22} aria-hidden="true" />
-            <p>{isLoading ? "Loading messages..." : "No messages yet. Say hello, share a link or ask a question."}</p>
+            <p>
+              {isLoading
+                ? "Loading messages..."
+                : readOnly
+                  ? "No chat messages in this class."
+                  : "No messages yet. Say hello, share a link or ask a question."}
+            </p>
           </div>
         ) : (
           messages.map((m, i) => {
@@ -93,6 +101,8 @@ export const ClassroomChat: React.FC<ClassroomChatProps> = ({ messages, viewerId
         )}
       </div>
 
+      {!readOnly && (
+      <>
       <form
         className={styles.composer}
         onSubmit={(e) => {
@@ -121,6 +131,8 @@ export const ClassroomChat: React.FC<ClassroomChatProps> = ({ messages, viewerId
         </button>
       </form>
       <p className={styles.help}>Enter to send, Shift + Enter for a new line</p>
+      </>
+      )}
     </div>
   );
 };

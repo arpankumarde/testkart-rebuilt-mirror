@@ -1,19 +1,19 @@
 import { db } from "./db";
 import { processSalesInvoiceQueue, processSubscriptionInvoiceQueue } from "./invoiceNumbering";
-import { sendSalesInvoiceEmail } from "./sendSalesInvoiceEmail";
 import { sendSubscriptionInvoiceEmail } from "./sendSubscriptionInvoiceEmail";
 
-// How many newly-eligible records to email per run. The queue-processing
-// step above this (processSalesInvoiceQueue/processSubscriptionInvoiceQueue)
-// has no such cap since numbering is cheap; sending is comparatively
-// expensive (PDF render + outbound email), so we bound it and let the next
-// run (5 minutes later) pick up any remainder.
+// How many subscription invoices to email per run. Numbering has no such cap
+// since it is cheap; sending (PDF render + outbound email) is bounded and the
+// next run (5 minutes later) picks up any remainder.
 const EMAIL_BATCH_SIZE = 100;
 
 /**
  * Scheduled job: the single mechanism that (a) assigns gapless invoice
  * numbers to newly-completed, paid orders and subscription payments, and
- * (b) emails the resulting PDF invoice to the student/teacher.
+ * (b) emails the PDF invoice for teacher subscription payments.
+ *
+ * Student order invoices are no longer emailed (since 20-11-2026); students
+ * download them from their Orders page.
  *
  * Deliberately NOT wired into the payment/checkout code paths directly —
  * this runs as a periodic sweep instead, which keeps invoice numbering and
@@ -38,26 +38,6 @@ export async function invoiceEmailSweep(): Promise<void> {
   }
   console.log(`[invoiceEmailSweep] Assigned ${salesNumbered} sales invoice number(s), ${subscriptionNumbered} subscription invoice number(s)`);
 
-  let salesEmailed = 0;
-  try {
-    const pendingSalesEmails = await db
-      .selectFrom("orders")
-      .select(["id"])
-      .where("status", "=", "completed")
-      .where("invoiceNumber", "is not", null)
-      .where("invoiceEmailSentAt", "is", null)
-      .orderBy("createdAt", "asc")
-      .limit(EMAIL_BATCH_SIZE)
-      .execute();
-
-    for (const order of pendingSalesEmails) {
-      await sendSalesInvoiceEmail(order.id);
-      salesEmailed++;
-    }
-  } catch (error) {
-    console.error("[invoiceEmailSweep] Failed to sweep sales invoice emails:", error);
-  }
-
   let subscriptionEmailed = 0;
   try {
     const pendingSubscriptionEmails = await db
@@ -78,6 +58,6 @@ export async function invoiceEmailSweep(): Promise<void> {
     console.error("[invoiceEmailSweep] Failed to sweep subscription invoice emails:", error);
   }
 
-  console.log(`[invoiceEmailSweep] Sent ${salesEmailed} sales invoice email(s), ${subscriptionEmailed} subscription invoice email(s)`);
+  console.log(`[invoiceEmailSweep] Sent ${subscriptionEmailed} subscription invoice email(s)`);
   console.log("[invoiceEmailSweep] Scheduled job completed.");
 }

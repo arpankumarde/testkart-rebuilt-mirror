@@ -16,6 +16,8 @@ import { AdminPriceHistorySheet } from "../components/AdminPriceHistorySheet";
 import styles from "./admin.live-courses.$id.module.css";
 
 type Tab = "details" | "syllabus" | "classes" | "students";
+
+const STATUS_LABEL: Record<string, string> = { draft: "Draft", published: "Live", completed: "Completed", cancelled: "Cancelled" };
 type Pending =
   | { kind: "cancel_course" }
   | { kind: "cancel_class"; cls: LiveCourseClass }
@@ -31,8 +33,19 @@ const AdminLiveCoursePage: React.FC = () => {
   const [reason, setReason] = useState("");
   const [historyOpen, setHistoryOpen] = useState(false);
 
-  if (isLoading) return <Skeleton style={{ height: "20rem" }} />;
-  if (!data) return <p className={styles.error}>{error instanceof Error ? error.message : "Live course not found."}</p>;
+  if (isLoading || !data)
+    return (
+      <div className={styles.page}>
+        <Link to="/admin/live-courses" className={styles.back}>
+          <ArrowLeft size={14} /> Live courses
+        </Link>
+        {isLoading ? (
+          <Skeleton style={{ height: "20rem" }} />
+        ) : (
+          <p className={styles.error}>{error instanceof Error ? error.message : "Live course not found."}</p>
+        )}
+      </div>
+    );
 
   const course = data.course;
   const closeDialog = () => {
@@ -57,7 +70,10 @@ const AdminLiveCoursePage: React.FC = () => {
         <Link to="/admin/live-courses" className={styles.back}>
           <ArrowLeft size={14} /> Live courses
         </Link>
-        <ConsolePageHeader title={course.title} description={`${course.teacher.name} · ${course.status} · ${course.enrolledCount}/${course.seatLimit} seats · ${formatRupees(course.price)}`}>
+        <ConsolePageHeader
+          title={course.title}
+          description={`${course.teacher.name} · ${STATUS_LABEL[course.status] ?? course.status} · ${course.enrolledCount}/${course.seatLimit} seats · ${formatRupees(course.price)}`}
+        >
           <Button variant="outline" onClick={() => setHistoryOpen(true)}>
             <History size={14} /> Price history
           </Button>
@@ -77,17 +93,19 @@ const AdminLiveCoursePage: React.FC = () => {
 
         {course.status === "cancelled" && course.cancellationReason && <p className={styles.banner}>Cancelled: {course.cancellationReason}</p>}
 
-        <SegmentedControl
-          aria-label="Course sections"
-          value={tab}
-          onValueChange={setTab}
-          options={[
-            { value: "details", label: "Details" },
-            { value: "syllabus", label: "Syllabus" },
-            { value: "classes", label: `Classes (${course.classCount})` },
-            { value: "students", label: `Students (${course.enrolledCount})` },
-          ]}
-        />
+        <div className={styles.sections}>
+          <SegmentedControl
+            aria-label="Course sections"
+            value={tab}
+            onValueChange={setTab}
+            options={[
+              { value: "details", label: "Details" },
+              { value: "syllabus", label: "Syllabus" },
+              { value: "classes", label: `Classes (${course.classCount})` },
+              { value: "students", label: `Students (${course.enrolledCount})` },
+            ]}
+          />
+        </div>
 
         {tab === "details" && (
           <LiveCourseDetailsForm

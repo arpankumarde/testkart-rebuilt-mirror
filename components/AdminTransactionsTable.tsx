@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Papa from "papaparse";
 import { toast } from "sonner";
@@ -14,6 +15,7 @@ import {
   Loader2,
   Receipt,
   RefreshCw,
+  SquareArrowOutUpRight,
   Undo2,
 } from "lucide-react";
 import { Skeleton } from "./Skeleton";
@@ -55,7 +57,15 @@ import {
 import { toDayString, useTransactionFilters } from "../helpers/useTransactionFilters";
 import type { OrderSortColumn } from "../helpers/adminOrderFilters";
 import type { SortOrder } from "../helpers/useTableSort";
-import { ORDER_DEVICE_TYPE_LABELS, ORDER_PLATFORM_LABELS, paymentMethodLabel, paymentModeLabel } from "../helpers/orderAttribution";
+import {
+  ORDER_DEVICE_TYPE_LABELS,
+  ORDER_GATEWAY_LABELS,
+  ORDER_PLATFORM_LABELS,
+  orderGateway,
+  paymentMethodLabel,
+  paymentModeLabel,
+  type OrderGateway,
+} from "../helpers/orderAttribution";
 import { discountMethodLine, ORDER_DISCOUNT_METHOD_LABELS } from "../helpers/orderDiscountMethod";
 import {
   browserLabel,
@@ -121,9 +131,13 @@ const renderDate = (date: Date | null) =>
 
 const paymentLine = (order: AdminOrderRow) => {
   const mode = paymentModeLabel(order.paymentMode);
-  if (order.paymentMethod === "payu") return mode ? `PayU, ${mode}` : "PayU";
-  return paymentMethodLabel(order.paymentMethod);
+  if (orderGateway(order.paymentMethod) === "none") return paymentMethodLabel(order.paymentMethod);
+  const method = paymentMethodLabel(order.paymentMethod);
+  return mode ? `${method}, ${mode}` : method;
 };
+
+/* Live course orders are refunded from the course's admin page, which returns the money through Cashfree and frees the seat. */
+const liveCourseUrl = (order: AdminOrderRow) => order.purchasedItemDetails.find((item) => item.type === "live_course")?.url ?? null;
 
 /* 1,000 and up as "1K" so the Tcoins chip fits the 7rem Amount column; the tooltip keeps the exact count. */
 const compactCoins = (coins: number) =>
@@ -203,6 +217,7 @@ const isInvoiced = (o: AdminOrderRow) => o.status === "completed" && o.totalAmou
 
 export const AdminTransactionsTable: React.FC = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const api = useTransactionFilters();
   const { state, filters, update } = api;
   const { data, isPending, isFetching, isError, error, isPlaceholderData } = useAdminOrderSearch(
@@ -218,7 +233,7 @@ export const AdminTransactionsTable: React.FC = () => {
   const [markingFailedId, setMarkingFailedId] = useState<number | null>(null);
   const [refundingId, setRefundingId] = useState<number | null>(null);
   const [exporting, setExporting] = useState<null | "csv" | "gst" | "zip">(null);
-  const [refundTarget, setRefundTarget] = useState<{ id: number; amount: number } | null>(null);
+  const [refundTarget, setRefundTarget] = useState<{ id: number; amount: number; gateway: OrderGateway } | null>(null);
   const [refundReason, setRefundReason] = useState("");
 
   const rows = data?.rows ?? [];
@@ -367,7 +382,7 @@ export const AdminTransactionsTable: React.FC = () => {
           "Tcoins redeemed": o.tcoinsRedeemed > 0 ? o.tcoinsRedeemed : "",
           "Tcoin discount value (Rs.)": o.tcoinsRedeemed > 0 ? o.tcoinsValue.toFixed(2) : "",
           "Final paid amount (Rs.)": o.totalAmount.toFixed(2),
-          Gateway: o.paymentMethod === "payu" ? "PayU" : "",
+          Gateway: orderGateway(o.paymentMethod) === "none" ? "" : ORDER_GATEWAY_LABELS[orderGateway(o.paymentMethod)],
           "Payment method": paymentMethodLabel(o.paymentMethod),
           "Payment mode": paymentModeLabel(o.paymentMode) ?? "",
           "Invoice number": o.invoiceNumber ?? "",
@@ -566,24 +581,33 @@ export const AdminTransactionsTable: React.FC = () => {
 
     const spinner = <Loader2 className={styles.spinner} />;
     const items: React.ReactNode[] = [];
+    const gateway = orderGateway(order.paymentMethod);
+    const courseUrl = liveCourseUrl(order);
     if (order.status === "completed" && order.totalAmount > 0) {
       items.push(
         action("invoice", "Download invoice", downloadingOrderId === order.id ? spinner : <Download />, () => handleDownloadInvoice(order.id), downloadingOrderId === order.id)
       );
     }
-    if (order.status === "completed") {
+    if (courseUrl) {
+      items.push(action("course", "Manage in Live courses", <SquareArrowOutUpRight />, () => navigate(courseUrl), false));
+    } else if (order.status === "completed") {
       items.push(
         action(
           "refund",
           "Refund order",
           refundingId === order.id ? spinner : <Undo2 />,
-          () => setRefundTarget({ id: order.id, amount: order.totalAmount }),
+          () => setRefundTarget({ id: order.id, amount: order.totalAmount, gateway }),
           refundingId === order.id,
           true
         )
       );
     }
-    if ((order.status === "pending" || order.status === "cancelled" || order.status === "failed") && order.paymentTransactionId) {
+    // Cashfree orders settle through the webhook and the pending-order sweep, never through PayU.
+    if (
+      gateway !== "cashfree" &&
+      (order.status === "pending" || order.status === "cancelled" || order.status === "failed") &&
+      order.paymentTransactionId
+    ) {
       const busy = reconcilingId === order.id || markingFailedId === order.id;
       items.push(
         action("reconcile", "Reconcile order", reconcilingId === order.id ? spinner : <RefreshCw />, () => reconcileMutation.mutate(order.id), busy),
@@ -947,7 +971,7 @@ export const AdminTransactionsTable: React.FC = () => {
         title="Refund this order?"
         description={
           refundTarget
-            ? `Order #${refundTarget.id} for ${formatInr(refundTarget.amount)} is marked refunded and the amount comes back out of the teacher's earnings. The student loses access to everything this order unlocked, unless they also bought it in another order. The money itself is returned through PayU separately.`
+            ? `Order #${refundTarget.id} for ${formatInr(refundTarget.amount)} is marked refunded and the amount comes back out of the teacher's earnings. The student loses access to everything this order unlocked, unless they also bought it in another order. The money itself is returned through ${refundTarget.gateway === "cashfree" ? "Cashfree" : "PayU"} separately.`
             : undefined
         }
         note={{

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trophy, Award, X, Star } from 'lucide-react';
+import { Trophy, X, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from './Button';
 import { ShareButton } from './ShareButton';
@@ -66,14 +66,8 @@ export const CourseCompletionCelebration: React.FC<CourseCompletionCelebrationPr
           </span>
         </div>
         <div className={styles.actions}>
-          <Button size="lg" asChild className={styles.primaryAction}>
-            <Link to="/student/certificates">
-              <Award size={20} />
-              Get your certificate
-            </Link>
-          </Button>
           {onRateCourse && (
-            <Button size="lg" variant="outline" className={styles.rateAction} onClick={onRateCourse}>
+            <Button size="lg" className={styles.rateAction} onClick={onRateCourse}>
               <Star size={20} />
               Rate this course
             </Button>

@@ -1,5 +1,5 @@
 import { db } from "../../../helpers/db";
-import { normalizePaymentMode } from "../../../helpers/orderAttribution";
+import { normalizePaymentMode, orderGateway } from "../../../helpers/orderAttribution";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { verifyPayUPayment } from "../../../helpers/verifyPayUPayment";
 import { ensureOrderCompletionSideEffects } from "../../../helpers/ensureOrderCompletionSideEffects";
@@ -21,7 +21,7 @@ export async function handle(request: Request) {
     // 3. Fetch the order to perform initial checks
     const order = await db
       .selectFrom("orders")
-      .select(["id", "status", "paymentTransactionId", "userId"])
+      .select(["id", "status", "paymentTransactionId", "userId", "paymentMethod"])
       .where("id", "=", orderId)
       .executeTakeFirst();
 
@@ -33,6 +33,16 @@ export async function handle(request: Request) {
           order: null,
         } satisfies OutputType),
         { status: 404 }
+      );
+    }
+    if (orderGateway(order.paymentMethod) === "cashfree") {
+      return new Response(
+        superjson.stringify({
+          success: false,
+          message: "This is a Cashfree order. It settles on its own once Cashfree confirms or abandons the payment.",
+          order: { id: order.id, previousStatus: order.status, newStatus: order.status },
+        } satisfies OutputType),
+        { status: 400 }
       );
     }
     if (order.status === "completed" || order.status === "refunded") {

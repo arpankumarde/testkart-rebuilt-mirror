@@ -19,7 +19,7 @@ import { ORDER_DISCOUNT_METHODS } from "./orderDiscountMethod";
 /** Stands for "no value captured" inside the OS, browser, brand and method lists. */
 export const NOT_CAPTURED = "__none";
 
-export const ORDER_PRODUCT_TYPES = ["course", "test", "live_test", "notes", "bundle", "mentorship"] as const;
+export const ORDER_PRODUCT_TYPES = ["course", "test", "live_test", "notes", "bundle", "live_class", "live_course"] as const;
 export type OrderProductType = (typeof ORDER_PRODUCT_TYPES)[number];
 
 export const ORDER_PRODUCT_TYPE_LABELS: Record<OrderProductType, string> = {
@@ -28,7 +28,8 @@ export const ORDER_PRODUCT_TYPE_LABELS: Record<OrderProductType, string> = {
   live_test: "Live test",
   notes: "Study notes",
   bundle: "Bundle",
-  mentorship: "Mentorship",
+  live_class: "1:1 live class",
+  live_course: "Live course",
 };
 
 const facetList = z.array(z.string().trim().min(1).max(64)).max(30);

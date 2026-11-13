@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { CalendarDays, Clock, Users, IndianRupee, ArrowLeft, Video, CheckCircle, XCircle } from "lucide-react";
 import { useAuth } from "../helpers/useAuth";
+import { usePurchaseDetailsGate } from "../helpers/usePurchaseDetailsGate";
 import {
   useMentorshipGroupLessonQuery,
   useMentorshipGroupLessonEnrollMutation,
@@ -39,6 +40,7 @@ const GroupLessonDetailPage: React.FC = () => {
   const { data, isLoading, isError, error } = useMentorshipGroupLessonQuery(lessonId);
   const enrollMutation = useMentorshipGroupLessonEnrollMutation();
   const purchaseMutation = useMentorshipGroupLessonPurchaseMutation();
+  const ensurePurchaseDetails = usePurchaseDetailsGate();
   const unenrollMutation = useMentorshipGroupLessonUnenrollMutation();
   const [isVerifying, setIsVerifying] = useState(false);
   const [unenrollOpen, setUnenrollOpen] = useState(false);
@@ -121,6 +123,7 @@ const GroupLessonDetailPage: React.FC = () => {
 
   const handlePaidEnroll = async () => {
     if (authState.type !== "authenticated") return requireLogin();
+    if (!(await ensurePurchaseDetails())) return;
     try {
       toast.loading("Initiating payment...");
       const paymentData = await purchaseMutation.mutateAsync({ groupLessonId: lesson.id });

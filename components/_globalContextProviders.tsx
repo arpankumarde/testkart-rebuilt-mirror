@@ -13,6 +13,7 @@ import { AutoRenewalChecker } from "./AutoRenewalChecker";
 import { ScriptInjector } from "./ScriptInjector";
 import { BookDemoPopup } from "./BookDemoPopup";
 import { BookDemoDialogProvider } from "../helpers/useBookDemoDialog";
+import { PurchaseDetailsGateProvider } from "./PurchaseDetailsGate";
 import { restoreThemeMode } from "../helpers/themeMode";
 import { installLanguageVideoTabs } from "../helpers/languageVideo";
 import { chunkLoadRecovery } from "../helpers/chunkLoadRecovery";
@@ -64,7 +65,10 @@ export const GlobalContextProviders = ({
         <TooltipProvider>
           {/* Wraps children so BookDemoButtons inside pages share the one dialog. */}
           <BookDemoDialogProvider>
-            <RouteErrorBoundary>{children}</RouteErrorBoundary>
+            {/* Asks a student for a missing name or billing state before any paid checkout. */}
+            <PurchaseDetailsGateProvider>
+              <RouteErrorBoundary>{children}</RouteErrorBoundary>
+            </PurchaseDetailsGateProvider>
             <BookDemoPopup />
           </BookDemoDialogProvider>
           <SonnerToaster />

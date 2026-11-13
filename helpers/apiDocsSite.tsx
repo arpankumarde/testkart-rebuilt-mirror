@@ -694,7 +694,7 @@ export const apiDocsSite: ApiEndpoint[] = [
   {
     method: "POST",
     route: "/_api/student/certificate/generate",
-    description: "Issue a certificate for a finished course or a completed test and return it as a PDF",
+    description: "Retired: certificates are no longer issued",
     auth: "student",
     category: "Certificates",
     usedBy: ["web"],
@@ -702,14 +702,10 @@ export const apiDocsSite: ApiEndpoint[] = [
       { name: "certificateType", type: "'course_completion' | 'test_completion'", required: true, description: "Kind of certificate" },
       { name: "itemId", type: "number", required: true, description: "Course id for course_completion, or test item id for test_completion" },
     ],
-    responseFields: [
-      { name: "(file)", type: "application/pdf", description: "The certificate PDF, named certificate-<number>.pdf" },
-    ],
+    responseFields: [],
     notes: [
-      "A course needs 100 percent completion. A test needs at least one completed attempt with a score. There is no pass mark, and the best score is stored.",
-      "One certificate per student and item. A repeat returns 400. Use /_api/student/certificate/download to get it again.",
-      "The number has the form CERT-<year>-<6 digits>. The student is emailed when they have an email address.",
-      "Returns 403 for non-students and 404 for an unknown test item. Other failures return 500.",
+      "Since 20-11-2026 every call returns 410 with error 'Certificates are no longer issued.' and no email is sent.",
+      "Certificates issued before then still download through /_api/student/certificate/download and verify on the public certificate page.",
     ],
   },
   {

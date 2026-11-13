@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../helpers/useAuth';
+import { usePurchaseDetailsGate } from '../helpers/usePurchaseDetailsGate';
 import { Clock, Users, Calendar, CalendarClock, CheckCircle, XCircle, IndianRupee, PlayCircle, Info, ChevronRight, FileText, BookOpen, Trophy, Medal, Hourglass } from 'lucide-react';
 import { useCountdownTimer } from '../helpers/useCountdownTimer';
 import { getLiveTestStatus } from '../helpers/useLiveTestHelpers';
@@ -138,6 +139,7 @@ export const LiveTestHero: React.FC<LiveTestHeroProps> = ({ liveTest, className 
   const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
   const queryClient = useQueryClient();
   const { authState } = useAuth();
+  const ensurePurchaseDetails = usePurchaseDetailsGate();
   const navigate = useNavigate();
   const location = useLocation();
   // Countdown for enrolled users waiting for test to start (only if startTime is not null)
@@ -171,6 +173,7 @@ export const LiveTestHero: React.FC<LiveTestHeroProps> = ({ liveTest, className 
       navigate(`/login?redirectTo=${encodeURIComponent(currentPath)}`);
       return;
     }
+    if (!(await ensurePurchaseDetails())) return;
     setIsProcessingPayment(true);
     try {
       toast.loading("Initiating payment...");

@@ -9,6 +9,7 @@ import { postCartAdd } from "../endpoints/cart/add_POST.schema";
 import { postOrdersRetryPayment } from "../endpoints/orders/retry-payment_POST.schema";
 import { postPaymentPayuRedirect } from "../endpoints/payment/payu/redirect_POST.schema";
 import { CART_QUERY_KEY } from "../helpers/useCartQuery";
+import { gatePurchase, usePurchaseDetailsGate } from "../helpers/usePurchaseDetailsGate";
 import { trackGTMEvent } from "../helpers/trackGTMEvent";
 import { Button } from "../components/Button";
 import { Badge } from "../components/Badge";
@@ -99,8 +100,11 @@ const OrderConfirmationPage: React.FC = () => {
   // a new txnid. If its total has changed, nothing is charged until the student presses again.
   const [priceChange, setPriceChange] = useState<{ previousAmount: number; newAmount: number; notes: string[] } | null>(null);
   const [redirectingToPayu, setRedirectingToPayu] = useState(false);
+  const ensurePurchaseDetails = usePurchaseDetailsGate();
   const directRetryMutation = useMutation({
-    mutationFn: (confirmedAmount?: number) => postOrdersRetryPayment({ orderId: numericOrderId, confirmedAmount }),
+    mutationFn: gatePurchase<number | undefined, Awaited<ReturnType<typeof postOrdersRetryPayment>>>(ensurePurchaseDetails, (confirmedAmount) =>
+      postOrdersRetryPayment({ orderId: numericOrderId, confirmedAmount })
+    ),
     onSuccess: (result) => {
       if (result.kind === "amountChanged") {
         setPriceChange({ previousAmount: result.previousAmount, newAmount: result.newAmount, notes: result.notes });

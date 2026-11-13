@@ -423,7 +423,7 @@ const ACTIONS: Record<string, TeacherAction> = {
   "products/unpublish": write(productsUnpublish, productsUnpublishSchema, "Take study notes off sale.", CONFIRM),
   "products/update": write(productsUpdate, productsUpdateSchema, "Update study notes."),
   "profile/update": write(profileUpdate, profileUpdateSchema, "Update your public teacher profile, including display name and academy name. Fields left out stay unchanged. Changing slug changes your public profile URL, and old links stop working."),
-  "promo-codes/delete": write(promoCodesDelete, promoCodesDeleteSchema, "Delete a promo code.", CONFIRM),
+  "promo-codes/delete": write(promoCodesDelete, promoCodesDeleteSchema, "Deactivate a promo code so students can no longer apply it. The teacher can reactivate it on the Testkart website.", CONFIRM),
   "question-bank/bulk-upload": write(questionBankBulkUpload, questionBankBulkUploadSchema, "Add many questions to your question bank at once."),
   "question-bank/create": write(questionBankCreate, questionBankCreateSchema, "Add a question to your question bank."),
   "question-bank/delete": write(questionBankDelete, questionBankDeleteSchema, "Delete question bank questions.", CONFIRM),
@@ -491,6 +491,8 @@ export const BLOCKED_ACTIONS: Readonly<Record<string, string>> = {
     "Promo codes discount sales, so they are only created on the Testkart website.",
   "promo-codes/update":
     "Promo codes discount sales, so they are only changed on the Testkart website.",
+  "promo-codes/reactivate":
+    "Promo codes discount sales, so they are only reactivated on the Testkart website.",
   "test-item/download-pdf":
     "This returns a PDF file, which the connector cannot carry. Download it from the teacher console.",
 };

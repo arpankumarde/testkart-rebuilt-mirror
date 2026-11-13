@@ -12,6 +12,7 @@ import { postMentorshipGroupLessonPurchase } from "../endpoints/mentorship/group
 import { postMentorshipGroupLessonEnroll } from "../endpoints/mentorship/group-lessons/enroll_POST.schema";
 import { postMentorshipGroupLessonUnenroll } from "../endpoints/mentorship/group-lessons/unenroll_POST.schema";
 import { getMentorshipMyGroupLessonEnrollments, InputType as MyGroupLessonEnrollmentsInput } from "../endpoints/mentorship/group-lessons/my-enrollments_GET.schema";
+import { gatePurchase, usePurchaseDetailsGate } from "./usePurchaseDetailsGate";
 
 export const MENTORSHIP_BOOKINGS_QUERY_KEY = ["mentorship", "bookings"] as const;
 export const MENTORSHIP_GROUP_LESSONS_QUERY_KEY = ["mentorship", "group-lessons"] as const;
@@ -43,7 +44,10 @@ export const useMentorshipSlotsQuery = (
     enabled: !!teacherId && !!durationMinutes,
   });
 
-export const useMentorshipPurchaseMutation = () => useMutation({ mutationFn: postMentorshipPurchase });
+export const useMentorshipPurchaseMutation = () => {
+  const ensurePurchaseDetails = usePurchaseDetailsGate();
+  return useMutation({ mutationFn: gatePurchase(ensurePurchaseDetails, postMentorshipPurchase) });
+};
 
 export const useMentorshipBookingCreateMutation = () => {
   const queryClient = useQueryClient();
@@ -88,7 +92,10 @@ export const useMentorshipGroupLessonQuery = (id: string | null) =>
     enabled: !!id,
   });
 
-export const useMentorshipGroupLessonPurchaseMutation = () => useMutation({ mutationFn: postMentorshipGroupLessonPurchase });
+export const useMentorshipGroupLessonPurchaseMutation = () => {
+  const ensurePurchaseDetails = usePurchaseDetailsGate();
+  return useMutation({ mutationFn: gatePurchase(ensurePurchaseDetails, postMentorshipGroupLessonPurchase) });
+};
 
 export const useMentorshipGroupLessonEnrollMutation = () => {
   const queryClient = useQueryClient();

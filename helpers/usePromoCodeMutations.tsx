@@ -5,6 +5,7 @@ import { postPromoCodesValidate } from "../endpoints/promo-codes/validate_POST.s
 import { postTeacherPromoCodesCreate } from "../endpoints/teacher/promo-codes/create_POST.schema";
 import { postTeacherPromoCodesUpdate } from "../endpoints/teacher/promo-codes/update_POST.schema";
 import { postTeacherPromoCodesDelete } from "../endpoints/teacher/promo-codes/delete_POST.schema";
+import { postTeacherPromoCodesReactivate } from "../endpoints/teacher/promo-codes/reactivate_POST.schema";
 import { TEACHER_PROMO_CODES_QUERY_KEY } from "./useTeacherPromoCodes";
 
 /**
@@ -78,6 +79,28 @@ export const useDeletePromoCodeMutation = () => {
       const errorMessage = parseErrorMessage(error) ||  "Failed to delete promo code.";
       toast.error(errorMessage);
       console.error("Delete promo code error:", error);
+    },
+  });
+};
+
+/**
+ * Mutation hook for reactivating a deactivated promo code. The server refuses
+ * codes that have ended or used up their limit, and the toast says why.
+ * Invalidates the teacher's promo code list on success.
+ */
+export const useReactivatePromoCodeMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: postTeacherPromoCodesReactivate,
+    onSuccess: (data) => {
+      toast.success(data.message);
+      return queryClient.invalidateQueries({ queryKey: TEACHER_PROMO_CODES_QUERY_KEY });
+    },
+    onError: (error) => {
+      const errorMessage = parseErrorMessage(error) || "Failed to reactivate promo code.";
+      toast.error(errorMessage);
+      console.error("Reactivate promo code error:", error);
+      return queryClient.invalidateQueries({ queryKey: TEACHER_PROMO_CODES_QUERY_KEY });
     },
   });
 };

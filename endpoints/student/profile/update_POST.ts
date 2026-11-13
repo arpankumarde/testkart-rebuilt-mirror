@@ -7,6 +7,7 @@ import { ZodError } from "zod";
 import { Selectable } from "kysely";
 import { Users } from "../../../helpers/schema";
 import { User } from "../../../helpers/User";
+import { isPlaceholderDisplayName, PLACEHOLDER_NAME_SQL_REGEX } from "../../../helpers/isPlaceholderDisplayName";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -34,6 +35,16 @@ export async function handle(request: Request): Promise<Response> {
       updatedAt: new Date(),
     };
     
+    // The mobile app always resends the current name, so an unchanged placeholder passes; switching to one does not.
+    const nameChanged =
+      validatedInput.displayName !== undefined && validatedInput.displayName.trim() !== (user.displayName ?? "").trim();
+    if (nameChanged && isPlaceholderDisplayName(validatedInput.displayName)) {
+      return new Response(
+        superjson.stringify({ error: "Please enter your real name, not User_ or User followed by a number." }),
+        { status: 400 }
+      );
+    }
+
     if (validatedInput.displayName !== undefined) {
       updateData.displayName = validatedInput.displayName;
     }
@@ -59,6 +70,16 @@ export async function handle(request: Request): Promise<Response> {
         superjson.stringify({ error: "User not found or no changes made" }),
         { status: 404 }
       );
+    }
+
+    // Reviews keep a copy of the name they were written under; give the ones left under a generated name the real one.
+    if (nameChanged && !isPlaceholderDisplayName(updatedUser.displayName)) {
+      await db
+        .updateTable("reviews")
+        .set({ reviewerName: updatedUser.displayName })
+        .where("userId", "=", user.id)
+        .where("reviewerName", "~*", PLACEHOLDER_NAME_SQL_REGEX)
+        .execute();
     }
     
     const mapUser = (dbUser: Selectable<Users>): User => ({

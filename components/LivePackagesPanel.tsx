@@ -7,7 +7,9 @@ import { Dialog } from "./Dialog";
 import { ConsoleDialogContent, ConsoleDialogHeader, ConsoleDialogBody, ConsoleDialogFooter } from "./ConsoleDialog";
 import { ConsoleConfirmDialog } from "./ConsoleConfirmDialog";
 import { LiveSlotPicker, useLiveSlotRange } from "./LiveSlotPicker";
-import { liveBookingPath } from "../helpers/liveBookingRoutes";
+import { LivePackageBuilder } from "./LivePackageBuilder";
+import { Skeleton } from "./Skeleton";
+import { useMentorshipTeacherOfferingsQuery } from "../helpers/useMentorship";
 import {
   useCreditReleaseMutation,
   useCreditScheduleMutation,
@@ -67,7 +69,7 @@ export const LivePackagesPanel: React.FC = () => {
         </div>
       )}
       {followUps.map((t) => (
-        <TrialFollowUpCard key={t.bookingId} trial={t} onDismiss={() => dismiss(t.bookingId)} />
+        <TrialFollowUpCard key={t.bookingId} trial={t} balance={data.balance} onDismiss={() => dismiss(t.bookingId)} />
       ))}
       {data.packages.map((p) => (
         <PackageCard key={p.id} pkg={p} />
@@ -76,8 +78,9 @@ export const LivePackagesPanel: React.FC = () => {
   );
 };
 
-const TrialFollowUpCard: React.FC<{ trial: TrialFollowUp; onDismiss: () => void }> = ({ trial, onDismiss }) => {
+const TrialFollowUpCard: React.FC<{ trial: TrialFollowUp; balance: number; onDismiss: () => void }> = ({ trial, balance, onDismiss }) => {
   const [rating, setRating] = useState(0);
+  const [choosing, setChoosing] = useState(false);
   const rate = async (value: number) => {
     setRating(value);
     try {
@@ -99,9 +102,7 @@ const TrialFollowUpCard: React.FC<{ trial: TrialFollowUp; onDismiss: () => void 
         ))}
       </div>
       <div className={styles.actions}>
-        <Button asChild>
-          <Link to={liveBookingPath({ slug: trial.teacherSlug })}>Choose a plan</Link>
-        </Button>
+        <Button onClick={() => setChoosing(true)}>Choose a plan</Button>
         <Button variant="outline" asChild>
           <Link to="/expert">Try another tutor</Link>
         </Button>
@@ -109,7 +110,30 @@ const TrialFollowUpCard: React.FC<{ trial: TrialFollowUp; onDismiss: () => void 
           Not now
         </button>
       </div>
+      {choosing && <PlanDialog trial={trial} balance={balance} onClose={() => setChoosing(false)} />}
     </section>
+  );
+};
+
+/** The package builder from the booking page, opened in place. Cashfree returns to the booking page, which confirms and comes back here. */
+const PlanDialog: React.FC<{ trial: TrialFollowUp; balance: number; onClose: () => void }> = ({ trial, balance, onClose }) => {
+  const offerings = useMentorshipTeacherOfferingsQuery(trial.teacherId);
+  const prices = offerings.data?.enabled ? offerings.data.prices : null;
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <ConsoleDialogContent size="lg">
+        <ConsoleDialogHeader title={`Keep learning with ${trial.teacherName}`} description="4 weeks of classes, renewed by autopay." />
+        <ConsoleDialogBody>
+          {offerings.isLoading ? (
+            <Skeleton style={{ height: "12rem", width: "100%" }} />
+          ) : prices ? (
+            <LivePackageBuilder teacherId={trial.teacherId} teacherName={trial.teacherName} prices={prices} balance={balance} />
+          ) : (
+            <p className={styles.dialogNote}>{trial.teacherName} is not taking new plans right now.</p>
+          )}
+        </ConsoleDialogBody>
+      </ConsoleDialogContent>
+    </Dialog>
   );
 };
 

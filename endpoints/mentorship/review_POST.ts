@@ -1,5 +1,6 @@
 import { db } from "../../helpers/db";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
+import { isPlaceholderDisplayName, REVIEW_NAME_REQUIRED_MESSAGE } from "../../helpers/isPlaceholderDisplayName";
 import { schema, OutputType } from "./review_POST.schema";
 import superjson from "superjson";
 
@@ -8,6 +9,9 @@ export async function handle(request: Request) {
     const { user } = await getServerUserSession(request);
     if (user.role !== "student") {
       return new Response(superjson.stringify({ error: "Only students can leave a review." }), { status: 403 });
+    }
+    if (isPlaceholderDisplayName(user.displayName)) {
+      return new Response(superjson.stringify({ error: REVIEW_NAME_REQUIRED_MESSAGE }), { status: 400 });
     }
 
     const json = superjson.parse(await request.text());

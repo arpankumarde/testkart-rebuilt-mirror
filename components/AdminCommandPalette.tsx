@@ -98,14 +98,13 @@ export const AdminCommandPalette = ({ open, onOpenChange, attention }: Props) =>
                 return (
                   <CommandItem
                     key={tile.key}
-                    value={`attention ${tile.title} ${tile.detail}`}
+                    value={`attention ${tile.title}`}
                     onSelect={() => go(tile.href)}
                   >
                     <Icon aria-hidden="true" />
                     <span className={styles.label}>
                       <span className={styles.count}>{adminFormat.count(tile.count)}</span> {tile.title}
                     </span>
-                    <CommandShortcut>{tile.detail}</CommandShortcut>
                   </CommandItem>
                 );
               })}

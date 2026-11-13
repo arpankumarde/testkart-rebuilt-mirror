@@ -26,6 +26,8 @@ export type OutputType = {
   joinWindow: { isOpen: boolean; opensAt: Date; closesAt: Date };
   /** What a join would connect to right now: a real Daily.co call, or the development-only mock. */
   videoProvider: "mock" | "daily";
+  /** Student only: set once their trial with this teacher counts as held and they have no package with them yet. */
+  trialFollowUp: { teacherSlug: string | null } | null;
 };
 
 export const getMentorshipClassroomDetails = async (input: InputType, init?: RequestInit): Promise<OutputType> => {

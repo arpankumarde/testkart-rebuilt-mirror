@@ -2,7 +2,7 @@
 .panel {
   display: flex;
   flex-direction: column;
-  gap: 0.875rem;
+  gap: var(--spacing-3);
   min-width: 0;
 }
 
@@ -10,49 +10,96 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+
+/* The filter track scrolls sideways on narrow screens instead of spilling out. */
+.toolbar > :first-child {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.toolbar > :first-child::-webkit-scrollbar {
+  display: none;
 }
 
 .search {
-  width: 100%;
-  max-width: 20rem;
+  flex: 1 1 16rem;
+  max-width: 22rem;
 }
 
 .hint {
   margin: 0;
+  padding: 0.625rem 0.875rem;
   font-size: 0.8125rem;
   line-height: 1.5;
-  color: var(--muted-foreground);
+  color: var(--foreground);
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
 }
 
 .tableWrap {
   overflow-x: auto;
   border: 1px solid var(--border);
-  border-radius: 1rem;
+  border-radius: var(--radius-md);
   background: var(--card);
+  box-shadow: var(--shadow);
 }
 
 .table {
   width: 100%;
+  min-width: 46rem;
   border-collapse: collapse;
   font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .table th {
-  padding: 0.625rem 0.75rem;
+  padding: 0.6875rem var(--spacing-3);
   text-align: left;
   font-size: 0.75rem;
   font-weight: 700;
+  letter-spacing: 0.02em;
   color: var(--muted-foreground);
+  background: var(--muted);
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
 
 .table td {
-  padding: 0.625rem 0.75rem;
+  padding: 0.75rem var(--spacing-3);
   border-bottom: 1px solid var(--border);
   color: var(--foreground);
-  vertical-align: top;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* Only the name cells (course, class, student) wrap; names, counts and dates stay on one line. */
+.table td:has(.title),
+.table td:has(.strong) {
+  min-width: 10rem;
+  white-space: normal;
+}
+
+.table th:first-child,
+.table td:first-child {
+  padding-left: var(--spacing-4);
+}
+
+.table th:last-child,
+.table td:last-child {
+  padding-right: var(--spacing-4);
+}
+
+.table tbody tr {
+  transition: background-color var(--animation-duration-fast) ease;
+}
+
+.table tbody tr:hover {
+  background: color-mix(in srgb, var(--muted), transparent 40%);
 }
 
 .table tr:last-child td {
@@ -78,15 +125,24 @@
   text-decoration: underline;
 }
 
+.title:focus-visible,
+.subLink:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
 .sub,
 .subLink {
   display: block;
-  margin-top: 0.125rem;
+  margin-top: 0.1875rem;
   font-size: 0.75rem;
+  line-height: 1.35;
   color: var(--muted-foreground);
 }
 
 .subLink {
+  width: fit-content;
   color: var(--fc-blue-ink);
   font-weight: 600;
   text-decoration: none;
@@ -100,54 +156,71 @@
 
 .chip {
   display: inline-flex;
-  padding: 0.125rem 0.5625rem;
+  align-items: center;
+  padding: 0.1875rem 0.625rem;
+  border: 1px solid transparent;
   border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 700;
+  line-height: 1.2;
   white-space: nowrap;
 }
 
 .tone_mint {
   background: var(--fc-mint-tint);
+  border-color: var(--fc-mint-line, transparent);
   color: var(--fc-mint-ink);
 }
 
 .tone_butter {
   background: var(--fc-butter-tint);
+  border-color: var(--fc-butter-line, transparent);
   color: var(--fc-butter-ink);
 }
 
 .tone_sage {
   background: var(--fc-sage-tint);
+  border-color: var(--fc-sage-line, transparent);
   color: var(--fc-sage-ink);
 }
 
 .tone_peach {
   background: var(--fc-peach-tint);
+  border-color: var(--fc-peach-line, transparent);
   color: var(--fc-peach-ink);
 }
 
 .tone_blue {
   background: var(--fc-blue-tint);
+  border-color: var(--fc-blue-line, transparent);
   color: var(--fc-blue-ink);
 }
 
 .tone_muted {
   background: var(--muted);
+  border-color: var(--border);
   color: var(--foreground);
 }
 
 .empty,
 .error {
   margin: 0;
-  padding: 1.5rem;
+  padding: 2.5rem 1.5rem;
   text-align: center;
+  font-size: 0.9375rem;
   color: var(--muted-foreground);
   border: 1px solid var(--border);
-  border-radius: 1rem;
+  border-radius: var(--radius-md);
   background: var(--card);
 }
 
 .error {
   color: var(--fc-peach-ink);
+}
+
+@media (max-width: 640px) {
+  .search {
+    flex-basis: 100%;
+    max-width: none;
+  }
 }

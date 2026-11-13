@@ -1396,6 +1396,15 @@ export interface LiveLessonTeacherNotes {
   updatedAt: Generated<Timestamp>;
 }
 
+export interface LiveLessonWhiteboards {
+  groupLessonId: string | null;
+  id: Generated<string>;
+  mentorshipBookingId: string | null;
+  ops: Generated<Json>;
+  updatedAt: Generated<Timestamp>;
+  updatedBy: number | null;
+}
+
 export interface LiveMandates {
   activatedAt: Timestamp | null;
   authAmount: Numeric;
@@ -3128,6 +3137,7 @@ export interface DB {
   liveLessonChatMessages: LiveLessonChatMessages;
   liveLessonMaterials: LiveLessonMaterials;
   liveLessonTeacherNotes: LiveLessonTeacherNotes;
+  liveLessonWhiteboards: LiveLessonWhiteboards;
   liveMandates: LiveMandates;
   livePackageCycles: LivePackageCycles;
   livePackages: LivePackages;

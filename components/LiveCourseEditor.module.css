@@ -22,6 +22,12 @@
   gap: 0.75rem;
 }
 
+/* A 16:9 drop zone at full form width is taller than the viewport; cap it. */
+.coverField {
+  width: 100%;
+  max-width: 30rem;
+}
+
 .label {
   font-size: 0.875rem;
   font-weight: 600;

@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { Video, Calendar, Ban, RotateCcw, Users, MoreHorizontal, Search, Flag } from "lucide-react";
+import { Calendar, Ban, RotateCcw, MoreHorizontal, Search, Flag, MessageSquare } from "lucide-react";
 import { LivePackagesPanel } from "../components/LivePackagesPanel";
+import { ClassroomRecapDialog, ClassroomRecapTarget } from "../components/ClassroomRecapDialog";
 import { LiveSlotPicker, useLiveSlotRange } from "../components/LiveSlotPicker";
 import { useBookingReportMutation, useInvalidateLiveClasses } from "../helpers/useLivePackages";
 import { postPaymentCashfreeVerify } from "../endpoints/payment/cashfree/verify_POST.schema";
@@ -12,12 +13,8 @@ import {
   useMentorshipBookingsListQuery,
   useMentorshipBookingCancelMutation,
   useMentorshipBookingRescheduleMutation,
-  useMentorshipMyGroupLessonEnrollmentsQuery,
-  useMentorshipGroupLessonUnenrollMutation,
 } from "../helpers/useMentorship";
 import { MentorshipBookingRow } from "../endpoints/mentorship/bookings/list_GET.schema";
-import { MyGroupLessonEnrollmentRow } from "../endpoints/mentorship/group-lessons/my-enrollments_GET.schema";
-import { GROUP_LESSON_LIST_PATH } from "../helpers/groupLessonRoutes";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
 import { ConsoleListEmpty } from "../components/ConsoleListEmpty";
 import { Button } from "../components/Button";
@@ -38,7 +35,6 @@ import {
 import styles from "./student.live-teaching.module.css";
 
 type FilterValue = "upcoming" | "past" | "cancelled";
-type Kind = "bookings" | "group";
 
 /* Upcoming sessions carry an Up next or Room open badge instead; only finished or stopped ones say what happened. */
 const bookingStatus = (status: string, noShowParty?: string | null): LiveSessionStatus | null => {
@@ -74,15 +70,7 @@ const opensLabel = (start: Date | string, now: number) => {
   return `Opens ${day}, ${time}`;
 };
 
-const enrollmentStatus = (e: MyGroupLessonEnrollmentRow): LiveSessionStatus | null => {
-  if (e.status === "removed" || e.removedByTeacher) return { label: "Removed", tone: "peach" };
-  if (e.status === "cancelled" || e.lessonStatus === "cancelled") return { label: "Cancelled", tone: "peach" };
-  if (e.lessonStatus === "completed") return { label: "Done", tone: "sage" };
-  return null;
-};
-
 const StudentLiveTeachingPage: React.FC = () => {
-  const [kind, setKind] = useState<Kind>("bookings");
   const [filter, setFilter] = useState<FilterValue>("upcoming");
   const invalidate = useInvalidateLiveClasses();
 
@@ -112,13 +100,13 @@ const StudentLiveTeachingPage: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Live Classes - Testkart</title>
+        <title>1:1 Classes - Testkart</title>
       </Helmet>
       <div className={styles.page}>
-        <ConsolePageHeader title="Live classes">
+        <ConsolePageHeader title="1:1 classes">
           <Button variant="outline" asChild>
             <Link to="/expert">
-              <Search size={16} aria-hidden="true" /> Find a class
+              <Search size={16} aria-hidden="true" /> Find a teacher
             </Link>
           </Button>
         </ConsolePageHeader>
@@ -126,15 +114,6 @@ const StudentLiveTeachingPage: React.FC = () => {
         <LivePackagesPanel />
 
         <div className={styles.toolbar}>
-          <LiveSessionSegment<Kind>
-            label="Session type"
-            value={kind}
-            onChange={setKind}
-            options={[
-              { value: "bookings", label: "1:1 sessions", icon: <Video size={16} aria-hidden="true" /> },
-              { value: "group", label: "Group classes", icon: <Users size={16} aria-hidden="true" /> },
-            ]}
-          />
           <LiveSessionSegment<FilterValue>
             label="Show"
             variant="pills"
@@ -148,7 +127,7 @@ const StudentLiveTeachingPage: React.FC = () => {
           />
         </div>
 
-        {kind === "bookings" ? <BookingsView filter={filter} /> : <GroupView filter={filter} />}
+        <BookingsView filter={filter} />
       </div>
     </>
   );
@@ -170,6 +149,7 @@ const BookingsView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
   const [cancelTarget, setCancelTarget] = useState<MentorshipBookingRow | null>(null);
   const [rescheduleTarget, setRescheduleTarget] = useState<MentorshipBookingRow | null>(null);
   const [reportTarget, setReportTarget] = useState<MentorshipBookingRow | null>(null);
+  const [recapTarget, setRecapTarget] = useState<ClassroomRecapTarget | null>(null);
 
   if (isFetching && !data) return <ListSkeleton />;
 
@@ -185,7 +165,7 @@ const BookingsView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
   }
 
   // A class can be moved or cancelled only before it starts, and entered only inside its join window.
-  // Only the Upcoming list ever offers the classroom, so a past session never shows a join button.
+  // Only the Upcoming list offers the join button; a past class opens its saved chat and whiteboard here in a dialog.
   const isUpcoming = (b: MentorshipBookingRow) => filter === "upcoming" && b.status === "scheduled";
   const notStarted = (b: MentorshipBookingRow) => b.status === "scheduled" && new Date(b.scheduledAt).getTime() > now;
   const canEnter = (b: MentorshipBookingRow) => isUpcoming(b) && isInJoinWindow(b.scheduledAt, b.durationMinutes, now);
@@ -231,6 +211,21 @@ const BookingsView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
       <span className={styles.reportNote}>{b.issue.resolution ? (b.issue.resolution === "refunded" ? "Refunded" : "Report closed") : "Report sent"}</span>
     ) : undefined;
 
+  const pastActions = (b: MentorshipBookingRow) => (
+    <>
+      {filter === "past" && b.status !== "cancelled" && (
+        <Button
+          variant="outline"
+          size="md"
+          onClick={() => setRecapTarget({ kind: "booking", id: b.id, withName: b.teacherName, startTime: b.scheduledAt })}
+        >
+          <MessageSquare size={14} aria-hidden="true" /> Chat and board
+        </Button>
+      )}
+      {reportButton(b)}
+    </>
+  );
+
   return (
     <>
       <LiveSessionList>
@@ -245,7 +240,7 @@ const BookingsView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
             badge={canEnter(b) ? "live" : b.id === nextId ? "next" : null}
             status={filter === "past" && b.status === "scheduled" ? { label: "Ended", tone: "muted" } : bookingStatus(b.status, b.noShowParty)}
             note={b.cancellationReason}
-            actions={isUpcoming(b) ? upcomingActions(b) : reportButton(b)}
+            actions={isUpcoming(b) ? upcomingActions(b) : pastActions(b)}
           />
         ))}
       </LiveSessionList>
@@ -253,110 +248,7 @@ const BookingsView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
       <CancelBookingDialog booking={cancelTarget} onOpenChange={(open) => !open && setCancelTarget(null)} />
       <RescheduleBookingDialog booking={rescheduleTarget} onOpenChange={(open) => !open && setRescheduleTarget(null)} />
       <ReportBookingDialog booking={reportTarget} onOpenChange={(open) => !open && setReportTarget(null)} />
-    </>
-  );
-};
-
-const GroupView: React.FC<{ filter: FilterValue }> = ({ filter }) => {
-  const { data, isFetching } = useMentorshipMyGroupLessonEnrollmentsQuery({ filter });
-  const now = useNow();
-  const unenrollMutation = useMentorshipGroupLessonUnenrollMutation();
-  const [leaveTarget, setLeaveTarget] = useState<MyGroupLessonEnrollmentRow | null>(null);
-
-  if (isFetching && !data) return <ListSkeleton />;
-
-  const enrollments = data?.enrollments ?? [];
-  if (enrollments.length === 0) {
-    return (
-      <ConsoleListEmpty
-        icon={<Users size={28} />}
-        title={filter === "upcoming" ? "No group classes yet" : `No ${filter} classes`}
-      >
-        {filter === "upcoming" && (
-          <Button asChild>
-            <Link to={GROUP_LESSON_LIST_PATH}>Browse live classes</Link>
-          </Button>
-        )}
-      </ConsoleListEmpty>
-    );
-  }
-
-  // Same rule as 1:1 sessions: the classroom is offered only from the Upcoming list.
-  const isJoinable = (e: MyGroupLessonEnrollmentRow) => filter === "upcoming" && e.status === "enrolled" && e.lessonStatus === "scheduled";
-  const canLeave = (e: MyGroupLessonEnrollmentRow) => isJoinable(e) && new Date(e.startTime).getTime() > now;
-  const canEnter = (e: MyGroupLessonEnrollmentRow) => isJoinable(e) && isInJoinWindow(e.startTime, e.durationMinutes, now);
-  const nextId = enrollments.find(isJoinable)?.enrollmentId;
-
-  const menu = (e: MyGroupLessonEnrollmentRow) =>
-    canLeave(e) ? (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon-md" className={styles.menuTrigger} aria-label={`More options for ${e.title}`}>
-            <MoreHorizontal size={18} />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className={styles.menu}>
-          <DropdownMenuItem className={`${styles.menuItem} ${styles.menuItemDanger}`} onSelect={() => setLeaveTarget(e)}>
-            <Ban size={16} aria-hidden="true" />
-            <span>Leave this class</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ) : null;
-
-  const upcomingActions = (e: MyGroupLessonEnrollmentRow) => (
-    <>
-      {canEnter(e) ? (
-        <LiveSessionJoinLink to={`/mentorship/classroom/group/${e.groupLessonId}`} />
-      ) : canLeave(e) ? (
-        <LiveSessionOpensNote>{opensLabel(e.startTime, now)}</LiveSessionOpensNote>
-      ) : null}
-      {menu(e)}
-    </>
-  );
-
-  return (
-    <>
-      <LiveSessionList>
-        {enrollments.map((e) => (
-          <LiveSessionCard
-            key={e.enrollmentId}
-            startTime={e.startTime}
-            durationMinutes={e.durationMinutes}
-            title={e.title}
-            teacherName={e.teacherName}
-            teacherAvatarUrl={e.teacherAvatarUrl}
-            badge={canEnter(e) ? "live" : e.enrollmentId === nextId ? "next" : null}
-            status={enrollmentStatus(e)}
-            tag={e.subject}
-            actions={isJoinable(e) ? upcomingActions(e) : undefined}
-          />
-        ))}
-      </LiveSessionList>
-
-      <ConsoleConfirmDialog
-        open={!!leaveTarget}
-        onOpenChange={(open) => !open && setLeaveTarget(null)}
-        title={`Leave ${leaveTarget?.title ?? "this class"}?`}
-        description="You'll lose your seat. If you paid, refunds follow our standard cancellation policy."
-        tone="destructive"
-        confirmLabel="Leave class"
-        pendingLabel="Leaving..."
-        isPending={unenrollMutation.isPending}
-        onConfirm={() => {
-          if (!leaveTarget) return;
-          unenrollMutation.mutate(
-            { groupLessonId: leaveTarget.groupLessonId },
-            {
-              onSuccess: () => {
-                toast.success("You've left the class.");
-                setLeaveTarget(null);
-              },
-              onError: (err) => toast.error(err instanceof Error ? err.message : "Could not leave this class."),
-            }
-          );
-        }}
-      />
+      <ClassroomRecapDialog target={recapTarget} onOpenChange={(open) => !open && setRecapTarget(null)} />
     </>
   );
 };

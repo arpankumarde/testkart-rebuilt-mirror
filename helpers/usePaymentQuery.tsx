@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { getPaymentPayuRedirectUrl } from "../endpoints/payment/payu/redirect_GET.schema";
 import { toast } from "sonner";
+import { PurchaseDetailsRequiredError, usePurchaseDetailsGate } from "./usePurchaseDetailsGate";
 
 const PAYMENT_QUERY_KEY = ["payment", "initiate"] as const;
 
@@ -14,9 +15,11 @@ const PAYMENT_QUERY_KEY = ["payment", "initiate"] as const;
  * @param autoPromoCodeIds - The automatic teacher offers the cart showed
  */
 export const useInitiatePaymentMutation = () => {
+  const ensurePurchaseDetails = usePurchaseDetailsGate();
   return useMutation<void, Error, { promoCodeId?: number; useTcoins?: boolean; autoPromoCodeIds?: number[] }>({
     mutationKey: PAYMENT_QUERY_KEY,
     mutationFn: async ({ promoCodeId, useTcoins, autoPromoCodeIds }) => {
+      if (!(await ensurePurchaseDetails())) throw new PurchaseDetailsRequiredError();
       // The endpoint starts the payment server-side and redirects to PayU.
       toast.loading("Redirecting to payment gateway...");
       window.location.href = getPaymentPayuRedirectUrl(promoCodeId, useTcoins, autoPromoCodeIds);

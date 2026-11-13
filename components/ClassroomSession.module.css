@@ -2,8 +2,10 @@
  * In-call classroom, laid out like a familiar meeting app. A full-viewport
  * grid: slim header (title, time left, timer, connection), the stage with an
  * optional utility panel on its right (tabs: Chat, Whiteboard, People, Info),
- * and a bottom toolbar whose centred group holds every control and, after a
- * divider, Leave. Phones: the stage fills the screen, the panel becomes a
+ * and a bottom toolbar: clock on the left, a centred group of call controls
+ * ending in Leave, and the panel buttons (Chat, Whiteboard, People) on the
+ * right. At 1180px and below the sides hide and the panel buttons join the
+ * centred group. Phones: the stage fills the screen, the panel becomes a
  * full-height bottom sheet and the controls scroll sideways with Leave pinned.
  * Every colour goes through the --mt-* tokens, shared with the tiles, chat
  * and whiteboard; .menu repeats them because the More menu renders outside
@@ -884,7 +886,12 @@
 
 .toolbarRight {
   justify-content: flex-end;
-  font-variant-numeric: tabular-nums;
+}
+
+.sideControls {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
 }
 
 .clock {
@@ -904,7 +911,7 @@
   white-space: nowrap;
 }
 
-/* The centred group: every control, a divider, then Leave. */
+/* The centred group: call controls, a divider, then Leave. */
 .controlsWrap {
   display: flex;
   align-items: center;
@@ -1117,6 +1124,66 @@
   height: 1px;
   margin: 0.25rem 0.375rem;
   background: var(--mt-line);
+}
+
+.menuItemText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem;
+}
+
+.menuHint {
+  color: var(--mt-muted);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+/* Teachers: Leave is split, with a narrow left part that opens Leave class / End class. */
+.leaveGroup {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: stretch;
+  gap: 1px;
+  border-radius: 999px;
+  background: var(--mt-off-hover);
+}
+
+.leaveMore {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.75rem;
+  padding: 0 0 0 0.25rem;
+  border: none;
+  border-radius: 999px 0 0 999px;
+  background: var(--mt-off);
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.leaveMore svg {
+  transition: transform 0.15s ease;
+}
+
+.leaveMore:hover,
+.leaveMore[data-state="open"] {
+  background: var(--mt-off-hover);
+}
+
+.leaveMore[data-state="open"] svg {
+  transform: rotate(180deg);
+}
+
+.leaveMore:focus-visible {
+  outline: none;
+  box-shadow: var(--mt-focus);
+}
+
+.leaveGroup .leave {
+  border-radius: 0 999px 999px 0;
+  padding-left: 0.875rem;
 }
 
 /* ---------------------------------------------------------------- narrow --- */
@@ -1366,6 +1433,23 @@
     padding: 0;
     border-radius: 0.875rem;
     font-size: 0.6875rem;
+  }
+
+  .leaveGroup {
+    border-radius: 0.875rem;
+  }
+
+  .leaveMore {
+    width: 1.75rem;
+    height: 3.25rem;
+    padding: 0;
+    border-radius: 0.875rem 0 0 0.875rem;
+  }
+
+  .leaveGroup .leave {
+    width: 3.25rem;
+    padding: 0;
+    border-radius: 0 0.875rem 0.875rem 0;
   }
 }
 

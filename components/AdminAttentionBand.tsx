@@ -2,8 +2,7 @@ import React, { useEffect, useId, useState } from "react";
 import { Link } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ChevronRight, ChevronDown, RefreshCw, CheckCircle2 } from "lucide-react";
-import { Skeleton } from "./Skeleton";
+import { ChevronRight, ChevronDown, RefreshCw } from "lucide-react";
 import { postReconcileAllOrders } from "../endpoints/admin/orders/reconcile-all_POST.schema";
 import type { AttentionCounts } from "../endpoints/admin/dashboard/overview_GET.schema";
 import { adminAttention, AttentionTile } from "../helpers/adminAttention";
@@ -16,7 +15,6 @@ const COLLAPSED_KEY = "admin_attention_collapsed";
 type Props = {
   attention: AttentionCounts | undefined;
   permissions: readonly string[];
-  isLoading: boolean;
   className?: string;
 };
 
@@ -47,7 +45,6 @@ const Tile = ({ tile }: { tile: AttentionTile }) => {
             <span className={styles.tileCount}>{adminFormat.count(tile.count)}</span>
             <span className={styles.tileTitle}>{tile.title}</span>
           </span>
-          <span className={styles.tileDetail}>{tile.detail}</span>
         </span>
         <ChevronRight size={16} className={styles.tileChevron} aria-hidden="true" />
       </Link>
@@ -66,7 +63,8 @@ const Tile = ({ tile }: { tile: AttentionTile }) => {
   );
 };
 
-export const AdminAttentionBand = ({ attention, permissions, isLoading, className }: Props) => {
+/** Renders nothing until the counts arrive, and nothing at all when no queue has work in it. */
+export const AdminAttentionBand = ({ attention, permissions, className }: Props) => {
   const bodyId = useId();
   const [collapsed, setCollapsed] = useState(false);
 
@@ -91,20 +89,16 @@ export const AdminAttentionBand = ({ attention, permissions, isLoading, classNam
   };
 
   const tiles = attention ? adminAttention.tiles(attention, permissions) : [];
+  if (tiles.length === 0) return null;
+
   const total = tiles.reduce((sum, tile) => sum + tile.count, 0);
-  const showSkeleton = isLoading && !attention;
-  const summary =
-    tiles.length > 0
-      ? `${adminFormat.count(total)} across ${tiles.length} ${tiles.length === 1 ? "queue" : "queues"}`
-      : attention
-        ? "All clear"
-        : "";
+  const summary = `${adminFormat.count(total)} across ${tiles.length} ${tiles.length === 1 ? "queue" : "queues"}`;
 
   return (
     <section className={`${styles.band} ${className ?? ""}`.trim()} aria-label="Needs attention">
       <div className={styles.head}>
         <span className={styles.chip}>Needs attention</span>
-        {summary && <span className={styles.summary}>{summary}</span>}
+        <span className={styles.summary}>{summary}</span>
         <button
           type="button"
           className={styles.toggle}
@@ -128,29 +122,11 @@ export const AdminAttentionBand = ({ attention, permissions, isLoading, classNam
         inert={collapsed}
       >
         <div className={styles.bodyInner}>
-          {showSkeleton ? (
-            <ul className={styles.tiles} aria-hidden="true">
-              {[0, 1, 2, 3].map((i) => (
-                <li key={i} className={styles.tile}>
-                  <Skeleton className={styles.skeletonTile} />
-                </li>
-              ))}
-            </ul>
-          ) : tiles.length === 0 ? (
-            <div className={styles.allClear}>
-              <CheckCircle2 size={28} className={styles.allClearIcon} aria-hidden="true" />
-              <div>
-                <p className={styles.allClearTitle}>All clear</p>
-                <p className={styles.allClearText}>No payouts, verifications or messages are waiting on you.</p>
-              </div>
-            </div>
-          ) : (
-            <ul className={styles.tiles}>
-              {tiles.map((tile) => (
-                <Tile key={tile.key} tile={tile} />
-              ))}
-            </ul>
-          )}
+          <ul className={styles.tiles}>
+            {tiles.map((tile) => (
+              <Tile key={tile.key} tile={tile} />
+            ))}
+          </ul>
         </div>
       </div>
     </section>

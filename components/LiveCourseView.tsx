@@ -1,7 +1,33 @@
-import React, { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { CalendarDays, CheckCircle2, Clock, Languages, ShieldCheck, Users, Video } from "lucide-react";
+import {
+  Award,
+  BadgeCheck,
+  BookOpen,
+  CalendarDays,
+  CalendarRange,
+  CheckCircle2,
+  ClipboardCheck,
+  Clock,
+  Compass,
+  CreditCard,
+  Info,
+  Languages,
+  Layers,
+  Lightbulb,
+  MonitorPlay,
+  Puzzle,
+  Rocket,
+  ShieldCheck,
+  Star,
+  Target,
+  Timer,
+  UserRound,
+  Users,
+  Video,
+} from "lucide-react";
 import { useAuth } from "../helpers/useAuth";
 import { usePurchaseLiveCourseMutation, useRefundLiveCourseMutation } from "../helpers/useLiveCourses";
 import { useQueryClient } from "@tanstack/react-query";
@@ -9,13 +35,21 @@ import { startCashfreeCheckout } from "../helpers/cashfreeCheckout";
 import { postPaymentCashfreeVerify } from "../endpoints/payment/cashfree/verify_POST.schema";
 import type { OutputType as LiveCourseViewData } from "../endpoints/live-courses/get_GET.schema";
 import { classroomPath, formatIstDate, formatIstShort, formatRupees } from "../helpers/liveCourseRules";
+import { descriptionBlocks, scheduleSummary, splitLead } from "../helpers/liveCoursePresentation";
 import { openClassroom } from "../helpers/openClassroom";
+import { useTeacherPublicProfileQuery } from "../helpers/useTeacherPublicProfile";
 import { JOIN_WINDOW_MINUTES_AFTER, JOIN_WINDOW_MINUTES_BEFORE } from "../helpers/liveLessonConfig";
 import { Button } from "./Button";
 import { ConsoleConfirmDialog } from "./ConsoleConfirmDialog";
+import { LiveCourseCurriculum } from "./LiveCourseCurriculum";
+import { LiveCourseInstructor, LiveCourseReviews } from "./LiveCourseInstructor";
+import { LiveCourseRelated } from "./LiveCourseRelated";
 import styles from "./LiveCourseView.module.css";
 
 const LEVEL: Record<string, string> = { beginner: "Beginner", intermediate: "Intermediate", advanced: "Advanced" };
+const MODULE_ICONS = [BookOpen, Lightbulb, Compass, Puzzle, Target, Rocket];
+type Tone = "peach" | "mint" | "lavender" | "blue" | "butter" | "sage";
+const TONE_CYCLE: Tone[] = ["lavender", "mint", "blue", "butter", "peach", "sage"];
 
 /** Settles a Cashfree return (?order_id=..&gateway=cashfree) once, then refreshes the course. */
 export function useCashfreeReturn() {
@@ -42,6 +76,26 @@ export function useCashfreeReturn() {
   }, []);
 }
 
+/* Section title with a wobbly pastel icon blob and optional count pills, as on the course page. */
+const SectionHead: React.FC<{ icon: React.ReactNode; tone: Tone; title: string; id: string; pills?: React.ReactNode }> = ({
+  icon,
+  tone,
+  title,
+  id,
+  pills,
+}) => (
+  <div className={styles.sectionHead}>
+    <span className={styles.sectionIcon} data-tone={tone} aria-hidden="true">
+      <span className={styles.sectionBlob} />
+      {icon}
+    </span>
+    <h2 id={id} className={styles.h2}>
+      {title}
+    </h2>
+    {pills && <div className={styles.headPills}>{pills}</div>}
+  </div>
+);
+
 export const LiveCourseView: React.FC<{ data: LiveCourseViewData }> = ({ data }) => {
   const { course, viewer, closedReason, seatsLeft, refundClosesAt } = data;
   const { authState } = useAuth();
@@ -49,12 +103,40 @@ export const LiveCourseView: React.FC<{ data: LiveCourseViewData }> = ({ data })
   const location = useLocation();
   const purchase = usePurchaseLiveCourseMutation();
   const refund = useRefundLiveCourseMutation();
+  const profileQuery = useTeacherPublicProfileQuery(course.teacher.slug ?? "");
+  const profile = profileQuery.data;
   const [refundOpen, setRefundOpen] = useState(false);
   const enrolled = viewer.enrollment?.status === "enrolled";
   const now = Date.now();
-  const activeClasses = course.classes.filter((c) => c.status !== "cancelled" || c.missed);
-  const attended = new Map(viewer.attendance.map((a) => [a.classId, a.present]));
+  const attended = useMemo(() => new Map(viewer.attendance.map((a) => [a.classId, a.present])), [viewer.attendance]);
   const discount = course.originalPrice && course.originalPrice > course.price ? Math.round((1 - course.price / course.originalPrice) * 100) : 0;
+  const nonStudent = authState.type === "authenticated" && authState.user.role !== "student";
+  const canBuy = !enrolled && !closedReason && !nonStudent;
+
+  const blocks = useMemo(() => descriptionBlocks(course.description ?? ""), [course.description]);
+  const { lead, rest } = splitLead(blocks);
+  const sched = useMemo(() => scheduleSummary(course.classes), [course.classes]);
+  const topicCount = course.modules.reduce((n, m) => n + m.topics.length, 0);
+  const heldMinutes = course.classes.filter((c) => c.status !== "cancelled").reduce((n, c) => n + c.durationMinutes, 0);
+
+  const nextClass = enrolled
+    ? course.classes.find((c) => c.status === "scheduled" && new Date(c.startTime).getTime() + (c.durationMinutes + JOIN_WINDOW_MINUTES_AFTER) * 60000 >= now)
+    : undefined;
+  const nextJoinable = !!nextClass && now >= new Date(nextClass.startTime).getTime() - JOIN_WINDOW_MINUTES_BEFORE * 60000;
+
+  /* The enrol bar appears once the card's CTA has scrolled out of view. */
+  const ctaRef = useRef<HTMLDivElement>(null);
+  const [ctaVisible, setCtaVisible] = useState(true);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    const el = ctaRef.current;
+    if (!el || !canBuy || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([entry]) => setCtaVisible(entry.isIntersecting), { threshold: 0 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [canBuy]);
+  const showBar = mounted && canBuy && !ctaVisible;
 
   const buy = async () => {
     if (authState.type !== "authenticated") {
@@ -74,7 +156,7 @@ export const LiveCourseView: React.FC<{ data: LiveCourseViewData }> = ({ data })
     if (enrolled) {
       return (
         <p className={styles.ok}>
-          <CheckCircle2 size={16} aria-hidden="true" /> You're enrolled
+          <CheckCircle2 size={17} aria-hidden="true" /> You're enrolled
         </p>
       );
     }
@@ -87,170 +169,345 @@ export const LiveCourseView: React.FC<{ data: LiveCourseViewData }> = ({ data })
       }[closedReason];
       return <p className={styles.closed}>{text}</p>;
     }
-    if (authState.type === "authenticated" && authState.user.role !== "student") {
+    if (nonStudent) {
       return <p className={styles.closed}>Only student accounts can enrol.</p>;
     }
     return (
-      <Button size="lg" className={styles.buy} onClick={buy} disabled={purchase.isPending}>
+      <button type="button" className={styles.buy} onClick={buy} disabled={purchase.isPending}>
         {purchase.isPending ? "Opening payment..." : `Enrol for ${formatRupees(course.price)}`}
-      </Button>
+      </button>
     );
   };
 
-  return (
-    <div className={styles.layout}>
-      <div className={styles.main}>
-        {course.thumbnailUrl && <img src={course.thumbnailUrl} alt="" className={styles.cover} />}
-        <div className={styles.chips}>
-          <span className={`${styles.chip} ${styles.live}`}>
-            <Video size={13} aria-hidden="true" /> Live course
-          </span>
-          {course.examName && <span className={`${styles.chip} ${styles.exam}`}>{course.examName}</span>}
-          <span className={`${styles.chip} ${styles.level}`}>{LEVEL[course.level] ?? course.level}</span>
-        </div>
-        <h1 className={styles.title}>{course.title}</h1>
+  const endsOn = course.endsOn ?? sched.last;
+  const classMinutes = sched.minutes ?? course.defaultClassMinutes;
+  const facts = [
+    course.startsOn && { icon: <CalendarDays size={18} />, tone: "butter", label: "Starts", value: formatIstDate(course.startsOn) },
+    sched.weeks && {
+      icon: <CalendarRange size={18} />,
+      tone: "blue",
+      label: "Duration",
+      value: `${sched.weeks} ${sched.weeks === 1 ? "week" : "weeks"}`,
+      sub: endsOn ? `Ends ${formatIstDate(endsOn)}` : undefined,
+    },
+    (sched.days || sched.time) && {
+      icon: <Clock size={18} />,
+      tone: "lavender",
+      label: "Schedule",
+      value: sched.days ?? `${sched.time} IST`,
+      sub: sched.days && sched.time ? `${sched.time} IST` : undefined,
+    },
+    course.classCount > 0 && {
+      icon: <Video size={18} />,
+      tone: "mint",
+      label: "Format",
+      value: `${course.classCount} live ${course.classCount === 1 ? "class" : "classes"}`,
+      sub: "Online classroom",
+    },
+    classMinutes > 0 && { icon: <Timer size={18} />, tone: "peach", label: "Each class", value: `${classMinutes} min`, sub: "Live and interactive" },
+    {
+      icon: <Users size={18} />,
+      tone: "sage",
+      label: "Batch size",
+      value: `Up to ${course.seatLimit}`,
+      sub: course.seatLimit === 1 ? "student" : "students",
+    },
+  ].filter(Boolean) as { icon: React.ReactNode; tone: Tone; label: string; value: string; sub?: string }[];
 
-        <div className={styles.facts}>
-          <span>
-            <CalendarDays size={15} aria-hidden="true" />
-            {course.startsOn ? `${formatIstDate(course.startsOn)} to ${formatIstDate(course.endsOn ?? course.startsOn)}` : "Dates to be announced"}
-          </span>
-          <span>
-            <Clock size={15} aria-hidden="true" /> {course.classCount} live {course.classCount === 1 ? "class" : "classes"}
-          </span>
-          {course.languages.length > 0 && (
-            <span>
-              <Languages size={15} aria-hidden="true" /> {course.languages.join(", ")}
+  const teacherName = course.teacher.name;
+
+  return (
+    <div className={styles.root} data-bar={showBar || undefined}>
+      <header className={styles.hero}>
+        <div className={styles.heroInfo}>
+          <div className={styles.kickerRow}>
+            <span className={styles.kicker}>Live course</span>
+            {course.examName && <span className={styles.examTag}>{course.examName}</span>}
+          </div>
+          <h1 className={styles.title}>{course.title}</h1>
+          <div className={styles.pills}>
+            <span className={styles.pill} data-tone="mint">
+              <Award size={14} aria-hidden="true" /> {LEVEL[course.level] ?? course.level}
             </span>
+            {course.languages.length > 0 && (
+              <span className={styles.pill} data-tone="lavender">
+                <Languages size={14} aria-hidden="true" /> {course.languages.join(", ")}
+              </span>
+            )}
+            <a href="#lc-instructor" className={styles.hostPill}>
+              {course.teacher.avatarUrl ? (
+                <img src={course.teacher.avatarUrl} alt="" className={styles.hostAvatar} />
+              ) : (
+                <span className={styles.hostFallback} aria-hidden="true">
+                  {teacherName.charAt(0).toUpperCase()}
+                </span>
+              )}
+              <span className={styles.hostLabel}>Taught by</span>
+              <strong>{teacherName}</strong>
+              {profile?.teacher.isVerified && <BadgeCheck size={15} className={styles.hostVerified} aria-label="Verified teacher" />}
+            </a>
+          </div>
+          {lead && <p className={styles.lead}>{lead}</p>}
+          {facts.length > 0 && (
+            <ul className={styles.facts}>
+              {facts.map((f) => (
+                <li key={f.label} className={styles.fact}>
+                  <span className={styles.factIcon} data-tone={f.tone} aria-hidden="true">
+                    {f.icon}
+                  </span>
+                  <span className={styles.factText}>
+                    <span className={styles.factLabel}>{f.label}</span>
+                    <span className={styles.factValue}>{f.value}</span>
+                    {f.sub && <span className={styles.factSub}>{f.sub}</span>}
+                  </span>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
 
-        {course.description && (
-          <section className={styles.section}>
-            <h2 className={styles.h2}>About this course</h2>
-            <p className={styles.about}>{course.description}</p>
-          </section>
-        )}
+        <aside className={styles.buyCard} aria-label="Enrolment">
+          {course.thumbnailUrl && (
+            <div className={styles.media}>
+              <img src={course.thumbnailUrl} alt="" className={styles.cover} />
+            </div>
+          )}
+          <div className={styles.cardBody}>
+            <div className={styles.priceRow}>
+              <span className={styles.price}>{formatRupees(course.price)}</span>
+              {discount > 0 && (
+                <>
+                  <s className={styles.original}>{formatRupees(course.originalPrice!)}</s>
+                  <span className={styles.off}>{discount}% off</span>
+                </>
+              )}
+            </div>
+            {discount > 0 && !enrolled && <p className={styles.save}>You save {formatRupees(course.originalPrice! - course.price)}</p>}
 
-        {course.modules.length > 0 && (
-          <section className={styles.section}>
-            <h2 className={styles.h2}>Syllabus</h2>
-            <ol className={styles.modules}>
-              {course.modules.map((m) => (
-                <li key={m.id} className={styles.module}>
-                  <strong>{m.title}</strong>
-                  {m.topics.length > 0 && (
-                    <ul>
-                      {m.topics.map((t) => (
-                        <li key={t.id}>{t.title}</li>
+            {!enrolled && !closedReason && (
+              <div className={styles.seats}>
+                <div className={styles.seatsTop}>
+                  <span className={styles.seatsText}>
+                    <Users size={14} aria-hidden="true" />
+                    <span>
+                      <strong>{seatsLeft}</strong> of {course.seatLimit} {course.seatLimit === 1 ? "seat" : "seats"} left
+                    </span>
+                  </span>
+                </div>
+                {course.enrolledCount > 0 && (
+                  <span className={styles.meter} aria-hidden="true">
+                    <span style={{ width: `${Math.min(100, (course.enrolledCount / Math.max(1, course.seatLimit)) * 100)}%` }} />
+                  </span>
+                )}
+                {course.registrationDeadline && (
+                  <span className={styles.deadline}>
+                    <Clock size={14} aria-hidden="true" /> Enrol by {formatIstShort(course.registrationDeadline)} IST
+                  </span>
+                )}
+              </div>
+            )}
+
+            <div ref={ctaRef} className={styles.ctaSlot}>
+              {cta()}
+            </div>
+
+            {nextClass && (
+              <div className={styles.next}>
+                <span className={styles.nextLabel}>Next class</span>
+                <strong className={styles.nextTitle}>{nextClass.title}</strong>
+                <span className={styles.nextTime}>
+                  {formatIstShort(nextClass.startTime)} IST &middot; {nextClass.durationMinutes} min
+                </span>
+                {nextJoinable ? (
+                  <Button size="sm" className={styles.nextJoin} onClick={() => openClassroom(classroomPath(nextClass.id))}>
+                    <Video size={14} aria-hidden="true" /> Join class
+                  </Button>
+                ) : (
+                  <span className={styles.nextHint}>Join opens {JOIN_WINDOW_MINUTES_BEFORE} min before it starts.</span>
+                )}
+              </div>
+            )}
+
+            <p className={styles.guarantee}>
+              <ShieldCheck size={16} aria-hidden="true" />
+              <span>
+                Full refund if you ask before the 3rd class starts
+                {refundClosesAt ? ` (${formatIstShort(refundClosesAt)} IST)` : ""}. Joining after that has no refund.
+              </span>
+            </p>
+            {enrolled && viewer.canRefund && (
+              <Button variant="outline" onClick={() => setRefundOpen(true)}>
+                Ask for a refund
+              </Button>
+            )}
+            {viewer.enrollment?.status === "refunded" && (
+              <p className={styles.muted}>Refunded{viewer.enrollment.refundedAt ? ` on ${formatIstDate(viewer.enrollment.refundedAt)}` : ""}.</p>
+            )}
+          </div>
+        </aside>
+      </header>
+
+      <div className={styles.sections}>
+        <section className={styles.section} aria-labelledby="lc-overview">
+          <SectionHead
+            id="lc-overview"
+            icon={<Info />}
+            tone="lavender"
+            title={rest.length > 0 ? "About this course" : "How this course works"}
+          />
+          <div className={rest.length > 0 ? styles.overviewSplit : undefined}>
+            {rest.length > 0 && (
+              <div className={styles.prose}>
+                {rest.map((b, i) =>
+                  b.kind === "p" ? (
+                    <p key={i}>{b.text}</p>
+                  ) : (
+                    <ul key={i} className={styles.proseList}>
+                      {b.items.map((item, j) => (
+                        <li key={j}>
+                          <CheckCircle2 size={16} aria-hidden="true" />
+                          <span>{item}</span>
+                        </li>
                       ))}
                     </ul>
-                  )}
+                  )
+                )}
+              </div>
+            )}
+            <ol className={`${styles.steps} ${rest.length > 0 ? styles.stepsStacked : ""}`} aria-label="How live classes work">
+              {[
+                { tone: "butter" as Tone, icon: <CreditCard size={20} />, title: "Enrol and pay securely", text: "Your seat is yours once the payment is confirmed." },
+                {
+                  tone: "mint" as Tone,
+                  icon: <MonitorPlay size={20} />,
+                  title: "Join live from your browser",
+                  text: `The Join button opens ${JOIN_WINDOW_MINUTES_BEFORE} min before each class.`,
+                },
+                { tone: "blue" as Tone, icon: <ClipboardCheck size={20} />, title: "Track every class", text: "Your attendance shows against each class in the timetable." },
+              ].map((s, i) => (
+                <li key={s.title} className={styles.step} data-tone={s.tone}>
+                  <span className={styles.stepTop}>
+                    <span className={styles.stepIcon} aria-hidden="true">
+                      {s.icon}
+                    </span>
+                    <span className={styles.stepNum} aria-hidden="true">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                  </span>
+                  <strong>{s.title}</strong>
+                  <span>{s.text}</span>
                 </li>
               ))}
             </ol>
-          </section>
-        )}
+          </div>
+        </section>
 
-        <section className={styles.section}>
-          <h2 className={styles.h2}>Timetable</h2>
-          {activeClasses.length === 0 ? (
-            <p className={styles.muted}>Classes will be announced soon.</p>
-          ) : (
-            <ul className={styles.classes}>
-              {course.classes.map((c) => {
-                const start = new Date(c.startTime).getTime();
-                const end = start + c.durationMinutes * 60000;
-                const joinable =
-                  enrolled &&
-                  c.status === "scheduled" &&
-                  now >= start - JOIN_WINDOW_MINUTES_BEFORE * 60000 &&
-                  now <= end + JOIN_WINDOW_MINUTES_AFTER * 60000;
-                const past = end < now;
-                const mark = attended.get(c.id);
+        {course.modules.length > 0 && (
+          <section className={styles.section} aria-labelledby="lc-learn">
+            <SectionHead
+              id="lc-learn"
+              icon={<Lightbulb />}
+              tone="butter"
+              title="What you'll learn"
+              pills={<span className={styles.countPill} data-tone="butter">{course.modules.length} {course.modules.length === 1 ? "subject" : "subjects"}</span>}
+            />
+            <ul className={styles.learn}>
+              {course.modules.map((m, i) => {
+                const Icon = MODULE_ICONS[i % MODULE_ICONS.length];
+                const preview = m.topics.slice(0, 3).map((t) => t.title);
+                const more = m.topics.length - preview.length;
                 return (
-                  <li key={c.id} className={`${styles.class} ${c.status === "cancelled" ? styles.cancelled : ""}`}>
-                    <div className={styles.classInfo}>
-                      <strong>{c.title}</strong>
-                      <span className={styles.muted}>
-                        {formatIstShort(c.startTime)} IST &middot; {c.durationMinutes} min
+                  <li key={m.id} className={styles.learnItem}>
+                    <span className={styles.learnHead}>
+                      <span className={styles.learnIcon} data-tone={TONE_CYCLE[i % TONE_CYCLE.length]} aria-hidden="true">
+                        <Icon size={18} />
                       </span>
-                    </div>
-                    <div className={styles.classSide}>
-                      {c.status === "cancelled" ? (
-                        <span className={`${styles.tag} ${styles.tagPeach}`}>{c.missed ? "Not held" : "Cancelled"}</span>
-                      ) : joinable ? (
-                        <Button size="sm" onClick={() => openClassroom(classroomPath(c.id))}>
-                          <Video size={14} aria-hidden="true" /> Join
-                        </Button>
-                      ) : enrolled && past ? (
-                        <span className={`${styles.tag} ${mark ? styles.tagMint : styles.tagMuted}`}>{mark ? "Attended" : "Missed"}</span>
-                      ) : past ? (
-                        <span className={`${styles.tag} ${styles.tagMuted}`}>Done</span>
-                      ) : null}
-                    </div>
+                      <span className={styles.learnCount}>
+                        {m.topics.length} {m.topics.length === 1 ? "topic" : "topics"}
+                      </span>
+                    </span>
+                    <strong className={styles.learnTitle}>{m.title}</strong>
+                    {preview.length > 0 && (
+                      <span className={styles.learnText}>
+                        {preview.join(", ")}
+                        {more > 0 ? ` and ${more} more` : ""}
+                      </span>
+                    )}
                   </li>
                 );
               })}
             </ul>
-          )}
+          </section>
+        )}
+
+        <section className={styles.section} aria-labelledby="lc-content">
+          <SectionHead
+            id="lc-content"
+            icon={<Layers />}
+            tone="blue"
+            title="Course content"
+            pills={
+              <>
+                {course.modules.length > 0 && (
+                  <span className={styles.countPill} data-tone="blue">
+                    {course.modules.length} {course.modules.length === 1 ? "module" : "modules"}
+                  </span>
+                )}
+                {topicCount > 0 && (
+                  <span className={styles.countPill} data-tone="lavender">
+                    {topicCount} {topicCount === 1 ? "topic" : "topics"}
+                  </span>
+                )}
+                {course.classCount > 0 && (
+                  <span className={styles.countPill} data-tone="butter">
+                    {course.classCount} live {course.classCount === 1 ? "class" : "classes"}
+                    {heldMinutes >= 60 ? ` · ${Math.round(heldMinutes / 6) / 10} hrs` : ""}
+                  </span>
+                )}
+              </>
+            }
+          />
+          <LiveCourseCurriculum course={course} enrolled={enrolled} attended={attended} now={now} />
         </section>
 
-        <section className={styles.section}>
-          <h2 className={styles.h2}>Your teacher</h2>
-          <Link to={course.teacher.slug ? `/expert/${course.teacher.slug}` : "#"} className={styles.teacher}>
-            {course.teacher.avatarUrl ? (
-              <img src={course.teacher.avatarUrl} alt="" className={styles.avatar} />
-            ) : (
-              <span className={styles.avatarFallback} aria-hidden="true">
-                {course.teacher.name.charAt(0).toUpperCase()}
-              </span>
-            )}
-            <span>
-              <strong>{course.teacher.name}</strong>
-              {course.teacherTagline && <span className={styles.muted}>{course.teacherTagline}</span>}
-            </span>
-          </Link>
+        <section className={styles.section} id="lc-instructor" aria-labelledby="lc-instructor-title">
+          <SectionHead id="lc-instructor-title" icon={<UserRound />} tone="mint" title="Your teacher" />
+          <LiveCourseInstructor course={course} profile={profile} />
         </section>
+
+        {profile && (
+          <LiveCourseReviews
+            teacherName={teacherName}
+            profile={profile}
+            wrap={(content) => (
+              <section className={styles.section} aria-labelledby="lc-reviews">
+                <SectionHead id="lc-reviews" icon={<Star />} tone="butter" title="Student reviews" />
+                {content}
+              </section>
+            )}
+          />
+        )}
+
+        <LiveCourseRelated course={course} />
       </div>
 
-      <aside className={styles.side}>
-        <div className={styles.buyCard}>
-          <div className={styles.priceRow}>
-            <span className={styles.price}>{formatRupees(course.price)}</span>
-            {discount > 0 && (
-              <>
-                <s className={styles.original}>{formatRupees(course.originalPrice!)}</s>
-                <span className={styles.off}>{discount}% off</span>
-              </>
-            )}
-          </div>
-          {!enrolled && !closedReason && (
-            <p className={styles.seats}>
-              <Users size={14} aria-hidden="true" /> {seatsLeft} {seatsLeft === 1 ? "seat" : "seats"} left
-              {course.registrationDeadline ? ` · enrol by ${formatIstShort(course.registrationDeadline)}` : ""}
-            </p>
-          )}
-          {cta()}
-          <p className={styles.guarantee}>
-            <ShieldCheck size={15} aria-hidden="true" />
-            <span>
-              Full refund if you ask before the 3rd class starts
-              {refundClosesAt ? ` (${formatIstShort(refundClosesAt)} IST)` : ""}. Joining after that has no refund.
-            </span>
-          </p>
-          {enrolled && viewer.canRefund && (
-            <Button variant="outline" onClick={() => setRefundOpen(true)}>
-              Ask for a refund
-            </Button>
-          )}
-          {viewer.enrollment?.status === "refunded" && (
-            <p className={styles.muted}>
-              Refunded{viewer.enrollment.refundedAt ? ` on ${formatIstDate(viewer.enrollment.refundedAt)}` : ""}.
-            </p>
-          )}
-        </div>
-      </aside>
+      {mounted &&
+        canBuy &&
+        createPortal(
+          <div className={styles.enrolBar} data-visible={showBar || undefined} aria-hidden={!showBar}>
+            <div className={styles.barInner}>
+              <span className={styles.barTitle}>{course.title}</span>
+              <span className={styles.barPrice}>
+                <strong>{formatRupees(course.price)}</strong>
+                {discount > 0 && <s>{formatRupees(course.originalPrice!)}</s>}
+              </span>
+              <button type="button" className={styles.buy} onClick={buy} disabled={purchase.isPending} tabIndex={showBar ? 0 : -1}>
+                {purchase.isPending ? "Opening payment..." : "Enrol now"}
+              </button>
+            </div>
+          </div>,
+          document.body
+        )}
 
       <ConsoleConfirmDialog
         open={refundOpen}

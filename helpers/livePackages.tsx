@@ -86,17 +86,56 @@ export async function getLiveBalance(studentId: number, exec: Exec = db): Promis
 
 export type TrialState = "eligible" | "booked" | "done";
 
-/** "done" once a trial was held or charged; a cancelled trial makes the student eligible again. */
+/** A trial credit counts as held once spent, or once the teacher joined and the class is completed or its time is up. */
+export function isTrialCreditHeld(
+  c: {
+    status: string;
+    bookingStatus: string | null;
+    scheduledAt: Date | string | null;
+    durationMinutes: number | null;
+    teacherJoined: boolean | number | null;
+  },
+  nowMs: number = Date.now()
+): boolean {
+  if (c.status === "spent") return true;
+  if (c.status !== "booked" || !c.teacherJoined || c.scheduledAt === null || c.bookingStatus === "cancelled") return false;
+  return c.bookingStatus === "completed" || new Date(c.scheduledAt).getTime() + (c.durationMinutes ?? 0) * 60000 <= nowMs;
+}
+
+/**
+ * "done" once a trial was held or charged; a cancelled trial makes the student eligible again.
+ * A trial the teacher joined counts as held as soon as it is marked completed or its time is up,
+ * without waiting for the sweep to spend the credit hours later, so the student can pick a plan
+ * straight from the classroom.
+ */
 export async function getTrialState(studentId: number, teacherId: number, exec: Exec = db): Promise<TrialState> {
   const credits = await exec
     .selectFrom("liveClassCredits")
-    .select("status")
-    .where("studentId", "=", studentId)
-    .where("teacherId", "=", teacherId)
-    .where("kind", "=", "trial")
-    .where("status", "in", ["booked", "spent"])
+    .leftJoin("mentorshipBookings", "mentorshipBookings.id", "liveClassCredits.bookingId")
+    .select((eb) => [
+      "liveClassCredits.status",
+      "mentorshipBookings.status as bookingStatus",
+      "mentorshipBookings.scheduledAt",
+      "mentorshipBookings.durationMinutes",
+      eb
+        .exists(
+          eb
+            .selectFrom("liveLessonAttendance")
+            .innerJoin("users", "users.id", "liveLessonAttendance.userId")
+            .select("liveLessonAttendance.id")
+            .whereRef("liveLessonAttendance.mentorshipBookingId", "=", "mentorshipBookings.id")
+            .where("liveLessonAttendance.role", "=", "teacher")
+            .where("users.role", "=", "teacher")
+        )
+        .as("teacherJoined"),
+    ])
+    .where("liveClassCredits.studentId", "=", studentId)
+    .where("liveClassCredits.teacherId", "=", teacherId)
+    .where("liveClassCredits.kind", "=", "trial")
+    .where("liveClassCredits.status", "in", ["booked", "spent"])
     .execute();
-  if (credits.some((c) => c.status === "spent")) return "done";
+  const nowMs = Date.now();
+  if (credits.some((c) => isTrialCreditHeld(c, nowMs))) return "done";
   if (credits.length > 0) return "booked";
 
   const legacy = await exec

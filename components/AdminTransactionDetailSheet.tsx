@@ -7,6 +7,8 @@ import { OrderPlatformBadge } from "./OrderPlatformBadge";
 import type { AdminOrderClient, AdminOrderRow } from "../endpoints/admin/orders/search_POST.schema";
 import {
   ORDER_DEVICE_TYPE_LABELS,
+  ORDER_GATEWAY_LABELS,
+  orderGateway,
   paymentMethodLabel,
   paymentModeLabel,
 } from "../helpers/orderAttribution";
@@ -177,12 +179,12 @@ export const AdminTransactionDetailSheet: React.FC<AdminTransactionDetailSheetPr
                     order.paidAt ? formatDateTime(order.paidAt) : order.status === "completed" || order.status === "refunded" ? "Time not recorded" : "Not paid",
                     { muted: !order.paidAt },
                   ],
-                  ["Gateway", order.paymentMethod === "payu" ? "PayU" : "No gateway"],
+                  ["Gateway", ORDER_GATEWAY_LABELS[orderGateway(order.paymentMethod)]],
                   ["Payment method", paymentMethodLabel(order.paymentMethod), { muted: !order.paymentMethod }],
                   row(
                     "Payment mode",
                     paymentModeLabel(order.paymentMode),
-                    order.paymentMethod === "payu" ? "Not recorded" : "Not applicable"
+                    orderGateway(order.paymentMethod) === "none" ? "Not applicable" : "Not recorded"
                   ),
                   row("Invoice number", order.invoiceNumber, "Not issued", true),
                   ...(order.status === "refunded"
