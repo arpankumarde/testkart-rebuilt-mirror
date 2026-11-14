@@ -18,6 +18,7 @@ import {
   recordOtpVerifyFailure,
 } from "../../../helpers/otpVerifyGuard";
 import { recordSignIn } from "../../../helpers/recordSignIn";
+import { syncWaplifyContact } from "../../../helpers/syncWaplifyContact";
 
 export async function handle(request: Request) {
   try {
@@ -180,6 +181,8 @@ export async function handle(request: Request) {
           mobileNumber: newUser.mobileNumber,
           name: null,
         });
+      } else {
+        await syncWaplifyContact(newUser.id);
       }
 
       user = {

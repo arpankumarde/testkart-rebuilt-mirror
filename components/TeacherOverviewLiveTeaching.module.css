@@ -1,0 +1,549 @@
+/*
+ * The dashboard's live teaching block on the console tokens. Before approval
+ * it is one compact row (about 90px): a tilted icon tile over an offset
+ * backing tile, the label, title and one detail line, and a small action in
+ * the row's own tone. Tones only swap the --f-* variables: apply is powder
+ * blue, pending lavender, changes butter. Approved teachers see only their
+ * upcoming sessions list card.
+ */
+
+/* ------------------------------------------------------------- feature --- */
+
+.featureWrap {
+  container-type: inline-size;
+}
+
+.feature {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.875rem 1.125rem 0.875rem 1rem;
+  border: 1px solid var(--tc-line);
+  border-radius: var(--tc-radius-card, 1rem);
+  background: var(--tc-card);
+  box-shadow: 0 1px 2px hsl(24 30% 20% / 0.05);
+}
+
+.feature[data-tone="blue"] {
+  --f-tint: var(--fc-blue-tint);
+  --f-line: var(--fc-blue-line);
+  --f-edge: var(--fc-blue-edge);
+  --f-ink: var(--fc-blue-ink);
+  --f-back: var(--sp-lavender-tint);
+  --f-back-line: var(--sp-lavender-line);
+  --badge-tint: var(--fc-blue-tint);
+  --badge-ink: var(--fc-blue-ink);
+}
+
+.feature[data-tone="lavender"] {
+  --f-tint: var(--sp-lavender-tint);
+  --f-line: var(--sp-lavender-line);
+  --f-edge: var(--sp-lavender-edge);
+  --f-ink: var(--sp-lavender-ink);
+  --f-back: var(--fc-blue-tint);
+  --f-back-line: var(--fc-blue-line);
+  --badge-tint: var(--fc-butter-tint);
+  --badge-ink: var(--fc-butter-ink);
+}
+
+.feature[data-tone="butter"] {
+  --f-tint: var(--fc-butter-tint);
+  --f-line: var(--fc-butter-line);
+  --f-edge: var(--fc-butter-edge);
+  --f-ink: var(--fc-butter-ink);
+  --f-back: var(--fc-sage-tint);
+  --f-back-line: var(--fc-sage-line);
+  --badge-tint: var(--fc-butter-tint);
+  --badge-ink: var(--fc-butter-ink);
+}
+
+/* The icon tile, tilted, over a second tile tilted the other way. */
+.art {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 3.25rem;
+  height: 3.25rem;
+}
+
+.artBack {
+  position: absolute;
+  inset: 0.25rem;
+  border: 1px solid var(--f-back-line);
+  border-radius: 0.875rem;
+  background: var(--f-back);
+  transform: rotate(10deg) translate(0.375rem, 0.125rem);
+}
+
+.artIcon {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--f-line);
+  border-radius: 0.875rem;
+  background: var(--f-tint);
+  color: var(--f-ink);
+  transform: rotate(-6deg);
+  transition: transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.feature:hover .artIcon {
+  transform: rotate(3deg);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--f-ink);
+}
+
+.badge {
+  margin-left: 0.125rem;
+  padding: 0.0625rem 0.4375rem;
+  border-radius: 999px;
+  background: var(--badge-tint);
+  color: var(--badge-ink);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--tc-ink);
+}
+
+.detail {
+  margin-top: 0.125rem;
+  min-width: 0;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.125rem 0.5rem;
+  min-width: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--tc-text);
+}
+
+.metaSep {
+  flex-shrink: 0;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--tc-muted);
+}
+
+.metaSoft {
+  color: var(--tc-muted);
+}
+
+/* The team's feedback, kept to one line here; the full text is on the page. */
+.metaClamp {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Application progress: three dots joined by short rules. */
+.steps {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--tc-muted);
+}
+
+.step + .step::before {
+  content: "";
+  width: 1.25rem;
+  height: 2px;
+  margin-right: 0.125rem;
+  border-radius: 2px;
+  background: var(--tc-line-strong, var(--tc-line));
+}
+
+.stepDot {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 0.9375rem;
+  height: 0.9375rem;
+  border: 1.5px solid var(--tc-line-strong, var(--tc-line));
+  border-radius: 50%;
+  background: var(--tc-card);
+}
+
+.step[data-state="done"] {
+  color: var(--tc-text);
+}
+
+.step[data-state="done"] .stepDot {
+  border-color: var(--fc-sage-edge);
+  background: var(--fc-sage-edge);
+  color: var(--tc-card);
+}
+
+.step[data-state="current"] {
+  font-weight: 800;
+  color: var(--f-ink);
+}
+
+.step[data-state="current"] .stepDot {
+  border: 2px solid var(--f-edge);
+  background: var(--f-tint);
+  box-shadow: 0 0 0 3px var(--f-tint);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.action {
+  flex-shrink: 0;
+}
+
+/* The action in the row's own ink, so the row never competes with the brand Create button. */
+.cta,
+.ctaQuiet {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-height: 2.375rem;
+  padding: 0 0.9375rem;
+  border: 1px solid var(--f-ink);
+  border-radius: 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.cta {
+  background: var(--f-ink);
+  color: var(--tc-card);
+}
+
+.cta:hover {
+  background: color-mix(in srgb, var(--f-ink) 88%, var(--tc-ink));
+}
+
+.ctaQuiet {
+  border-color: var(--f-line);
+  background: var(--tc-card);
+  color: var(--f-ink);
+}
+
+.ctaQuiet:hover {
+  border-color: var(--f-ink);
+}
+
+.cta:focus-visible,
+.ctaQuiet:focus-visible {
+  outline: 2px solid var(--f-ink);
+  outline-offset: 2px;
+}
+
+.cta svg,
+.ctaQuiet svg {
+  transition: transform 180ms ease;
+}
+
+.cta:hover svg,
+.ctaQuiet:hover svg {
+  transform: translateX(2px);
+}
+
+/* Narrow cards: the action drops under the text, full width. */
+@container (max-width: 34rem) {
+  .feature {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .body {
+    flex-basis: calc(100% - 4.25rem);
+  }
+
+  .action {
+    flex-basis: 100%;
+  }
+
+  .cta,
+  .ctaQuiet {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .artIcon,
+  .cta svg,
+  .ctaQuiet svg {
+    transition: none;
+  }
+}
+
+/* ------------------------------------------------------------ sessions --- */
+
+.sessions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.125rem 1.25rem;
+  border: 1px solid var(--tc-line, var(--border));
+  border-radius: var(--tc-radius-card, 1rem);
+  background: var(--tc-card, var(--card));
+}
+
+.sessionsHead {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+}
+
+.sessionsTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--tc-ink, var(--foreground));
+}
+
+.sessionsCount {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--tc-muted, var(--muted-foreground));
+}
+
+.sessionsLink,
+.moreLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--tk-brand-text);
+  text-decoration: none;
+}
+
+.sessionsLink {
+  margin-left: auto;
+}
+
+.sessionsLink:hover,
+.moreLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.next {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--tc-line, var(--border));
+  border-radius: 0.875rem;
+  background: var(--tc-bg, var(--background));
+}
+
+.nextLabel {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tc-muted, var(--muted-foreground));
+}
+
+.nextBody {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+}
+
+.nextText {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.nextName {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--tc-ink, var(--foreground));
+}
+
+.nextMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.875rem;
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--tc-text, var(--foreground));
+}
+
+.nextMeta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+}
+
+.kind {
+  padding: 0.0625rem 0.4375rem;
+  border-radius: 999px;
+  background: var(--sp-lavender-tint);
+  color: var(--sp-lavender-ink);
+  font-size: 0.6875rem;
+}
+
+.kind[data-kind="trial"] {
+  background: var(--fc-mint-tint);
+  color: var(--fc-mint-ink);
+}
+
+.nextStatus,
+.nextAction {
+  flex-shrink: 0;
+}
+
+.avatar {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--tc-line, var(--border));
+}
+
+.avatarLarge {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+.avatarEmpty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--fc-blue-tint);
+  color: var(--fc-blue-ink);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.avatarLarge.avatarEmpty {
+  font-size: 0.9375rem;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.list > li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5625rem 0.25rem;
+  border-top: 1px solid var(--tc-line, var(--border));
+  font-size: 0.875rem;
+}
+
+.rowName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+  color: var(--tc-ink, var(--foreground));
+}
+
+.rowKind {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--tc-muted, var(--muted-foreground));
+}
+
+.rowWhen {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--tc-text, var(--foreground));
+  white-space: nowrap;
+}
+
+.more {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--tc-muted, var(--muted-foreground));
+}
+
+@media (max-width: 640px) {
+  .nextAction {
+    width: 100%;
+  }
+
+  .sessionsLink {
+    margin-left: 0;
+  }
+
+  .list > li {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .rowKind {
+    display: none;
+  }
+}

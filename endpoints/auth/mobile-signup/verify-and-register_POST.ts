@@ -22,6 +22,7 @@ import {
 import { checkTeacherSecondContact } from "../../../helpers/teacherSignupContact";
 import { sendTeacherOnboardingWhatsApp } from "../../../helpers/sendTeacherOnboardingWhatsApp";
 import { recordSignIn } from "../../../helpers/recordSignIn";
+import { syncWaplifyContact } from "../../../helpers/syncWaplifyContact";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -266,6 +267,8 @@ export async function handle(request: Request): Promise<Response> {
         name: updatedUser.displayName,
         email: updatedUser.email,
       });
+    } else {
+      await syncWaplifyContact(updatedUser.id);
     }
 
     return response;

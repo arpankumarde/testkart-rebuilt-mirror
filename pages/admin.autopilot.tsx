@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/Tabs";
 import { AutopilotLedger } from "../components/AutopilotLedger";
 import { AutopilotOperations } from "../components/AutopilotOperations";
 import { AutopilotOfferExpiry } from "../components/AutopilotOfferExpiry";
+import { AutopilotCopyVariants } from "../components/AutopilotCopyVariants";
 import { toast } from "sonner";
 import {
   useAutopilotAiTestMutation,
@@ -23,7 +24,7 @@ import type { AutopilotDashboard } from "../helpers/autopilotDashboardData";
 import styles from "./admin.autopilot.module.css";
 
 const RANGES = [7, 30, 90] as const;
-const TABS = ["overview", "operations", "ledger", "playbooks", "channels", "settings"] as const;
+const TABS = ["overview", "operations", "ledger", "playbooks", "messages", "channels", "settings"] as const;
 type Tab = (typeof TABS)[number];
 
 const inr = (value: number) => `Rs ${Math.round(value).toLocaleString("en-IN")}`;
@@ -155,7 +156,7 @@ const AdminAutopilotPage: React.FC = () => {
       ? Math.round((data.coverage.withSource / data.coverage.paidOrdersSinceTracking) * 100)
       : null;
   const netProfit = data ? data.kpis.attributedTake - data.kpis.messageCostRupees - data.kpis.offerCostRupees : 0;
-  const showRanges = tab !== "ledger" && tab !== "settings" && tab !== "operations";
+  const showRanges = tab !== "ledger" && tab !== "settings" && tab !== "operations" && tab !== "messages";
 
   return (
     <div className={styles.page}>
@@ -206,6 +207,7 @@ const AdminAutopilotPage: React.FC = () => {
           <TabsTrigger value="operations">Operations</TabsTrigger>
           <TabsTrigger value="ledger">Ledger</TabsTrigger>
           <TabsTrigger value="playbooks">Playbooks</TabsTrigger>
+          <TabsTrigger value="messages">Messages</TabsTrigger>
           <TabsTrigger value="channels">Channels</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
@@ -452,6 +454,10 @@ const AdminAutopilotPage: React.FC = () => {
           </section>
         </TabsContent>
 
+        <TabsContent value="messages" className={styles.tabPanel}>
+          <AutopilotCopyVariants active={tab === "messages"} />
+        </TabsContent>
+
         <TabsContent value="channels" className={styles.tabPanel}>
           <div className={styles.twoCol}>
             <section className={styles.card}>
@@ -496,7 +502,9 @@ const AdminAutopilotPage: React.FC = () => {
                     Meta must approve each template before the autopilot can use it; until then the next template for that
                     message, or email, is used. WhatsApp goes to anyone with a mobile number unless they replied STOP: for a
                     playbook's first message, for the Tcoin offer message once its offer template is approved, and for other
-                    messages when the person has no usable email.
+                    messages when the person has no usable email. Templates with a picture show the series thumbnail when
+                    it has one, and their reply buttons act at once: Remind me tomorrow moves the next message to 10 AM,
+                    Not interested ends that playbook for the student, Payment problem sends payment tips and a retry link.
                   </p>
                 </div>
                 <Button
@@ -542,9 +550,25 @@ const AdminAutopilotPage: React.FC = () => {
                       </div>
                       {template.body ? (
                         <div className={styles.templateBody}>
-                          {template.header ? <span className={styles.templateHeader}>{template.header}</span> : null}
+                          {template.headerImage ? (
+                            <img
+                              className={styles.templateImage}
+                              src={template.headerImage}
+                              alt="Image header; the series thumbnail is used when it has one"
+                              loading="lazy"
+                            />
+                          ) : template.header ? (
+                            <span className={styles.templateHeader}>{template.header}</span>
+                          ) : null}
                           <span className={styles.templateText}>{whatsappText(template.body)}</span>
-                          <span className={styles.templateButton}>{template.button}</span>
+                          <div className={styles.templateButtons}>
+                            <span className={styles.templateButton}>{template.button}</span>
+                            {(template.quickReplies ?? []).map((reply) => (
+                              <span key={reply} className={styles.templateButton}>
+                                {reply}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       ) : null}
                     </li>

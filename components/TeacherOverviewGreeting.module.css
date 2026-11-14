@@ -1,0 +1,169 @@
+/*
+ * The dashboard greeting on the console tokens: a small tilted avatar tile
+ * over a lavender tile tilted the other way (no dot, which would read as a
+ * notification), the date as a quiet eyebrow, the greeting with the name in
+ * the brand ink, and pill chips on the right.
+ */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.875rem 1.25rem;
+}
+
+.who {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  min-width: 0;
+}
+
+.avatarWrap {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 3.25rem;
+  height: 3.25rem;
+}
+
+.avatarBack {
+  position: absolute;
+  inset: 0.125rem;
+  border: 1px solid var(--sp-lavender-line);
+  border-radius: 1rem;
+  background: var(--sp-lavender-tint);
+  transform: rotate(10deg) translate(0.4375rem, 0.1875rem);
+}
+
+.avatar {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  overflow: hidden;
+  border: 2px solid var(--tc-card);
+  border-radius: 1rem;
+  background: var(--fc-peach-tint);
+  color: var(--fc-peach-ink);
+  font-family: var(--font-family-heading);
+  font-size: 1rem;
+  font-weight: 800;
+  box-shadow: 0 2px 6px hsl(24 30% 20% / 0.14);
+  transform: rotate(-5deg);
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.text {
+  min-width: 0;
+}
+
+.date {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tc-muted);
+}
+
+.title {
+  margin: 0.125rem 0 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.625rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--tc-ink);
+}
+
+.name {
+  color: var(--tk-brand-text);
+}
+
+.chips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2.125rem;
+  padding: 0 0.875rem;
+  border: 1px solid var(--tc-line-strong, var(--tc-line));
+  border-radius: 999px;
+  background: var(--tc-card);
+  color: var(--tc-ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.chip:hover {
+  border-color: var(--tc-ink);
+}
+
+.chip:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.chip[data-tone="mint"] {
+  border-color: var(--fc-mint-edge);
+  background: var(--fc-mint-tint);
+  color: var(--fc-mint-ink);
+}
+
+.chip[data-tone="butter"] {
+  border-color: var(--fc-butter-line);
+  background: var(--fc-butter-tint);
+  color: var(--fc-butter-ink);
+}
+
+.chip[data-tone="lavender"] {
+  border-color: var(--sp-lavender-line);
+  background: var(--sp-lavender-tint);
+  color: var(--sp-lavender-ink);
+}
+
+.chipDot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.chip[data-tone="mint"] .chipDot {
+  background: var(--fc-mint-edge);
+  box-shadow: 0 0 0 3px var(--tc-card);
+}
+
+@media (max-width: 640px) {
+  .avatarWrap {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.875rem;
+  }
+
+  .title {
+    font-size: 1.375rem;
+  }
+}

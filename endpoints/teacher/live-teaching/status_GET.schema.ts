@@ -4,6 +4,8 @@ import type { LiveTeachingChecklistItem, LiveTeachingStatus } from "../../../hel
 export type OutputType = {
   status: LiveTeachingStatus;
   checklist: LiveTeachingChecklistItem[];
+  /** The academy owner's account email and mobile number; the application needs both. */
+  contact: { email: string | null; mobileNumber: string | null };
   introVideoUrl: string | null;
   /** The admin's reason on the latest rejection or revocation. */
   decisionReason: string | null;

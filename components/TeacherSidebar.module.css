@@ -319,6 +319,18 @@
   line-height: 1;
 }
 
+.navBadge[data-tone="pending"] {
+  border-color: var(--fc-butter-line);
+  background-color: var(--fc-butter-tint);
+  color: var(--fc-butter-ink);
+}
+
+.navBadge[data-tone="alert"] {
+  border-color: var(--fc-peach-line);
+  background-color: var(--fc-peach-tint);
+  color: var(--fc-peach-ink);
+}
+
 .navCount {
   display: inline-flex;
   flex-shrink: 0;

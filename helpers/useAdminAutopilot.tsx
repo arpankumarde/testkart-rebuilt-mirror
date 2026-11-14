@@ -7,6 +7,11 @@ import { postAdminAutopilotWhatsAppTemplates } from "../endpoints/admin/autopilo
 import { getAdminAutopilotLedger, type InputType as LedgerParams } from "../endpoints/admin/autopilot/ledger_GET.schema";
 import { getAdminAutopilotOperations } from "../endpoints/admin/autopilot/operations_GET.schema";
 import { getAdminAutopilotJourney } from "../endpoints/admin/autopilot/journey_GET.schema";
+import { getAdminAutopilotCopyVariants } from "../endpoints/admin/autopilot/copy-variants_GET.schema";
+import {
+  postAdminAutopilotCopyVariants,
+  type InputType as CopyActionInput,
+} from "../endpoints/admin/autopilot/copy-variants_POST.schema";
 
 export const AUTOPILOT_QUERY_KEY = "adminAutopilot";
 
@@ -69,6 +74,24 @@ export const useAutopilotWhatsAppTemplates = () =>
     refetchOnMount: true,
     staleTime: 5 * 60 * 1000,
   });
+
+export const useAutopilotCopyVariants = (enabled: boolean) =>
+  useQuery({
+    queryKey: [AUTOPILOT_QUERY_KEY, "copy-variants"],
+    queryFn: () => getAdminAutopilotCopyVariants(),
+    enabled,
+    refetchOnMount: true,
+    staleTime: 30 * 1000,
+    placeholderData: (previous) => previous,
+  });
+
+export const useAutopilotCopyAction = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: CopyActionInput) => postAdminAutopilotCopyVariants(body),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [AUTOPILOT_QUERY_KEY, "copy-variants"] }),
+  });
+};
 
 export const useCreateAutopilotWhatsAppTemplates = () => {
   const queryClient = useQueryClient();

@@ -1,6 +1,7 @@
 import { db } from "./db";
 import { OAuthProviderType } from "./OAuthProvider";
 import { assignUserSlug } from "./assignUserSlug";
+import { syncWaplifyContact } from "./syncWaplifyContact";
 
 export type OAuthUserAccountResult = {
   user: {
@@ -94,6 +95,10 @@ export async function handleOAuthUserAccount({
       })
       .where("id", "=", linkUserId)
       .execute();
+
+    if (existingUser.mobileNumber && existingUser.email !== providerEmail) {
+      await syncWaplifyContact(linkUserId);
+    }
 
     // Create or update OAuth account record
     const existingOAuthAccount = await db

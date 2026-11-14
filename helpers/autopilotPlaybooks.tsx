@@ -17,6 +17,13 @@ export type PlaybookContext = {
   examName?: string;
   examSlug?: string;
   mockTestId?: number;
+  /** The item's thumbnail, shown as the WhatsApp image header when Meta can use it. */
+  imageUrl?: string;
+  /** free_to_paid: the free paper taken and its result, for the tk_test_result utility message. */
+  testItemId?: number;
+  paperTitle?: string;
+  scoreText?: string;
+  rankText?: string;
 };
 
 export type StepCopy = { subject: string; heading: string; body: string; cta: string };
@@ -56,6 +63,24 @@ export const firstNameOf = (displayName: string | null | undefined) => {
 };
 
 const inr = (value: number) => `Rs ${Math.round(value).toLocaleString("en-IN")}`;
+
+/** The free paper's result for the tk_test_result message; empty when the score is missing or not a number. */
+export function resultContext(row: Row): Pick<PlaybookContext, "testItemId" | "paperTitle" | "scoreText" | "rankText"> {
+  const raw = pick(row, "score");
+  const score = raw === null || raw === undefined ? NaN : Number(raw);
+  const takers = number(row, "takers");
+  const paperOnly = text(row, "paper_title");
+  const series = text(row, "item_title");
+  const paper = paperOnly.length < 20 && series ? `${paperOnly} - ${series}` : paperOnly;
+  if (!Number.isFinite(score) || takers < 1 || !paperOnly) return {};
+  const rank = Math.min(takers, number(row, "ahead") + 1);
+  return {
+    testItemId: number(row, "test_item_id") || undefined,
+    paperTitle: paper.slice(0, 120),
+    scoreText: `${Math.round(score * 10) / 10}%`,
+    rankText: `${rank.toLocaleString("en-IN")} of ${takers.toLocaleString("en-IN")} ${takers === 1 ? "student" : "students"}`,
+  };
+}
 const coinsLine = (coins: number, expireOn: string) =>
   coins > 0 ? ` We've added ${coins} Tcoins to your account, usable on this order at checkout until ${expireOn}.` : "";
 
@@ -126,7 +151,12 @@ const failedPayment: Playbook = {
           (SELECT c.title FROM order_items oi JOIN courses c ON c.id = oi.course_id WHERE oi.order_id = o.id LIMIT 1),
           (SELECT d.title FROM order_items oi JOIN digital_products d ON d.id = oi.digital_product_id WHERE oi.order_id = o.id LIMIT 1),
           (SELECT b.title FROM course_bundles b WHERE b.id = o.bundle_id),
-          'your Testkart order') AS item_title
+          'your Testkart order') AS item_title,
+        coalesce(
+          (SELECT mt.thumbnail_url FROM order_items oi JOIN mock_tests mt ON mt.id = oi.mock_test_id WHERE oi.order_id = o.id LIMIT 1),
+          (SELECT coalesce(c.thumbnail_url, c.thumbnail_image_url) FROM order_items oi JOIN courses c ON c.id = oi.course_id WHERE oi.order_id = o.id LIMIT 1),
+          (SELECT d.thumbnail_url FROM order_items oi JOIN digital_products d ON d.id = oi.digital_product_id WHERE oi.order_id = o.id LIMIT 1),
+          (SELECT b.thumbnail_url FROM course_bundles b WHERE b.id = o.bundle_id)) AS image_url
       FROM orders o JOIN users u ON u.id = o.user_id
       WHERE o.status IN ('failed', 'cancelled') AND o.total_amount > 0 AND o.payment_method = 'payu'
         AND o.updated_at > now() - interval '6 hours' AND u.role = 'student'
@@ -145,6 +175,7 @@ const failedPayment: Playbook = {
         itemTitle: text(row, "item_title", "your Testkart order"),
         amount: number(row, "total_amount"),
         orderId: number(row, "order_id"),
+        imageUrl: text(row, "image_url") || undefined,
       },
     }));
   },
@@ -211,10 +242,11 @@ const cartAbandoned: Playbook = {
   ],
   findTriggers: async () => {
     const result = await sql<Row>`
-      SELECT c.user_id, c.last_added, c.first_added, c.item_title, c.amount, u.display_name
+      SELECT c.user_id, c.last_added, c.first_added, c.item_title, c.image_url, c.amount, u.display_name
       FROM (
         SELECT ci.user_id, max(ci.added_at) AS last_added, min(ci.added_at) AS first_added,
           (array_agg(coalesce(mt.title, co.title, dp.title) ORDER BY ci.added_at DESC))[1] AS item_title,
+          (array_agg(coalesce(mt.thumbnail_url, co.thumbnail_url, co.thumbnail_image_url, dp.thumbnail_url) ORDER BY ci.added_at DESC))[1] AS image_url,
           sum(coalesce(mt.discount_price, mt.price, co.discount_price, co.price, dp.discount_price, dp.price, 0)) AS amount
         FROM cart_items ci
         LEFT JOIN mock_tests mt ON mt.id = ci.mock_test_id
@@ -238,6 +270,7 @@ const cartAbandoned: Playbook = {
           firstName: firstNameOf(text(row, "display_name")),
           itemTitle: text(row, "item_title", "your test series"),
           amount: number(row, "amount"),
+          imageUrl: text(row, "image_url") || undefined,
         },
       };
     });
@@ -373,7 +406,13 @@ const freeToPaid: Playbook = {
   findTriggers: async () => {
     const result = await sql<Row>`
       SELECT DISTINCT ON (t.student_id) t.student_id AS user_id, t.completed_at AS at, u.display_name,
-        mt.id AS mock_test_id, mt.slug, mt.title AS item_title, coalesce(mt.discount_price, mt.price) AS amount
+        mt.id AS mock_test_id, mt.slug, mt.title AS item_title, mt.thumbnail_url AS image_url, coalesce(mt.discount_price, mt.price) AS amount,
+        i.id AS test_item_id, i.title AS paper_title, CASE WHEN t.score <> 'NaN' THEN t.score END AS score,
+        (SELECT count(DISTINCT x.student_id) FROM test_attempts x
+          WHERE x.test_id = t.test_id AND x.completed_at IS NOT NULL AND x.score IS NOT NULL AND x.score <> 'NaN') AS takers,
+        (SELECT count(DISTINCT x.student_id) FROM test_attempts x
+          WHERE x.test_id = t.test_id AND x.completed_at IS NOT NULL AND x.score <> 'NaN' AND x.score > t.score
+            AND x.student_id <> t.student_id) AS ahead
       FROM test_attempts t
       JOIN mock_test_items i ON i.id = t.test_id
       JOIN mock_tests mt ON mt.id = i.package_id
@@ -396,6 +435,8 @@ const freeToPaid: Playbook = {
         amount: number(row, "amount"),
         slug: text(row, "slug") || undefined,
         mockTestId: number(row, "mock_test_id"),
+        imageUrl: text(row, "image_url") || undefined,
+        ...resultContext(row),
       },
     }));
   },
@@ -427,10 +468,10 @@ const repeatPurchase: Playbook = {
   ],
   findTriggers: async () => {
     const result = await sql<Row>`
-      SELECT o.user_id, o.id AS order_id, o.created_at AS at, u.display_name, rec.slug, rec.title AS item_title, rec.amount
+      SELECT o.user_id, o.id AS order_id, o.created_at AS at, u.display_name, rec.slug, rec.title AS item_title, rec.image_url, rec.amount
       FROM orders o JOIN users u ON u.id = o.user_id
       JOIN LATERAL (
-        SELECT mt2.slug, mt2.title, coalesce(mt2.discount_price, mt2.price) AS amount
+        SELECT mt2.slug, mt2.title, mt2.thumbnail_url AS image_url, coalesce(mt2.discount_price, mt2.price) AS amount
         FROM order_items oi
         JOIN mock_tests mt ON mt.id = oi.mock_test_id
         JOIN mock_tests mt2 ON mt2.exam_id = mt.exam_id AND mt2.id <> mt.id
@@ -455,6 +496,7 @@ const repeatPurchase: Playbook = {
         itemTitle: text(row, "item_title", "another test series"),
         amount: number(row, "amount"),
         slug: text(row, "slug") || undefined,
+        imageUrl: text(row, "image_url") || undefined,
       },
     }));
   },

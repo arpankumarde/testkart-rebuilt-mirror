@@ -21,6 +21,7 @@ import { TeacherOverviewCreatorBonus } from "../components/TeacherOverviewCreato
 import { TeacherOverviewEarningsChart } from "../components/TeacherOverviewEarningsChart";
 import { TeacherOverviewTopSellers } from "../components/TeacherOverviewTopSellers";
 import { TeacherOverviewHelpStrip } from "../components/TeacherOverviewHelpStrip";
+import { TeacherOverviewLiveTeaching } from "../components/TeacherOverviewLiveTeaching";
 import { TeamStatusBanner } from "../components/TeamStatusBanner";
 import { AiConnectorCard, AI_CONNECTOR_ANCHOR } from "../components/AiConnectorCard";
 import styles from "./teacher.dashboard.module.css";
@@ -158,6 +159,8 @@ const TeacherDashboardPage: React.FC = () => {
             hideReviewCounts={stage === "review"}
             hideBank
           />
+
+          <TeacherOverviewLiveTeaching isOwner={!isManager} />
 
           {selling && (
             <div className={styles.splitRow}>

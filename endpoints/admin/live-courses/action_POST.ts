@@ -17,6 +17,7 @@ import {
   syncCourseDates,
 } from "../../../helpers/liveCourseServer";
 import { sendClassChangeNotices, sendRefundNotices } from "../../../helpers/liveCourseNotices";
+import { reconcileShortfallRefunds } from "../../../helpers/liveCourseShortfall";
 import { schema, type OutputType } from "./action_POST.schema";
 
 /** Admin actions on a live course. Admin edits never publish or unpublish. */
@@ -63,17 +64,8 @@ export async function handle(request: Request) {
     }
 
     if (input.action === "cancel_course") {
-      const students = await db
-        .selectFrom("liveCourseEnrollments")
-        .select(["id", "studentId"])
-        .where("liveCourseId", "=", input.courseId)
-        .where("status", "=", "enrolled")
-        .execute();
-      const outcome = await cancelWholeCourse({ courseId: input.courseId, reason: input.reason, by });
-      for (const r of outcome.refunded) {
-        const s = students.find((x) => x.id === r.enrollmentId);
-        if (s) await sendRefundNotices(input.courseId, s.studentId, r.amount, `The course was cancelled: ${input.reason}`);
-      }
+      await cancelWholeCourse({ courseId: input.courseId, reason: input.reason, by });
+      const outcome = await reconcileShortfallRefunds(input.courseId, by);
       message = `Course cancelled. ${outcome.refunded.length} refunded${outcome.failed.length ? `, ${outcome.failed.length} refund(s) failed: ${outcome.failed.map((f) => f.error).join("; ")}` : ""}.`;
     }
 
@@ -128,7 +120,9 @@ export async function handle(request: Request) {
           } else {
             const r = await markGroupLessonMissed({ id: cls.id, actor, reason: input.reason });
             await syncCourseDates(db, courseId);
-            message = r.changed ? "Class marked missed. Students are not refunded automatically." : "This class was already marked missed.";
+            message = r.changed
+              ? "Class marked missed. If the course can no longer hold its minimum classes, students get a share back automatically after an hour."
+              : "This class was already marked missed.";
           }
         } catch (e) {
           if (e instanceof LiveLifecycleError) throw new LiveCourseError(e.message.replace(/group lesson|lesson/g, "class"));

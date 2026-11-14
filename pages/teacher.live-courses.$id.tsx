@@ -9,7 +9,7 @@ import {
   useTeacherLiveCourseStudentsQuery,
   useUpsertLiveCourseMutation,
 } from "../helpers/useLiveCourses";
-import { liveCoursePath, teacherLiveCoursePath, teacherLiveCoursesPath } from "../helpers/liveCourseRules";
+import { formatRupees, liveCoursePath, teacherLiveCoursePath, teacherLiveCoursesPath } from "../helpers/liveCourseRules";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
@@ -134,6 +134,7 @@ const EditLiveCourse: React.FC<{ id: string }> = ({ id }) => {
               course={course}
               pending={upsert.isPending}
               submitLabel="Save details"
+              platformFeePercentage={data.earnings.platformFeePercentage}
               onSubmit={(values) =>
                 upsert.mutate(
                   { ...values, id: course.id },
@@ -148,7 +149,9 @@ const EditLiveCourse: React.FC<{ id: string }> = ({ id }) => {
             <p className={styles.banner}>A {course.status} course cannot be edited.</p>
           ))}
         {tab === "syllabus" && <LiveCourseSyllabusEditor course={course} readOnly={!editable} />}
-        {tab === "schedule" && <LiveCourseSchedule course={course} refundClosesAt={data.refundClosesAt} mode="teacher" />}
+        {tab === "schedule" && (
+          <LiveCourseSchedule course={course} refundClosesAt={data.refundClosesAt} mode="teacher" earnings={data.earnings} />
+        )}
         {tab === "students" && <LiveCourseStudents roster={students.data} loading={students.isLoading} canMark />}
       </div>
 
@@ -158,7 +161,11 @@ const EditLiveCourse: React.FC<{ id: string }> = ({ id }) => {
         title={confirm === "publish" ? "Publish this live course?" : "Move back to draft?"}
         description={
           confirm === "publish"
-            ? "It goes on sale straight away at its own page. Students can buy until the registration deadline or until seats run out."
+            ? `It goes on sale straight away at its own page. Students can buy until the registration deadline or until seats run out.${
+                data.earnings.perClassPerStudent > 0
+                  ? ` Your pay is fixed now: ${formatRupees(data.earnings.perClassPerStudent)} per student for each class you hold, up to ${formatRupees(data.earnings.perStudent)} per student.`
+                  : ""
+              }`
             : "The course page goes offline until you publish again."
         }
         confirmLabel={confirm === "publish" ? "Publish" : "Move to draft"}

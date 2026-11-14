@@ -1,6 +1,7 @@
 import { sql } from "kysely";
 import { db } from "../../helpers/db";
 import { verifyWaplifySignature } from "../../helpers/verifyWaplifySignature";
+import { handleQuickReply } from "../../helpers/autopilotQuickReplies";
 import { schema } from "./waplify_POST.schema";
 
 export const flootPreviewPublic = true;
@@ -143,7 +144,16 @@ async function handleInbound(params: {
         )
         .execute();
     }
+    return;
   }
+
+  await handleQuickReply({
+    content: params.content,
+    ledgerMessageId: ledger?.id ?? null,
+    phone: params.phone,
+    replyId: params.replyId,
+    at: params.at,
+  }).catch((error) => console.error("[autopilot] quick reply handling failed:", error));
 }
 
 /**
@@ -153,7 +163,9 @@ async function handleInbound(params: {
  * clicked) update the autopilot message whose provider id is WhatsApp's own
  * id, the one /messages/send returns. Replies and inbound messages land in
  * message_replies for the admin, and a STOP reply opts that person out of
- * WhatsApp marketing (email_unsubscribes list whatsapp_marketing). Each event
+ * WhatsApp marketing (email_unsubscribes list whatsapp_marketing). A tap on an
+ * autopilot quick-reply button arrives as a reply carrying the button's text
+ * and is acted on by helpers/autopilotQuickReplies. Each event
  * is stored once, so Waplify's retries are harmless. Bad signatures get a 401,
  * which Waplify does not retry.
  */

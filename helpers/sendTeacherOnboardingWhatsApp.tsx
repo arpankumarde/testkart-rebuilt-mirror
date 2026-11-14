@@ -1,84 +1,22 @@
 import { WAPLIFY_ENDPOINT } from "./_publicConfigs";
+import { syncWaplifyContact, toWaplifyPhone } from "./syncWaplifyContact";
 
 const API_BASE = `${WAPLIFY_ENDPOINT}/api/v1`;
-const TEMPLATE_NAME = "newly_onboard_teachers";
+/** UTILITY account-setup message (submitted 20-11-2026); takes the teacher's name as {{1}}. */
+const UTILITY_TEMPLATE = "teacher_account_ready";
+/** The original MARKETING welcome, sent when the utility one is refused (for example still in Meta review). */
+const MARKETING_TEMPLATE = "newly_onboard_teachers";
 const MEDIA_URL = "https://cdn.testkart.in/platform/marketing/teacher-onboarding.jpg";
-const TEACHER_TAG = "Teacher";
 const TIMEOUT_MS = 4000;
 
-type WaplifyContact = { tags?: string[] | null };
-
-function toWaplifyPhone(mobileNumber: string): string | null {
-  let digits = mobileNumber.replace(/\D/g, "");
-  if (digits.length === 12 && digits.startsWith("91")) digits = digits.slice(2);
-  if (digits.length === 11 && digits.startsWith("0")) digits = digits.slice(1);
-  return /^[6-9]\d{9}$/.test(digits) ? `91${digits}` : null;
-}
-
-async function waplify(apiKey: string, method: string, path: string, body?: unknown): Promise<Response> {
-  return fetch(`${API_BASE}${path}`, {
-    method,
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: body === undefined ? undefined : JSON.stringify(body),
-    signal: AbortSignal.timeout(TIMEOUT_MS),
-  });
-}
-
-async function describeFailure(res: Response): Promise<string> {
-  const text = await res.text().catch(() => "");
-  return `${res.status} ${text.slice(0, 500)}`;
-}
-
-async function upsertTeacherContact(
-  apiKey: string,
-  userId: number,
-  phone: string,
-  name: string,
-  email: string | null | undefined
-): Promise<void> {
-  const [firstName, ...rest] = name.split(/\s+/);
-  const created = await waplify(apiKey, "POST", "/contacts/", {
-    phone_number: phone,
-    first_name: firstName,
-    ...(rest.length ? { last_name: rest.join(" ") } : {}),
-    ...(email ? { email } : {}),
-    tags: [TEACHER_TAG],
-  });
-  if (created.ok) {
-    console.log(`[teacher-whatsapp] user ${userId}: contact created with tag ${TEACHER_TAG}`);
-    return;
-  }
-  const createFailure = await describeFailure(created);
-
-  const found = await waplify(apiKey, "GET", `/contacts/phone/${phone}`);
-  if (!found.ok) {
-    console.error(
-      `[teacher-whatsapp] user ${userId}: contact create failed (${createFailure}), lookup failed (${await describeFailure(found)})`
-    );
-    return;
-  }
-  const payload = (await found.json()) as { contact?: WaplifyContact };
-  const tags = Array.isArray(payload.contact?.tags) ? payload.contact!.tags! : [];
-  if (tags.includes(TEACHER_TAG)) return;
-
-  const updated = await waplify(apiKey, "PUT", `/contacts/phone/${phone}`, {
-    tags: [...tags, TEACHER_TAG],
-  });
-  if (updated.ok) {
-    console.log(`[teacher-whatsapp] user ${userId}: tag ${TEACHER_TAG} added to existing contact`);
-  } else {
-    console.error(`[teacher-whatsapp] user ${userId}: tag update failed (${await describeFailure(updated)})`);
-  }
-}
-
 /**
- * Saves a newly signed-up teacher as a Waplify contact tagged "Teacher", then
- * sends the "newly_onboard_teachers" WhatsApp template. Never throws, and each
- * Waplify call gives up after 4 seconds, so a Waplify outage or a bad number can
- * never fail the signup. A failed contact step still lets the message go out.
+ * Saves a newly signed-up teacher as a Waplify contact tagged "Teacher"
+ * (helpers/syncWaplifyContact), then sends the "teacher_account_ready"
+ * utility template, or the "newly_onboard_teachers" marketing one when
+ * Waplify refuses the first (not approved yet). Both use the same image.
+ * Never throws, and each Waplify call gives up after 4 seconds, so a Waplify
+ * outage or a bad number can never fail the signup; a timeout is not retried
+ * with the other template. A failed contact step still lets the message go out.
  * Await it after the account is created: Floot refuses fetches started after
  * the handler returns.
  */
@@ -105,23 +43,35 @@ export async function sendTeacherOnboardingWhatsApp(params: {
     const rawName = params.name?.trim() ?? "";
     const name = rawName && !/^User_\d+$/.test(rawName) ? rawName : "Teacher";
 
-    try {
-      await upsertTeacherContact(apiKey, params.userId, phone, name, params.email);
-    } catch (error) {
-      console.error(`[teacher-whatsapp] user ${params.userId}: contact step failed`, error);
-    }
+    await syncWaplifyContact(params.userId);
 
-    const sent = await waplify(apiKey, "POST", "/messages/send", {
-      template_name: TEMPLATE_NAME,
-      contact_phone: phone,
-      contact_name: name,
-      body_data: {},
-      media_url: MEDIA_URL,
-    });
+    const send = (template: string, bodyData: Record<string, string>) =>
+      fetch(`${API_BASE}/messages/send`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          template_name: template,
+          contact_phone: phone,
+          contact_name: name,
+          body_data: bodyData,
+          media_url: MEDIA_URL,
+        }),
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+      });
+
+    let template = UTILITY_TEMPLATE;
+    let sent = await send(UTILITY_TEMPLATE, { "1": name.split(/\s+/)[0].slice(0, 60) });
+    if (!sent.ok) {
+      const reason = await sent.text().catch(() => "");
+      console.warn(`[teacher-whatsapp] user ${params.userId}: ${UTILITY_TEMPLATE} refused (${sent.status} ${reason.slice(0, 200)}), sending ${MARKETING_TEMPLATE}`);
+      template = MARKETING_TEMPLATE;
+      sent = await send(MARKETING_TEMPLATE, {});
+    }
     if (sent.ok) {
-      console.log(`[teacher-whatsapp] user ${params.userId}: onboarding message sent`);
+      console.log(`[teacher-whatsapp] user ${params.userId}: onboarding message sent (${template})`);
     } else {
-      console.error(`[teacher-whatsapp] user ${params.userId}: message send failed (${await describeFailure(sent)})`);
+      const text = await sent.text().catch(() => "");
+      console.error(`[teacher-whatsapp] user ${params.userId}: message send failed (${sent.status} ${text.slice(0, 500)})`);
     }
   } catch (error) {
     console.error(`[teacher-whatsapp] user ${params.userId}: send failed`, error);

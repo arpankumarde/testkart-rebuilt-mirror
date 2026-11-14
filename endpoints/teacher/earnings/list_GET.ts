@@ -404,7 +404,7 @@ export async function handle(request: Request): Promise<Response> {
       ];
     });
 
-    // Held 1:1 sessions and group classes: the same rows the balance counts.
+    // Held 1:1 sessions, group classes and live course classes: the same rows the balance counts.
     const liveSessionData = await sql<{
       soldAt: Date;
       title: string;

@@ -28,15 +28,15 @@ interface TeacherDashboardLayoutProps {
   children: React.ReactNode;
   className?: string;
   // Both opt-in and both default to the existing behavior, so every current
-  // usage of this layout is unaffected. Used by the full-page question
-  // editor to reclaim screen space: it hides the "need help?" bar and
-  // starts the sidebar collapsed (the user can still expand it manually).
+  // usage of this layout is unaffected. hideSupportBar drops the "need help?"
+  // bar; sidebarDefaultCollapsed starts the sidebar collapsed (the user can
+  // still expand it manually). No route currently forces it collapsed.
   hideSupportBar?: boolean;
   sidebarDefaultCollapsed?: boolean;
 }
 
-// Routes that want a distraction-free workspace (no "need help" bar, sidebar
-// starts collapsed) without needing a pageLayout wrapper component — the
+// Routes that want a distraction-free workspace (no "need help" bar) without
+// needing a pageLayout wrapper component - the
 // framework requires pageLayout to render TeacherDashboardLayout directly
 // with only `children`, so this is derived from the current path instead of
 // passed in as a prop. Every other route falls through to the unchanged
@@ -45,7 +45,8 @@ interface TeacherDashboardLayoutProps {
 // This covers every step screen of every "create/edit a product" flow, not
 // just mock tests: the support/knowledge-base bar should only ever show on
 // the home/dashboard and plain list pages, never while a teacher is heads-down
-// building or editing something.
+// building or editing something. The sidebar is not forced shut here: it opens
+// as the teacher last left it (open by default), and they can collapse it.
 const FOCUSED_LAYOUT_ROUTE_PATTERNS: RegExp[] = [
   /^\/teacher\/create-test(\/.*)?$/, // mock test series: intake → details → items → subjects → questions → review/publish
   /^\/teacher\/live-test\/\d+\/questions\/?$/, // live test question workspace
@@ -90,7 +91,7 @@ export const TeacherDashboardLayout: React.FC<TeacherDashboardLayoutProps> = ({ 
   };
   const isFocusedRoute = FOCUSED_LAYOUT_ROUTE_PATTERNS.some((pattern) => pattern.test(location.pathname));
   const effectiveHideSupportBar = hideSupportBar || isFocusedRoute;
-  const effectiveSidebarDefaultCollapsed = sidebarDefaultCollapsed || isFocusedRoute;
+  const effectiveSidebarDefaultCollapsed = sidebarDefaultCollapsed;
   // The Overview carries guides and support in its own side panel.
   const isOverview = location.pathname === '/teacher/dashboard';
 

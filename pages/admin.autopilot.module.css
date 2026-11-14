@@ -280,6 +280,23 @@
   white-space: pre-line;
 }
 
+.templateImage {
+  display: block;
+  width: 100%;
+  max-width: 22rem;
+  aspect-ratio: 1125 / 600;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+}
+
+.templateButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
 .aiHeader {
   display: flex;
   align-items: flex-start;

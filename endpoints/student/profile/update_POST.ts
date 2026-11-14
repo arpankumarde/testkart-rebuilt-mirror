@@ -8,6 +8,7 @@ import { Selectable } from "kysely";
 import { Users } from "../../../helpers/schema";
 import { User } from "../../../helpers/User";
 import { isPlaceholderDisplayName, PLACEHOLDER_NAME_SQL_REGEX } from "../../../helpers/isPlaceholderDisplayName";
+import { syncWaplifyContact } from "../../../helpers/syncWaplifyContact";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -80,6 +81,10 @@ export async function handle(request: Request): Promise<Response> {
         .where("userId", "=", user.id)
         .where("reviewerName", "~*", PLACEHOLDER_NAME_SQL_REGEX)
         .execute();
+    }
+
+    if (nameChanged) {
+      await syncWaplifyContact(updatedUser.id);
     }
     
     const mapUser = (dbUser: Selectable<Users>): User => ({

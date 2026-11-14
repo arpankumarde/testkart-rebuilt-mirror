@@ -9,6 +9,7 @@ import {
   claimOtpAttempt,
   recordOtpVerifyFailure,
 } from "../../helpers/otpVerifyGuard";
+import { syncWaplifyContact } from "../../helpers/syncWaplifyContact";
 
 function normalizeMobileNumber(mobile: string): string {
   const digitsOnly = mobile.replace(/\D/g, '');
@@ -89,6 +90,8 @@ export async function handle(request: Request): Promise<Response> {
         .where('id', '=', latestOtp.id)
         .execute();
     });
+
+    await syncWaplifyContact(user.id);
 
     return new Response(superjson.stringify({ success: true, message: "Mobile number verified successfully." } satisfies OutputType));
 

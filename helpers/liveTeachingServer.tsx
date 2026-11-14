@@ -11,6 +11,8 @@ import {
 export type LiveTeachingState = {
   status: LiveTeachingStatus;
   checklist: LiveTeachingChecklistItem[];
+  /** The account's own email and mobile number, which the application requires. */
+  contact: { email: string | null; mobileNumber: string | null };
   introVideoUrl: string | null;
   introVideoFileId: string | null;
   ratePerUnit: number | null;
@@ -37,6 +39,8 @@ export async function getLiveTeachingState(teacherId: number): Promise<LiveTeach
   const user = await db
     .selectFrom("users")
     .select([
+      "email",
+      "mobileNumber",
       "avatarUrl",
       "tagline",
       "bio",
@@ -87,7 +91,10 @@ export async function getLiveTeachingState(teacherId: number): Promise<LiveTeach
 
   return {
     status: toLiveTeachingStatus(user.liveTeachingStatus),
+    contact: { email: user.email, mobileNumber: user.mobileNumber },
     checklist: buildLiveTeachingChecklist({
+      email: user.email,
+      mobileNumber: user.mobileNumber,
       avatarUrl: user.avatarUrl,
       tagline: user.tagline,
       bio: user.bio,

@@ -9,6 +9,7 @@ import {
   claimOtpAttempt,
   recordOtpVerifyFailure,
 } from "../../helpers/otpVerifyGuard";
+import { syncWaplifyContact } from "../../helpers/syncWaplifyContact";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -80,6 +81,8 @@ export async function handle(request: Request): Promise<Response> {
         .where('id', '=', latestOtp.id)
         .execute();
     });
+
+    await syncWaplifyContact(user.id);
 
     return new Response(superjson.stringify({ success: true, message: "Email address verified successfully." } satisfies OutputType));
 

@@ -7,6 +7,7 @@ import { ZodError } from "zod";
 import { User } from "../../../helpers/User";
 import { checkTeacherSecondContact } from "../../../helpers/teacherSignupContact";
 import { ExamFocusError, saveExamFocus } from "../../../helpers/examFocus";
+import { syncWaplifyContact } from "../../../helpers/syncWaplifyContact";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -158,6 +159,10 @@ export async function handle(request: Request): Promise<Response> {
       signupSource: updatedUser.signupSource,
       onboardingCompleted: true,
     };
+
+    if (contactUpdates.mobileNumber || contactUpdates.email) {
+      await syncWaplifyContact(effectiveTeacherId);
+    }
 
     console.log(`Teacher onboarding completed for user ${user.id}`);
 

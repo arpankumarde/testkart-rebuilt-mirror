@@ -4,6 +4,7 @@ import { ArrowDown, ArrowUp, Ban, CalendarPlus, CheckCircle2, Edit2, MoreHorizon
 import type { LiveCourseClass, LiveCourseDetail, LiveCourseModule } from "../helpers/liveCourseData";
 import type { InputType as DetailsInput } from "../endpoints/teacher/live-courses/upsert_POST.schema";
 import type { OutputType as RosterOutput } from "../endpoints/teacher/live-courses/students_GET.schema";
+import type { LiveCourseEarningsPreview } from "../endpoints/teacher/live-courses/get_GET.schema";
 import {
   LIVE_COURSE_SEAT_LIMIT_MAX,
   WEEKDAYS,
@@ -12,6 +13,8 @@ import {
   formatIstShort,
   formatRupees,
   istToDate,
+  liveCourseEarnings,
+  liveCourseMinClasses,
 } from "../helpers/liveCourseRules";
 import {
   useAddClassesMutation,
@@ -48,7 +51,9 @@ export const LiveCourseDetailsForm: React.FC<{
   pending: boolean;
   submitLabel: string;
   onSubmit: (values: LiveCourseDetailsValues) => void;
-}> = ({ course, pending, submitLabel, onSubmit }) => {
+  /** Teachers only: their platform fee, to show what they keep of the price. */
+  platformFeePercentage?: number;
+}> = ({ course, pending, submitLabel, onSubmit, platformFeePercentage }) => {
   const exams = useExamsQuery();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -198,6 +203,12 @@ export const LiveCourseDetailsForm: React.FC<{
           <Input type="number" min="1" value={originalPrice} onChange={(e) => setOriginalPrice(e.target.value)} placeholder="Optional" />
         </label>
       </div>
+      {platformFeePercentage !== undefined && Number(price) > 0 && (
+        <p className={styles.hint}>
+          You keep {formatRupees(liveCourseEarnings(Number(price), 1, platformFeePercentage).perStudent)} of each student's{" "}
+          {formatRupees(Number(price))} after Testkart's {platformFeePercentage}% fee, paid out class by class as you teach.
+        </p>
+      )}
       <div className={styles.row}>
         <label className={styles.field}>
           <span className={styles.label}>Seats (up to {LIVE_COURSE_SEAT_LIMIT_MAX})</span>
@@ -362,6 +373,41 @@ const classState = (c: LiveCourseClass): { label: string; tone: string } | null 
 
 const topicOptions = (modules: LiveCourseModule[]) => modules.flatMap((m) => m.topics.map((t) => ({ id: t.id, label: `${m.title}: ${t.title}` })));
 
+const plannedClasses = (course: LiveCourseDetail) => course.classes.filter((c) => c.status !== "cancelled").length;
+
+/** What the teacher earns from this course, per held class and per student. */
+export const LiveCourseEarningsCard: React.FC<{ earnings: LiveCourseEarningsPreview; enrolled: number }> = ({ earnings, enrolled }) => {
+  if (earnings.perStudent <= 0) return null;
+  return (
+    <section className={styles.earnings} aria-label="Your earnings">
+      <div className={styles.earningsFigures}>
+        <div>
+          <strong className={styles.earningsValue}>{earnings.perClassPerStudent > 0 ? formatRupees(earnings.perClassPerStudent) : "-"}</strong>
+          <span className={styles.earningsLabel}>per student for each class you hold</span>
+        </div>
+        <div>
+          <strong className={styles.earningsValue}>{formatRupees(earnings.perStudent)}</strong>
+          <span className={styles.earningsLabel}>per student for the whole course</span>
+        </div>
+        {enrolled > 0 && (
+          <div>
+            <strong className={styles.earningsValue}>{formatRupees(Math.round(earnings.perStudent * enrolled * 100) / 100)}</strong>
+            <span className={styles.earningsLabel}>with {enrolled} enrolled</span>
+          </div>
+        )}
+      </div>
+      <p className={styles.earningsNote}>
+        {earnings.fixed
+          ? "Fixed since you published. It reaches your earnings right after each class you hold. Classes added later earn nothing extra."
+          : earnings.perClassPerStudent > 0
+            ? "Based on the classes in your timetable now. It is fixed when you publish."
+            : "Add classes to see what you earn for each one."}
+        {earnings.platformFeePercentage > 0 ? ` Testkart's ${earnings.platformFeePercentage}% fee is already taken off.` : ""}
+      </p>
+    </section>
+  );
+};
+
 export const LiveCourseSchedule: React.FC<{
   course: LiveCourseDetail;
   refundClosesAt: Date | null;
@@ -370,7 +416,9 @@ export const LiveCourseSchedule: React.FC<{
   onAdminCancel?: (c: LiveCourseClass) => void;
   /** Admins only: record whether the teacher held a class that has started. */
   onAdminOutcome?: (c: LiveCourseClass, outcome: "held" | "missed") => void;
-}> = ({ course, refundClosesAt, mode, onAdminCancel, onAdminOutcome }) => {
+  /** Teachers only: pay per class, shown above the timetable and in the add dialogs. */
+  earnings?: LiveCourseEarningsPreview;
+}> = ({ course, refundClosesAt, mode, onAdminCancel, onAdminOutcome, earnings }) => {
   const [single, setSingle] = useState<LiveCourseClass | "new" | null>(null);
   const [pattern, setPattern] = useState(false);
   const [cancelTarget, setCancelTarget] = useState<LiveCourseClass | null>(null);
@@ -444,6 +492,7 @@ export const LiveCourseSchedule: React.FC<{
 
   return (
     <div className={styles.panel}>
+      {earnings && <LiveCourseEarningsCard earnings={earnings} enrolled={course.enrolledCount} />}
       {editable && (
         <div className={styles.toolbar}>
           <Button onClick={() => setPattern(true)}>
@@ -473,8 +522,8 @@ export const LiveCourseSchedule: React.FC<{
 
       {editable && (
         <>
-          <ClassDialog course={course} target={single} topics={topics} onClose={() => setSingle(null)} />
-          <PatternDialog course={course} open={pattern} onClose={() => setPattern(false)} />
+          <ClassDialog course={course} target={single} topics={topics} onClose={() => setSingle(null)} earnings={earnings} />
+          <PatternDialog course={course} open={pattern} onClose={() => setPattern(false)} earnings={earnings} />
           <ConsoleConfirmDialog
             open={!!cancelTarget}
             onOpenChange={(o) => {
@@ -484,7 +533,13 @@ export const LiveCourseSchedule: React.FC<{
               }
             }}
             title={course.status === "draft" ? `Remove "${cancelTarget?.title ?? ""}"?` : `Cancel "${cancelTarget?.title ?? ""}"?`}
-            description={course.status === "draft" ? "The class is removed from the timetable." : "Enrolled students are told by email and WhatsApp."}
+            description={
+              course.status === "draft"
+                ? "The class is removed from the timetable."
+                : earnings && earnings.cancelRefundPerStudent > 0
+                  ? `Enrolled students are told by email and WhatsApp. If you don't add a replacement class within an hour, each enrolled student gets ${formatRupees(earnings.cancelRefundPerStudent)} back.`
+                  : "Enrolled students are told by email and WhatsApp."
+            }
             tone="destructive"
             confirmLabel={course.status === "draft" ? "Remove" : "Cancel class"}
             pendingLabel="Saving..."
@@ -516,7 +571,8 @@ const ClassDialog: React.FC<{
   target: LiveCourseClass | "new" | null;
   topics: { id: string; label: string }[];
   onClose: () => void;
-}> = ({ course, target, topics, onClose }) => {
+  earnings?: LiveCourseEarningsPreview;
+}> = ({ course, target, topics, onClose, earnings }) => {
   const add = useAddClassesMutation();
   const update = useUpdateClassMutation();
   const editing = target && target !== "new" ? target : null;
@@ -608,6 +664,7 @@ const ClassDialog: React.FC<{
                 </Select>
               </div>
             )}
+            {!editing && earnings && <AddClassesPay course={course} earnings={earnings} adding={1} />}
           </ConsoleDialogBody>
           <ConsoleDialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
@@ -623,7 +680,38 @@ const ClassDialog: React.FC<{
   );
 };
 
-const PatternDialog: React.FC<{ course: LiveCourseDetail; open: boolean; onClose: () => void }> = ({ course, open, onClose }) => {
+/** Pay per class once these classes are added: it follows the timetable until publish, then stays fixed. */
+const AddClassesPay: React.FC<{ course: LiveCourseDetail; earnings: LiveCourseEarningsPreview; adding: number }> = ({
+  course,
+  earnings,
+  adding,
+}) => {
+  if (earnings.perStudent <= 0 || adding <= 0) return null;
+  const price = Number(course.price);
+  if (earnings.fixed) {
+    return (
+      <p className={styles.earningsInline}>
+        Your pay stays {formatRupees(earnings.perClassPerStudent)} per student for each class you hold. Classes added after
+        publishing earn nothing extra.
+      </p>
+    );
+  }
+  const total = plannedClasses(course) + adding;
+  const pay = liveCourseEarnings(price, liveCourseMinClasses(total), earnings.platformFeePercentage);
+  return (
+    <p className={styles.earningsInline}>
+      With {total} class{total === 1 ? "" : "es"} in the course you earn <strong>{formatRupees(pay.perClassPerStudent)}</strong> per
+      student for each class you hold, up to {formatRupees(pay.perStudent)} per student.
+    </p>
+  );
+};
+
+const PatternDialog: React.FC<{ course: LiveCourseDetail; open: boolean; onClose: () => void; earnings?: LiveCourseEarningsPreview }> = ({
+  course,
+  open,
+  onClose,
+  earnings,
+}) => {
   const add = useAddClassesMutation();
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -710,6 +798,7 @@ const PatternDialog: React.FC<{ course: LiveCourseDetail; open: boolean; onClose
               </label>
             </div>
             <p className={styles.hint}>{count > 0 ? `${count} classes will be added.` : "Pick dates and days to see how many classes this makes."}</p>
+            {earnings && <AddClassesPay course={course} earnings={earnings} adding={count} />}
           </ConsoleDialogBody>
           <ConsoleDialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>

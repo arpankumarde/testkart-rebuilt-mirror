@@ -6,6 +6,10 @@ import {
 } from "../endpoints/teacher/live-teaching/video_POST.schema";
 import { postTeacherLiveTeachingApply } from "../endpoints/teacher/live-teaching/apply_POST.schema";
 import {
+  postTeacherLiveTeachingContact,
+  InputType as ContactInput,
+} from "../endpoints/teacher/live-teaching/contact_POST.schema";
+import {
   postTeacherLiveTeachingWithdraw,
   InputType as WithdrawInput,
 } from "../endpoints/teacher/live-teaching/withdraw_POST.schema";
@@ -17,6 +21,8 @@ import {
   postAdminLiveTeachingDecide,
   InputType as DecideInput,
 } from "../endpoints/admin/teachers/live-teaching/decide_POST.schema";
+import { AUTH_QUERY_KEY } from "./useAuth";
+import type { User } from "./User";
 
 const KEYS = {
   status: ["teacher", "live-teaching", "status"] as const,
@@ -29,6 +35,20 @@ export const useLiveTeachingStatusQuery = () =>
     queryKey: KEYS.status,
     queryFn: () => getTeacherLiveTeachingStatus(),
     refetchOnMount: "always",
+  });
+
+/*
+ * The same status cache for the sidebar and dashboard, which mount on every
+ * page: it reloads on focus and after a minute rather than on each mount, so an
+ * approval reaches the sidebar without a request per navigation.
+ */
+export const useLiveTeachingStatusPeek = (enabled: boolean) =>
+  useQuery({
+    queryKey: KEYS.status,
+    queryFn: () => getTeacherLiveTeachingStatus(),
+    enabled,
+    staleTime: 60_000,
+    refetchOnWindowFocus: true,
   });
 
 export const useSaveLiveTeachingVideoMutation = () => {
@@ -55,6 +75,20 @@ export const useWithdrawLiveTeachingMutation = () => {
   return useMutation({
     mutationFn: (input: WithdrawInput) => postTeacherLiveTeachingWithdraw(input),
     onSuccess: () => qc.invalidateQueries({ queryKey: KEYS.status }),
+  });
+};
+
+/* Fills a missing account email or mobile number, and mirrors it into the signed-in user. */
+export const useSaveLiveTeachingContactMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: ContactInput) => postTeacherLiveTeachingContact(input),
+    onSuccess: (saved) => {
+      qc.setQueryData<{ user: User; impersonatorAdminId?: number } | null>(AUTH_QUERY_KEY, (old) =>
+        old ? { ...old, user: { ...old.user, email: saved.email, mobileNumber: saved.mobileNumber } } : old
+      );
+      qc.invalidateQueries({ queryKey: KEYS.status });
+    },
   });
 };
 

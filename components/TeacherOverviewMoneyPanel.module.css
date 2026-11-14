@@ -1,108 +1,353 @@
+/*
+ * The earnings panel on the light console surface: a card with a header row
+ * (title, period switch, refresh), then a mint block holding the period's
+ * money beside three white stat tiles with pastel icon chips. Ink on tint
+ * keeps contrast in both themes because the tokens swap together.
+ */
 .panel {
-  padding: 1.75rem 2rem;
-  background-color: var(--tc-panel);
-  color: var(--tc-panel-ink);
-  border-radius: var(--tc-radius-panel);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--tc-line);
+  border-radius: var(--tc-radius-card);
+  background: var(--tc-card);
+  box-shadow: 0 1px 2px hsl(24 30% 20% / 0.05);
 }
 
-.top {
+/* ---------------------------------------------------------------- head --- */
+
+.head {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: var(--spacing-4);
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.heading {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--tc-ink);
+}
+
+.tools {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.period {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--tc-line);
+  border-radius: 0.75rem;
+  background: var(--tc-bg);
+}
+
+.periodOption {
+  min-width: 2.75rem;
+  height: 1.875rem;
+  padding: 0 0.625rem;
+  border: 1px solid transparent;
+  border-radius: 0.5625rem;
+  background: transparent;
+  color: var(--tc-muted);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.periodOption:hover {
+  color: var(--tc-ink);
+}
+
+.periodOption[aria-pressed="true"] {
+  border-color: var(--tc-line);
+  background: var(--tc-card);
+  color: var(--tk-brand-text);
+  box-shadow: 0 1px 2px hsl(24 30% 20% / 0.12);
+  cursor: default;
+}
+
+.periodOption:focus-visible,
+.refresh:focus-visible,
+.link:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+.refresh {
+  display: inline-grid;
+  place-items: center;
+  width: 2.375rem;
+  height: 2.375rem;
+  border: 1px solid var(--tc-line);
+  border-radius: 0.75rem;
+  background: var(--tc-card);
+  color: var(--tc-text);
+  cursor: pointer;
+}
+
+.refresh:hover:not(:disabled) {
+  border-color: var(--tc-line-strong, var(--tc-line));
+  color: var(--tc-ink);
+}
+
+.refresh:disabled {
+  cursor: progress;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------------------------------------------------------------- body --- */
+
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+  gap: 0.875rem;
+}
+
+.hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.375rem;
+  overflow: hidden;
+  padding: 1.25rem 1.375rem;
+  border: 1px solid var(--fc-mint-edge);
+  border-radius: 1rem;
+  background: var(--fc-mint-tint);
+  color: var(--fc-mint-ink);
+}
+
+/* One quiet solid disc in the corner, cropped by the block. */
+.hero::after {
+  content: "";
+  position: absolute;
+  right: -2.5rem;
+  top: -2.5rem;
+  width: 7rem;
+  height: 7rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--fc-mint-edge) 16%, var(--fc-mint-tint));
+  pointer-events: none;
+}
+
+.hero > * {
+  position: relative;
+  z-index: 1;
 }
 
 .label {
   margin: 0;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--tc-panel-text);
+  font-size: 0.8125rem;
+  font-weight: 700;
 }
 
 .amount {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.25rem 0.875rem;
-  margin: 0.375rem 0 0;
+  margin: 0;
   font-family: var(--font-family-heading);
-  font-size: 2.75rem;
+  font-size: 2.5rem;
   font-weight: 800;
-  letter-spacing: -0.025em;
   line-height: 1.05;
+  letter-spacing: -0.025em;
   font-variant-numeric: tabular-nums;
-  color: var(--tc-panel-ink);
+  color: var(--tc-ink);
+}
+
+.compare {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.375rem 0.5rem;
+  margin: 0.125rem 0 0;
 }
 
 .change {
-  font-family: var(--font-family-base);
-  font-size: 0.9375rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid;
+  border-radius: 999px;
+  background: var(--tc-card);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.change[data-dir="up"] {
+  border-color: var(--fc-mint-edge);
+  color: var(--fc-mint-ink);
+}
+
+.change[data-dir="down"] {
+  border-color: var(--fc-peach-line);
+  color: var(--fc-peach-ink);
+}
+
+.change[data-dir="flat"] {
+  border-color: var(--tc-line);
+  color: var(--tc-text);
+}
+
+.compareText {
+  font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0;
-  color: var(--tc-panel-text);
 }
 
 .link {
   display: inline-flex;
-  flex-shrink: 0;
   align-items: center;
-  gap: 0.375rem;
-  height: 2.5rem;
-  padding: 0 1rem;
-  border: 1.5px solid var(--tc-panel-muted);
-  border-radius: 0.75rem;
-  color: var(--tc-panel-ink);
-  font-size: 0.875rem;
+  gap: 0.3125rem;
+  margin-top: auto;
+  padding-top: 0.625rem;
+  font-size: 0.8125rem;
   font-weight: 700;
+  color: var(--fc-mint-ink);
   text-decoration: none;
 }
 
 .link:hover {
-  border-color: var(--tc-panel-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
-.link:focus-visible {
-  outline: 2px solid var(--tc-panel-ink);
-  outline-offset: 3px;
-}
+/* --------------------------------------------------------------- stats --- */
 
 .stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-3) var(--spacing-10, 2.5rem);
-  margin: 1.5rem 0 0;
-}
-
-.stats div {
-  display: flex;
-  flex-direction: column-reverse;
-  gap: 0.125rem;
-}
-
-.stats dt {
-  font-size: 0.8125rem;
-  color: var(--tc-panel-text);
-}
-
-.stats dd {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
   margin: 0;
-  font-family: var(--font-family-heading);
-  font-size: 1.375rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--tc-panel-ink);
 }
 
-@container overview-main (max-width: 40rem) {
-  .panel {
-    padding: 1.5rem 1.25rem;
+.stat {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--tc-line);
+  border-radius: 1rem;
+  background: var(--tc-card);
+}
+
+.statIcon {
+  display: inline-grid;
+  place-items: center;
+  order: 0;
+  width: 2.125rem;
+  height: 2.125rem;
+  margin-bottom: auto;
+  border-radius: 0.625rem;
+}
+
+.statIcon[data-tone="lavender"] {
+  background: var(--sp-lavender-tint);
+  color: var(--sp-lavender-ink);
+}
+
+.statIcon[data-tone="blue"] {
+  background: var(--fc-blue-tint);
+  color: var(--fc-blue-ink);
+}
+
+.statIcon[data-tone="butter"] {
+  background: var(--fc-butter-tint);
+  color: var(--fc-butter-ink);
+}
+
+/* The value reads first, its label under it. */
+.statValue {
+  order: 1;
+  margin: 1rem 0 0;
+  overflow: hidden;
+  font-family: var(--font-family-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--tc-ink);
+}
+
+.statLabel {
+  order: 2;
+  margin-top: 0.125rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--tc-muted);
+}
+
+/* ---------------------------------------------------------- narrowing --- */
+
+@container overview-main (max-width: 46rem) {
+  .body {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .amount {
     font-size: 2.25rem;
   }
+}
+
+@container overview-main (max-width: 30rem) {
+  .panel {
+    padding: 1rem;
+  }
 
   .stats {
-    gap: var(--spacing-3) var(--spacing-6);
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+
+  .stat {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "icon value"
+      "icon label";
+    align-items: center;
+    column-gap: 0.75rem;
+    padding: 0.75rem 0.875rem;
+  }
+
+  .statIcon {
+    grid-area: icon;
+    margin: 0;
+  }
+
+  .statValue {
+    grid-area: value;
+    margin: 0;
+    font-size: 1.25rem;
+  }
+
+  .statLabel {
+    grid-area: label;
+    margin: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
   }
 }

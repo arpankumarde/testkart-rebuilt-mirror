@@ -10,6 +10,27 @@ export const LIVE_COURSE_CLASS_MAX_MINUTES = 300;
 /** The refund guarantee closes when this class (1-based, cancelled classes skipped) starts. */
 export const LIVE_COURSE_REFUND_CLOSES_AT_CLASS = 3;
 
+/**
+ * Pay rule: a course's min classes (internal, never shown) is 90% of the classes planned when it is
+ * published, rounded down. Each student's price is split over the min classes; the teacher earns
+ * one share (less their platform fee) for each of the first min classes held, and nothing for
+ * classes beyond that. Students get a share back for every min class that can no longer be held.
+ */
+export const LIVE_COURSE_MIN_CLASS_SHARE = 0.9;
+export const liveCourseMinClasses = (plannedClasses: number) =>
+  Math.max(1, Math.floor(plannedClasses * LIVE_COURSE_MIN_CLASS_SHARE));
+
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+export function liveCourseEarnings(price: number, minClasses: number, platformFeePercentage: number) {
+  const keep = 1 - platformFeePercentage / 100;
+  return {
+    perClassPerStudent: round2((price / minClasses) * keep),
+    perStudent: round2(price * keep),
+    refundPerClass: round2(price / minClasses),
+  };
+}
+
 export const LIVE_COURSE_LIST_PATH = "/course/live";
 export const liveCoursePath = (slug: string) => `/live-courses/${slug}`;
 export const studentLiveCoursesPath = "/student/live-courses";

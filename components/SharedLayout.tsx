@@ -7,7 +7,9 @@ import { AccountMenu } from "./AccountMenu";
 import { ThemeModeSwitch } from "./ThemeModeSwitch";
 import { Button } from "./Button";
 import { Skeleton } from "./Skeleton";
-import { ShoppingCart, Radio, Users, Search, ChevronDown, Menu } from "lucide-react";
+import { ShoppingCart, Radio, Users, Search, ChevronDown, Menu, Plus } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "./Avatar";
+import { TeacherCreateChooserProvider, useTeacherCreateChooser } from "./TeacherCreateChooser";
 import { SiteNavDrawer } from "./SiteNavDrawer";
 import { Footer } from "./Footer";
 import { useCartItemsQuery } from "../helpers/useCartQuery";
@@ -24,8 +26,13 @@ import styles from "./SharedLayout.module.css";
 
 
 
+// Teachers get a Dashboard button in this slot instead.
 const SearchButton: React.FC = () => {
   const navigate = useNavigate();
+  const { authState } = useAuth();
+  if (authState.type === "authenticated" && authState.user.role === "teacher") {
+    return null;
+  }
   return (
     <Button 
       variant="ghost" 
@@ -67,6 +74,16 @@ const CartLink: React.FC = () => {
   );
 };
 
+const TeacherNavCreateButton: React.FC = () => {
+  const { openChooser } = useTeacherCreateChooser();
+  return (
+    <button type="button" className={styles.createButton} onClick={openChooser}>
+      <Plus size={16} strokeWidth={2.5} aria-hidden="true" />
+      Create
+    </button>
+  );
+};
+
 const AuthNav: React.FC<{ onLogin: () => void; onSignup: () => void }> = ({ onLogin, onSignup }) => {
   const { authState, logout } = useAuth();
 
@@ -103,6 +120,27 @@ const AuthNav: React.FC<{ onLogin: () => void; onSignup: () => void }> = ({ onLo
   }
 
   const { user } = authState;
+
+  // Teachers get one tray, styled like the main nav: Create (the console's "What do you want to
+  // create?" chooser) and an avatar + "Dashboard" link in place of the account menu.
+  if (user.role === "teacher") {
+    const initials =
+      user.displayName?.trim().split(/\s+/).map((part) => part[0]).join("").substring(0, 2) || "T";
+    return (
+      <TeacherCreateChooserProvider>
+        <div className={styles.teacherTray}>
+          <TeacherNavCreateButton />
+          <Link to="/teacher/dashboard" className={styles.dashboardButton}>
+            <Avatar className={styles.dashboardAvatar}>
+              {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt="" />}
+              <AvatarFallback>{initials}</AvatarFallback>
+            </Avatar>
+            Dashboard
+          </Link>
+        </div>
+      </TeacherCreateChooserProvider>
+    );
+  }
 
   return (
     <AccountMenu

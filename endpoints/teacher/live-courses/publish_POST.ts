@@ -7,9 +7,14 @@ import {
   errorResponse,
   getManagedCourse,
 } from "../../../helpers/liveCourseServer";
+import { liveCourseMinClasses } from "../../../helpers/liveCourseRules";
 import { schema, type OutputType } from "./publish_POST.schema";
 
-/** Publishing puts the course on sale at once; there is no admin review for live courses. */
+/**
+ * Publishing puts the course on sale at once; there is no admin review for live courses. It also
+ * fixes the course's min classes (90% of the classes planned then), which sets the teacher's pay
+ * per class; classes added later do not change it.
+ */
 export async function handle(request: Request) {
   try {
     const { user, effectiveTeacherId } = await getServerUserSession(request);
@@ -44,9 +49,20 @@ export async function handle(request: Request) {
     if (!upcoming) missing.push("at least one upcoming class");
     if (missing.length) throw new LiveCourseError(`Before publishing, add ${missing.join(", ")}.`);
 
+    const planned = await db
+      .selectFrom("groupLessons")
+      .select((eb) => eb.fn.countAll<string>().as("n"))
+      .where("liveCourseId", "=", course.id)
+      .where("status", "!=", "cancelled")
+      .executeTakeFirst();
     await db
       .updateTable("liveCourses")
-      .set({ status: "published", publishedAt: course.publishedAt ?? new Date(), updatedAt: new Date() })
+      .set({
+        status: "published",
+        publishedAt: course.publishedAt ?? new Date(),
+        minClasses: liveCourseMinClasses(Number(planned?.n ?? 0)),
+        updatedAt: new Date(),
+      })
       .where("id", "=", course.id)
       .execute();
     const output: OutputType = { status: "published", slug: course.slug };

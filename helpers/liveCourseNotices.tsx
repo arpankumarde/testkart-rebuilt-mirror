@@ -344,7 +344,14 @@ export async function sendClassChangeNotices(courseId: string, changes: ClassCha
 
 /* --------------------------------------------------------------- refunds --- */
 
-export async function sendRefundNotices(courseId: string, studentId: number, amount: number, reason?: string): Promise<void> {
+/** `partial`: a share back for classes that will not be held; the student keeps the seat. */
+export async function sendRefundNotices(
+  courseId: string,
+  studentId: number,
+  amount: number,
+  reason?: string,
+  opts?: { partial?: boolean }
+): Promise<void> {
   try {
     const [course, student] = await Promise.all([courseInfo(courseId), studentById(studentId)]);
     if (!course || !student) return;
@@ -366,17 +373,20 @@ export async function sendRefundNotices(courseId: string, studentId: number, amo
     );
     await whatsApp(student, "tk_live_course_refund", [firstName(student.name), `Rs ${amount}`, course.title], course.id);
     const teacherSubject = `Refund: ${course.title}`;
+    const teacherLine = opts?.partial
+      ? `${student.name} got ${rupees(amount)} back for classes of "${course.title}" that will not be held. They keep their seat.`
+      : `${student.name} was refunded for "${course.title}" and no longer has a seat.`;
     await email(
       course.teacherEmail,
       teacherSubject,
       getBrandedEmailHtml({
         title: teacherSubject,
-        heading: "A student left your live course",
-        bodyHtml: `<p style="margin:0;">${esc(student.name)} was refunded for <strong>${esc(course.title)}</strong> and no longer has a seat.</p>`,
+        heading: opts?.partial ? "A student got a partial refund" : "A student left your live course",
+        bodyHtml: `<p style="margin:0;">${esc(teacherLine)}</p>`,
         ctaLabel: "Open the course",
         ctaUrl: `${SITE}/teacher/live-courses/${course.id}`,
       }),
-      `${student.name} was refunded for "${course.title}".`
+      teacherLine
     );
   } catch (error) {
     console.error(`[liveCourseNotices] refund notices for course ${courseId} failed:`, error);

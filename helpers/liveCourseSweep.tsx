@@ -6,12 +6,14 @@ import { SWEEP_TEACHER_ABSENT_REASON } from "./adminLiveLessonsSql";
 import { sendClassReminder } from "./liveCourseNotices";
 import { cashfreeGatewayEnv, fetchCashfreeRefund, terminateCashfreeOrder } from "./cashfree";
 import { settleCashfreeOrder } from "./cashfreeOrders";
+import { runShortfallSweep } from "./liveCourseShortfall";
 
 /*
  * Live course upkeep, run from the live teaching sweep every 15 minutes: class reminders 24 hours
  * and 1 hour ahead, closing classes once they end (held when the teacher joined the classroom,
- * missed when not), closing courses whose last class is over, refreshing open refund statuses,
- * and settling or expiring every pending one-time Cashfree order (1:1, pay-now and live courses).
+ * missed when not), closing courses whose last class is over, refunding students for min classes
+ * a course can no longer hold, refreshing open refund statuses, and settling or expiring every
+ * pending one-time Cashfree order (1:1, pay-now and live courses).
  */
 
 const MIN_MS = 60000;
@@ -208,6 +210,7 @@ export async function runLiveCourseSweep(part: (name: string, work: () => Promis
   await part("course reminders", sendReminders);
   await part("course classes", closeFinishedClasses);
   await part("courses", closeFinishedCourses);
+  await part("course shortfall refunds", runShortfallSweep);
   await part("course refunds", syncRefundStatuses);
   await part("pending Cashfree orders", settlePendingCashfreeOrders);
 }

@@ -2,8 +2,9 @@ import { sql } from "kysely";
 import { db } from "./db";
 import { getAutopilotSettings, offerExpiryDays, type AutopilotSettings } from "./getAutopilotSettings";
 import { isInGlobalHoldout } from "./isInGlobalHoldout";
-import { nextSendTime, offerCoins, pickVariant, type VariantStats } from "./autopilotRules";
+import { nextSendTime, offerCoins, pickVariant } from "./autopilotRules";
 import { AUTOPILOT_PLAYBOOKS, type Playbook, type PlaybookContext } from "./autopilotPlaybooks";
+import { loadCopyState, statsForLiveKeys, variantStats } from "./autopilotCopyVariants";
 import { createMessageLink } from "./createMessageLink";
 import { sendEmail } from "./sendEmail";
 import { getBrandedEmailHtml } from "./emailBaseTemplate";
@@ -16,7 +17,15 @@ import {
   type ChannelChoice,
   type SendOutcome,
 } from "./autopilotChannels";
-import { approvedTemplateNames, resolveTemplate, templateVariableCount, type TemplateSlot } from "./autopilotWhatsAppTemplates";
+import {
+  approvedTemplateNames,
+  headerImageFor,
+  resolveTemplate,
+  templateLinkPath,
+  templateUsable,
+  templateVariables,
+  type TemplateSlot,
+} from "./autopilotWhatsAppTemplates";
 
 /**
  * The autopilot's engine, run by the autopilotHourly job every 15 minutes:
@@ -25,8 +34,10 @@ import { approvedTemplateNames, resolveTemplate, templateVariableCount, type Tem
  *    message, so the playbook's lift can be measured against them);
  * 2. dispatch: due steps go out through the guardrails, in this order: still
  *    relevant (no success yet), quiet hours, daily and weekly caps, a reachable
- *    channel, then the variant (Thompson sampling on paid conversions) and the
- *    offer (Tcoins within the margin rule and the daily budget).
+ *    channel, then the variant (Thompson sampling on paid conversions over the
+ *    step's live versions: built-in a/b plus approved AI or admin copy from
+ *    helpers/autopilotCopyVariants) and the offer (Tcoins within the margin
+ *    rule and the daily budget).
  * 3. rescue: a WhatsApp message Meta refused after accepting it (the failure
  *    arrives later through webhooks/waplify) is sent again by email when the
  *    person has a usable address.
@@ -118,28 +129,6 @@ async function reachedGoal(playbook: Playbook, userId: number, since: Date): Pro
     .orderBy("createdAt", "asc")
     .executeTakeFirst();
   return order ? { orderId: order.id } : null;
-}
-
-async function variantStats(): Promise<Map<string, VariantStats[]>> {
-  const rows = await sql<Row>`
-    SELECT m.playbook_key, m.step, m.variant_key,
-      count(*)::int AS sends,
-      count(*) FILTER (WHERE EXISTS (
-        SELECT 1 FROM orders o WHERE o.user_id = m.user_id AND o.status = 'completed' AND o.total_amount > 0
-          AND o.created_at >= m.sent_at AND o.created_at < m.sent_at + interval '72 hours'))::int AS conversions
-    FROM rev_messages m
-    WHERE m.shadow = false AND m.sent_at IS NOT NULL AND m.variant_key IS NOT NULL
-      AND m.sent_at > now() - interval '90 days'
-    GROUP BY 1, 2, 3
-  `.execute(db);
-  const stats = new Map<string, VariantStats[]>();
-  for (const row of rows.rows) {
-    const key = `${pick(row, "playbook_key")}:${num(row, "step")}`;
-    const list = stats.get(key) ?? [];
-    list.push({ key: String(pick(row, "variant_key")), sends: num(row, "sends"), conversions: num(row, "conversions") });
-    stats.set(key, list);
-  }
-  return stats;
 }
 
 /** Messages that count toward the caps: real sends, or in shadow mode the ones it would have sent. */
@@ -252,11 +241,6 @@ async function sendStepEmail(params: {
   }
 }
 
-function whatsappVariables(template: string, ctx: PlaybookContext, coins: number, coinsExpireOn: string): string[] {
-  const all = [ctx.firstName, ctx.itemTitle || ctx.examName || "your exam", String(coins), coinsExpireOn];
-  return all.slice(0, templateVariableCount(template));
-}
-
 type DueEnrolment = {
   id: string;
   userId: number;
@@ -314,6 +298,7 @@ export async function dispatchDue(settings: AutopilotSettings, counts: EngineCou
   if (due.length === 0) return;
 
   const stats = await variantStats();
+  const copyState = await loadCopyState();
   const tcoins = await tcoinsLimits();
   const approved = await approvedTemplateNames();
 
@@ -365,7 +350,10 @@ export async function dispatchDue(settings: AutopilotSettings, counts: EngineCou
 
       let coins = 0;
       const coinsExpireAt = new Date(now.getTime() + offerExpiryDays(settings, playbook.key) * DAY_MS);
-      if (step.offer && tcoins.enabled) {
+      const alreadyOffered =
+        step.offer &&
+        (await db.selectFrom("revOffers").select("id").where("enrolmentId", "=", enrolment.id).executeTakeFirst()) !== undefined;
+      if (step.offer && tcoins.enabled && !alreadyOffered) {
         coins = offerCoins({
           takeRupees: await takeForContext(enrolment.context),
           cartRupees: enrolment.context.amount,
@@ -376,16 +364,14 @@ export async function dispatchDue(settings: AutopilotSettings, counts: EngineCou
         });
       }
       const slot: TemplateSlot = coins > 0 ? "offer" : enrolment.nextStep === 1 ? "first" : "followup";
-      const slotTemplate = resolveTemplate(playbook.key, slot, approved, settings.whatsappTemplates);
-      const template = slotTemplate ?? resolveTemplate(playbook.key, "followup", approved, settings.whatsappTemplates);
+      const usable = (name: string) => templateUsable(name, enrolment.context);
+      const slotTemplate = resolveTemplate(playbook.key, slot, approved, settings.whatsappTemplates, usable);
+      const template = slotTemplate ?? resolveTemplate(playbook.key, "followup", approved, settings.whatsappTemplates, usable);
       const preferWhatsApp = slot === "first" || (slot === "offer" && slotTemplate !== null);
       const choice: ChannelChoice | null = await chooseChannel(enrolment.userId, template, preferWhatsApp);
       const variantKey = pickVariant(
-        stats.get(`${playbook.key}:${enrolment.nextStep}`) ?? [
-          { key: "a", sends: 0, conversions: 0 },
-          { key: "b", sends: 0, conversions: 0 },
-        ]
-      ) as "a" | "b";
+        statsForLiveKeys(copyState.liveKeys(playbook.key, enrolment.nextStep), stats.get(`${playbook.key}:${enrolment.nextStep}`))
+      );
 
       if (!choice) {
         await db
@@ -456,7 +442,7 @@ export async function dispatchDue(settings: AutopilotSettings, counts: EngineCou
       }
 
       const coinsExpireOn = expiryLabel.format(coinsExpireAt);
-      const copy = step.variants[variantKey](enrolment.context, coins, coinsExpireOn);
+      const copy = copyState.copyFor(playbook, enrolment.nextStep, variantKey, enrolment.context, coins, coinsExpireOn);
       if (settings.shadow) {
         await db.updateTable("revMessages").set({ status: "skipped", error: "shadow" }).where("id", "=", message.id).execute();
         counts.shadow++;
@@ -469,12 +455,15 @@ export async function dispatchDue(settings: AutopilotSettings, counts: EngineCou
         if (choice.channel === "push") {
           outcome = await sendPush({ tokens: choice.tokens, title: copy.subject, body: copy.body, path, messageId: message.id });
         } else if (choice.channel === "whatsapp") {
+          const ownPath = templateLinkPath(choice.template, enrolment.context);
+          const whatsappUrl = ownPath ? await createMessageLink(message.id, ownPath) : url;
           outcome = await sendWhatsAppTemplate({
             phone: choice.phone,
             template: choice.template,
             name: enrolment.context.firstName,
-            variables: whatsappVariables(choice.template, enrolment.context, coins, coinsExpireOn),
-            linkCode: new URL(url).searchParams.get("c") ?? "",
+            variables: templateVariables(choice.template, enrolment.context, coins, coinsExpireOn),
+            linkCode: new URL(whatsappUrl).searchParams.get("c") ?? "",
+            mediaUrl: headerImageFor(choice.template, enrolment.context.imageUrl),
           });
           if (!outcome.ok) {
             const fallback = await emailFallback(enrolment.userId);
@@ -545,6 +534,8 @@ export async function rescueFailedWhatsApp(settings: AutopilotSettings, counts: 
     ORDER BY m.id
     LIMIT ${MAX_RESCUE_PER_RUN}
   `.execute(db);
+  if (rows.rows.length === 0) return;
+  const copyState = await loadCopyState();
   for (const row of rows.rows) {
     const messageId = String(pick(row, "id"));
     const userId = num(row, "user_id");
@@ -552,7 +543,7 @@ export async function rescueFailedWhatsApp(settings: AutopilotSettings, counts: 
     try {
       const playbook = PLAYBOOKS.get(String(pick(row, "playbook_key")));
       const step = playbook?.steps[num(row, "step") - 1];
-      const variant = String(pick(row, "variant_key") ?? "a") === "b" ? "b" : "a";
+      const variant = String(pick(row, "variant_key") ?? "a");
       const ctx = (pick(row, "context") ?? {}) as unknown as PlaybookContext;
       const fallback = await emailFallback(userId);
       const goal = playbook ? await reachedGoal(playbook, userId, new Date(String(pick(row, "trigger_at")))) : null;
@@ -567,7 +558,7 @@ export async function rescueFailedWhatsApp(settings: AutopilotSettings, counts: 
       const coins = num(row, "coins");
       const expires = pick(row, "expires_at");
       const coinsExpireOn = expiryLabel.format(expires ? new Date(String(expires)) : new Date(now.getTime() + offerExpiryDays(settings, playbook.key) * DAY_MS));
-      const copy = step.variants[variant](ctx, coins, coinsExpireOn);
+      const copy = copyState.copyFor(playbook, num(row, "step"), variant, ctx, coins, coinsExpireOn);
       const url = await createMessageLink(messageId, playbook.link(ctx));
       await db
         .updateTable("revMessages")

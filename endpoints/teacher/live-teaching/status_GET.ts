@@ -20,6 +20,7 @@ export async function handle(request: Request) {
     const output: OutputType = {
       status: state.status,
       checklist: state.checklist,
+      contact: state.contact,
       introVideoUrl: state.introVideoUrl,
       decisionReason:
         latest && (latest.status === "rejected" || latest.status === "revoked") ? latest.decisionReason : null,

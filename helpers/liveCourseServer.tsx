@@ -7,7 +7,9 @@ import { LIVE_COURSE_REFUND_CLOSES_AT_CLASS, liveCourseSlugBase } from "./liveCo
 /*
  * Server-only live course logic. A live course owns its classes as group_lessons rows
  * (live_course_id), so the classroom, Daily rooms, chat and the teacher's shared calendar work for
- * them unchanged. Live course sales credit no teacher earnings until a payout model is decided.
+ * them unchanged. Teachers earn per held class up to the course's min classes (see
+ * liveCourseEarnings in liveCourseRules and the live_course branch of teacherEarningsSql); classes
+ * that can no longer reach the min are refunded to students by liveCourseShortfall.
  */
 
 type Exec = Kysely<DB>;
@@ -184,9 +186,10 @@ export async function refundUnfulfilledCashfreeOrder(args: {
 }
 
 /**
- * Refunds one enrolment in full through Cashfree and frees the seat. `force` skips the refund
- * window (admins, and a cancelled course). The Cashfree call runs outside any transaction; the
- * refund id is fixed per enrolment, so a retry never refunds twice.
+ * Refunds what is left of one enrolment (the price less any shortfall refunds already made) through
+ * Cashfree and frees the seat; the teacher's credits for that student drop out with it. `force`
+ * skips the refund window (admins, and a course that can no longer hold any class). The Cashfree
+ * call runs outside any transaction; the refund id is fixed per enrolment, so a retry never refunds twice.
  */
 export async function refundLiveCourseEnrollment(args: {
   enrollmentId: string;
@@ -202,6 +205,7 @@ export async function refundLiveCourseEnrollment(args: {
       "liveCourseEnrollments.status",
       "liveCourseEnrollments.enrolledAt",
       "liveCourseEnrollments.amountPaid",
+      "liveCourseEnrollments.shortfallRefundAmount",
       "liveCourseEnrollments.refundRequestedAt",
       "orders.id as orderId",
       "orders.paymentMethod",
@@ -220,6 +224,8 @@ export async function refundLiveCourseEnrollment(args: {
       throw new LiveCourseError("The refund window closed when the 3rd class started.");
     }
   }
+  const amount = Math.round((Number(row.amountPaid) - Number(row.shortfallRefundAmount)) * 100) / 100;
+  if (amount <= 0) throw new LiveCourseError("Nothing is left to refund on this enrolment.");
 
   const claimed = await db
     .updateTable("liveCourseEnrollments")
@@ -233,7 +239,6 @@ export async function refundLiveCourseEnrollment(args: {
     .executeTakeFirst();
   if (!claimed) throw new LiveCourseError("A refund for this enrolment is already being processed.");
 
-  const amount = Number(row.amountPaid);
   let refund: CashfreeRefund;
   try {
     refund = await startCashfreeRefund({
@@ -280,15 +285,15 @@ export async function refundLiveCourseEnrollment(args: {
 }
 
 /**
- * Cancels a whole course: every scheduled class is cancelled and every enrolled student refunded
- * in full, whatever the refund window says. Refund failures are returned, not thrown, so one bad
- * payment does not stop the rest.
+ * Cancels a whole course and every scheduled class. Refunds are not made here: the caller runs
+ * reconcileShortfallRefunds (liveCourseShortfall), which pays each student back for the min
+ * classes that were not held, in full when none were.
  */
 export async function cancelWholeCourse(args: {
   courseId: string;
   reason: string;
   by: string;
-}): Promise<{ refunded: RefundOutcome[]; failed: { enrollmentId: string; error: string }[] }> {
+}): Promise<void> {
   await db.transaction().execute(async (trx) => {
     const course = await trx.selectFrom("liveCourses").select(["id", "status"]).where("id", "=", args.courseId).forUpdate().executeTakeFirst();
     if (!course) throw new LiveCourseError("Live course not found.", 404);
@@ -305,23 +310,6 @@ export async function cancelWholeCourse(args: {
       .where("status", "=", "scheduled")
       .execute();
   });
-
-  const enrollments = await db
-    .selectFrom("liveCourseEnrollments")
-    .select("id")
-    .where("liveCourseId", "=", args.courseId)
-    .where("status", "=", "enrolled")
-    .execute();
-  const refunded: RefundOutcome[] = [];
-  const failed: { enrollmentId: string; error: string }[] = [];
-  for (const e of enrollments) {
-    try {
-      refunded.push(await refundLiveCourseEnrollment({ enrollmentId: e.id, by: args.by, force: true }));
-    } catch (error) {
-      failed.push({ enrollmentId: e.id, error: error instanceof Error ? error.message : "Refund failed" });
-    }
-  }
-  return { refunded, failed };
 }
 
 export type CourseStudent = {

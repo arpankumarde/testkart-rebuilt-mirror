@@ -28,8 +28,12 @@ import {
   Building2,
   Plus,
   Video,
+  ClipboardList,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { useAuth } from '../helpers/useAuth';
+import { useLiveTeachingStatusPeek } from '../helpers/useLiveTeaching';
+import type { LiveTeachingStatus } from '../helpers/liveTeachingRules';
 import { Button } from './Button';
 import { LogoutConfirmDialog } from './LogoutConfirmDialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from './Tooltip';
@@ -44,6 +48,7 @@ import styles from './TeacherSidebar.module.css';
 
 const RAIL_KEY = 'teacher_sidebar_rail';
 const EXPANDED_GROUPS_KEY = 'teacher_sidebar_expanded_groups';
+const LIVE_STATUS_KEY = 'teacher_live_status';
 
 const readJson = <T,>(key: string, fallback: T): T => {
   if (typeof window === 'undefined') return fallback;
@@ -71,6 +76,8 @@ type TeacherNavItem = {
   /** Content items draw their kind's colour tile instead of a plain icon. */
   kind?: TeacherContentKind;
   badge?: string;
+  /** Badge colour: mint by default, butter while waiting, peach when the teacher must act. */
+  badgeTone?: 'pending' | 'alert';
   /** A live count from the overview's attention block, shown when above zero. */
   count?: { read: (attention: TeacherAttentionCounts) => number; noun: string };
   /** Hidden from team managers, who do not own the academy's money, plan or public profile. */
@@ -133,30 +140,11 @@ const NAV_GROUPS: TeacherNavGroup[] = [
       contentItem('bundle', (a) => a.reviewsPendingBundles, (p) => p.startsWith('/teacher/bundles')),
     ],
   },
-  // Until a teacher is approved, Offerings opens the live teaching application.
+  // Filled per teacher by liveTeachingItems: Application until approved, then Live settings.
   {
     key: 'live_teaching',
     label: 'Live Teaching',
-    items: [
-      {
-        href: '/teacher/mentorship',
-        label: 'Offerings',
-        icon: Video,
-        isActiveFor: (p) => p === '/teacher/mentorship',
-      },
-      {
-        href: '/teacher/mentorship/bookings',
-        label: '1:1 bookings',
-        icon: Users,
-        isActiveFor: (p) => p.startsWith('/teacher/mentorship/bookings'),
-      },
-      {
-        href: '/teacher/live-courses',
-        label: 'Live courses',
-        icon: Megaphone,
-        isActiveFor: (p) => p.startsWith('/teacher/live-courses'),
-      },
-    ],
+    items: [],
   },
   {
     key: 'library',
@@ -221,6 +209,40 @@ const NAV_GROUPS: TeacherNavGroup[] = [
   },
 ];
 
+/*
+ * Before approval the group holds only the application, badged while it is in
+ * review or needs changes. Approval renames it Live settings and moves it to
+ * the end, after the daily pages: 1:1 bookings, then live courses. A paused
+ * teacher keeps those pages for history.
+ */
+const liveTeachingItems = (status: LiveTeachingStatus): TeacherNavItem[] => {
+  const approved = status === 'approved';
+  const entry: TeacherNavItem = {
+    href: '/teacher/mentorship',
+    label: approved ? 'Live settings' : 'Application',
+    icon: approved ? SlidersHorizontal : ClipboardList,
+    isActiveFor: (p) => p === '/teacher/mentorship',
+    badge: status === 'pending' ? 'Pending' : status === 'rejected' || status === 'revoked' ? 'Action' : undefined,
+    badgeTone: status === 'pending' ? 'pending' : status === 'rejected' || status === 'revoked' ? 'alert' : undefined,
+  };
+  if (!approved && status !== 'revoked') return [entry];
+  return [
+    {
+      href: '/teacher/mentorship/bookings',
+      label: '1:1 bookings',
+      icon: Video,
+      isActiveFor: (p) => p.startsWith('/teacher/mentorship/bookings'),
+    },
+    {
+      href: '/teacher/live-courses',
+      label: 'Live courses',
+      icon: Megaphone,
+      isActiveFor: (p) => p.startsWith('/teacher/live-courses'),
+    },
+    entry,
+  ];
+};
+
 const NavItemLink = ({
   item,
   rail,
@@ -261,7 +283,11 @@ const NavItemLink = ({
           <span className={styles.visuallyHidden}>{countText}</span>
         </span>
       ) : (
-        item.badge && <span className={styles.navBadge}>{item.badge}</span>
+        item.badge && (
+          <span className={styles.navBadge} data-tone={item.badgeTone}>
+            {item.badge}
+          </span>
+        )
       )}
     </NavLink>
   );
@@ -283,10 +309,9 @@ interface TeacherSidebarProps {
   className?: string;
   isMobileOpen?: boolean;
   onMobileClose?: () => void;
-  // Opt-in initial state only — every existing caller omits this and keeps
-  // getting the sidebar expanded by default, same as before. Used by the
-  // full-page question editor to start collapsed and give the editor more
-  // room; the collapse/expand toggle still works normally either way.
+  // Opt-in initial state only - when set the sidebar starts collapsed and
+  // ignores the remembered choice; the collapse/expand toggle still works
+  // normally either way.
   defaultCollapsed?: boolean;
 }
 
@@ -311,13 +336,23 @@ export const TeacherSidebar: React.FC<TeacherSidebarProps> = ({
   const { data: overview } = useTeacherDashboardOverview('30d', user?.role === 'teacher');
   const attention = overview?.attention ?? null;
 
+  // The last known status paints the first frame, so an approved teacher never sees "Application" flash.
+  const liveStatusQuery = useLiveTeachingStatusPeek(user?.role === 'teacher');
+  const [rememberedLiveStatus] = useState<LiveTeachingStatus>(() => readJson<LiveTeachingStatus>(LIVE_STATUS_KEY, 'none'));
+  const liveStatus = liveStatusQuery.data?.status ?? rememberedLiveStatus;
+  useEffect(() => {
+    if (liveStatusQuery.data) writeJson(LIVE_STATUS_KEY, liveStatusQuery.data.status);
+  }, [liveStatusQuery.data]);
+
   const groups = useMemo(
     () =>
       NAV_GROUPS.map((group) => ({
         ...group,
-        items: group.items.filter((item) => !(item.ownerOnly && isManager)),
+        items: (group.key === 'live_teaching' ? liveTeachingItems(liveStatus) : group.items).filter(
+          (item) => !(item.ownerOnly && isManager)
+        ),
       })).filter((group) => group.items.length > 0),
-    [isManager]
+    [isManager, liveStatus]
   );
 
   // A route the editor forces collapsed stays collapsed; otherwise the

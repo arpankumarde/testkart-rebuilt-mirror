@@ -3,6 +3,7 @@ import type { OutputType as Session } from "../endpoints/auth/session_GET.schema
 import type { OutputType as Status } from "../endpoints/teacher/live-teaching/status_GET.schema";
 import type { OutputType as Rate } from "../endpoints/teacher/mentorship/rate_GET.schema";
 import type { OutputType as Availability } from "../endpoints/teacher/mentorship/availability/get_GET.schema";
+import type { LiveTeachingChecklistKey } from "../helpers/liveTeachingRules";
 
 const me: Session = {
   user: {
@@ -16,20 +17,63 @@ const me: Session = {
     mobileVerified: true,
     emailVerified: true,
     onboardingCompleted: true,
+    tagline: "SSC Maths made simple",
+    bio: "",
+    languages: ["Hindi", "English"],
+    expertiseAreas: ["Quantitative Aptitude"],
   },
 };
 
-const status: Status = {
-  status: "approved",
-  checklist: [],
-  introVideoUrl: "https://cdn.testkart.in/platform/marketing/live-onboarding-sample.mp4",
+const LABELS: Record<LiveTeachingChecklistKey, string> = {
+  email: "Email address",
+  phone: "Phone number",
+  photo: "Profile photo",
+  headline: "Headline",
+  bio: "Bio of 150+ characters",
+  subjects: "Subjects you teach",
+  languages: "Languages you speak",
+  rate: "1:1 rate",
+  hours: "Weekly hours",
+  video: "Intro video",
+};
+
+const checklist = (missing: LiveTeachingChecklistKey[]) =>
+  (Object.keys(LABELS) as LiveTeachingChecklistKey[]).map((key) => ({
+    key,
+    label: LABELS[key],
+    done: !missing.includes(key),
+  }));
+
+const VIDEO = "https://cdn.testkart.in/platform/marketing/live-onboarding-sample.mp4";
+
+const base: Status = {
+  status: "none",
+  checklist: checklist([]),
+  contact: { email: "teacher@example.test", mobileNumber: "9000000000" },
+  introVideoUrl: null,
   decisionReason: null,
-  appliedAt: new Date("2026-10-01"),
-  decidedAt: new Date("2026-10-03"),
+  appliedAt: null,
+  decidedAt: null,
   withdrawnAt: null,
   pendingVideo: null,
   videoRejection: null,
   isOwner: true,
+};
+
+const fresh: Status = {
+  ...base,
+  contact: { email: "teacher@example.test", mobileNumber: null },
+  checklist: checklist(["phone", "photo", "bio", "rate", "hours", "video"]),
+};
+
+const ready: Status = { ...base, introVideoUrl: VIDEO };
+
+const approved: Status = {
+  ...base,
+  status: "approved",
+  introVideoUrl: VIDEO,
+  appliedAt: new Date("2026-10-01"),
+  decidedAt: new Date("2026-10-03"),
 };
 
 const rate: Rate = {
@@ -65,19 +109,85 @@ const availability: Availability = {
 export default defineScreens({
   backend: {
     "auth/session_GET": me,
-    "teacher/live-teaching/status_GET": status,
+    "teacher/live-teaching/status_GET": approved,
     "teacher/mentorship/rate_GET": rate,
+    "teacher/mentorship/availability/get_GET": availability,
     "teacher/dashboard/overview_GET": pending,
   },
   screens: [
     {
-      title: "Weekly hours",
-      description: "Two ranges on Tuesday, an overlap on Wednesday, Thursday off, an invalid Friday range, weekend empty",
-      backend: { "teacher/mentorship/availability/get_GET": availability },
+      title: "Not applied",
+      description: "Landing before applying: phone, photo, bio, prices, hours and video still missing",
+      route: "/teacher/mentorship",
+      backend: { "teacher/live-teaching/status_GET": fresh },
     },
     {
-      title: "No hours yet",
-      backend: { "teacher/mentorship/availability/get_GET": { timezone: "Asia/Kolkata", windows: [], blockedDates: [] } },
+      title: "Step 1 - Contact",
+      description: "Email on the account, phone missing and editable",
+      route: "/teacher/mentorship?step=contact",
+      backend: { "teacher/live-teaching/status_GET": fresh },
+    },
+    {
+      title: "Step 2 - Profile",
+      route: "/teacher/mentorship?step=profile",
+      backend: { "teacher/live-teaching/status_GET": fresh },
+    },
+    {
+      title: "Step 3 - Prices",
+      route: "/teacher/mentorship?step=prices",
+      backend: { "teacher/live-teaching/status_GET": fresh },
+    },
+    {
+      title: "Step 4 - Hours",
+      description: "Two ranges on Tuesday, an overlap on Wednesday, Thursday off, an invalid Friday range",
+      route: "/teacher/mentorship?step=hours",
+      backend: { "teacher/live-teaching/status_GET": fresh },
+    },
+    {
+      title: "Step 5 - Intro video",
+      route: "/teacher/mentorship?step=video",
+      backend: { "teacher/live-teaching/status_GET": fresh },
+    },
+    {
+      title: "Step 6 - Review (ready)",
+      route: "/teacher/mentorship?step=review",
+      backend: { "teacher/live-teaching/status_GET": ready },
+    },
+    {
+      title: "Submitted - pending approval",
+      route: "/teacher/mentorship",
+      backend: {
+        "teacher/live-teaching/status_GET": { ...ready, status: "pending", appliedAt: new Date("2026-11-19") },
+      },
+    },
+    {
+      title: "Rejected - changes needed",
+      route: "/teacher/mentorship",
+      backend: {
+        "teacher/live-teaching/status_GET": {
+          ...ready,
+          status: "rejected",
+          appliedAt: new Date("2026-11-10"),
+          decidedAt: new Date("2026-11-12"),
+          decisionReason: "Your intro video is very quiet. Please record it again in a quieter room and say what you teach.",
+        },
+      },
+    },
+    {
+      title: "Approved - Live settings",
+      route: "/teacher/mentorship",
+    },
+    {
+      title: "Approved - Availability tab",
+      route: "/teacher/mentorship?tab=availability",
+    },
+    {
+      title: "Approved - bookings off, no hours",
+      route: "/teacher/mentorship",
+      backend: {
+        "teacher/mentorship/rate_GET": { ...rate, enabled: false },
+        "teacher/mentorship/availability/get_GET": { timezone: "Asia/Kolkata", windows: [], blockedDates: [] },
+      },
     },
   ],
 });

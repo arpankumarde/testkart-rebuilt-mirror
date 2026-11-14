@@ -4,6 +4,7 @@ import { schema, OutputType } from "./update_POST.schema";
 import superjson from "superjson";
 import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
 import { ZodError } from "zod";
+import { syncWaplifyContact } from "../../../helpers/syncWaplifyContact";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -90,6 +91,13 @@ export async function handle(request: Request): Promise<Response> {
         superjson.stringify({ error: "User not found or no changes made" }),
         { status: 404 }
       );
+    }
+
+    const nameChanged =
+      validatedInput.displayName !== undefined &&
+      (user.id !== effectiveTeacherId || validatedInput.displayName.trim() !== (user.displayName ?? "").trim());
+    if (nameChanged) {
+      await syncWaplifyContact(effectiveTeacherId);
     }
 
     const output: OutputType = {

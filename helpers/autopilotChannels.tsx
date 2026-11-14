@@ -142,6 +142,8 @@ export async function sendWhatsAppTemplate(params: {
   name: string;
   variables: string[];
   linkCode: string;
+  /** The image for a template with an image header; leave out for text-header templates. */
+  mediaUrl?: string | null;
 }): Promise<SendOutcome> {
   const apiKey = process.env.WAPLIFY_API_KEY;
   if (!apiKey) return { ok: false, error: "WAPLIFY_API_KEY is not set" };
@@ -155,6 +157,7 @@ export async function sendWhatsAppTemplate(params: {
         contact_name: params.name,
         body_data: Object.fromEntries(params.variables.map((value, index) => [String(index + 1), value.slice(0, 200)])),
         url_button_data: params.linkCode,
+        ...(params.mediaUrl ? { media_url: params.mediaUrl } : {}),
       }),
       signal: AbortSignal.timeout(10000),
     });
@@ -165,6 +168,35 @@ export async function sendWhatsAppTemplate(params: {
     return { ok: true, providerId: payload.message_id ?? null };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : "WhatsApp send failed" };
+  }
+}
+
+/**
+ * A plain WhatsApp text, allowed only inside the 24 hours after the person last wrote to us
+ * (a quick-reply tap counts), so it is used only to answer one. Quotes their message when given.
+ */
+export async function sendWhatsAppText(params: { phone: string; text: string; replyTo?: string | null }): Promise<SendOutcome> {
+  const apiKey = process.env.WAPLIFY_API_KEY;
+  if (!apiKey) return { ok: false, error: "WAPLIFY_API_KEY is not set" };
+  try {
+    const response = await fetch(`${WAPLIFY_ENDPOINT}/api/v1/messages/send-message`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contact_phone: params.phone,
+        message_type: "text",
+        message: params.text.slice(0, 4000),
+        ...(params.replyTo && params.replyTo.startsWith("wamid.") ? { reply_to_message_id: params.replyTo } : {}),
+      }),
+      signal: AbortSignal.timeout(10000),
+    });
+    const payload = (await response.json().catch(() => ({}))) as { message_id?: string; detail?: unknown; message?: string };
+    if (!response.ok) {
+      return { ok: false, error: `Waplify ${response.status}: ${JSON.stringify(payload.detail ?? payload.message ?? "").slice(0, 300)}` };
+    }
+    return { ok: true, providerId: payload.message_id ?? null };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "WhatsApp text failed" };
   }
 }
 

@@ -1,13 +1,19 @@
 /*
  * Live teaching (1:1 sessions and group classes) is approval-only. A teacher
- * applies once their profile, 1:1 rate, weekly hours and an uploaded intro
- * video are in place; an admin approves, rejects or later revokes. Shared by
- * the teacher page, the teacher endpoints and the admin review page.
+ * applies once their contact details, profile, 1:1 rate, weekly hours and an
+ * uploaded intro video are in place; an admin approves, rejects or later
+ * revokes. Shared by the teacher page, the teacher endpoints and the admin
+ * review page.
  */
 
 export const LIVE_TEACHING_MIN_BIO_CHARS = 150;
+export const LIVE_TEACHING_HEADLINE_MAX = 150;
 export const LIVE_TEACHING_VIDEO_FOLDER = "teacher-intro-videos";
 export const LIVE_TEACHING_VIDEO_MAX_MB = 200;
+
+/** Account contact rules, the same ones teacher signup and onboarding use. */
+export const INDIAN_MOBILE_PATTERN = /^[6-9]\d{9}$/;
+export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const LiveTeachingStatusValues = ["none", "pending", "approved", "rejected", "revoked"] as const;
 export type LiveTeachingStatus = (typeof LiveTeachingStatusValues)[number];
@@ -20,6 +26,8 @@ export const canApplyFromStatus = (status: LiveTeachingStatus) =>
   status === "none" || status === "rejected" || status === "revoked";
 
 export type LiveTeachingChecklistKey =
+  | "email"
+  | "phone"
   | "photo"
   | "headline"
   | "bio"
@@ -36,6 +44,8 @@ export type LiveTeachingChecklistItem = {
 };
 
 export type LiveTeachingProfileFacts = {
+  email: string | null;
+  mobileNumber: string | null;
   avatarUrl: string | null;
   tagline: string | null;
   bio: string | null;
@@ -62,6 +72,8 @@ export function isUploadedIntroVideoUrl(url: string | null | undefined): boolean
 
 export function buildLiveTeachingChecklist(facts: LiveTeachingProfileFacts): LiveTeachingChecklistItem[] {
   return [
+    { key: "email", label: "Email address", done: filled(facts.email) },
+    { key: "phone", label: "Phone number", done: filled(facts.mobileNumber) },
     { key: "photo", label: "Profile photo", done: filled(facts.avatarUrl) },
     { key: "headline", label: "Headline", done: filled(facts.tagline) },
     {

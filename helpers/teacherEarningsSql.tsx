@@ -229,8 +229,9 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
 }
 
 /**
- * Live teaching sales: paid 1:1 classes (kind 'live_session') and paid group
- * class seats (kind 'group_class'). Same columns as earningsRowsFragment plus
+ * Live teaching sales: paid 1:1 classes (kind 'live_session'), paid group
+ * class seats (kind 'group_class') and held live course classes (kind
+ * 'live_course'). Same columns as earningsRowsFragment plus
  * `fee_percentage`, the platform fee stored at purchase.
  *
  * A row counts only once the session has been held, the way live-test money
@@ -245,11 +246,17 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
  *     cancels the old row and adds a new one under the same order, so the
  *     newest live booking is used) and its end time has passed;
  *   - group class: the class was not cancelled, its end time has passed and
- *     the buyer still holds the seat (not left, not removed).
+ *     the buyer still holds the seat (not left, not removed);
+ *   - live course (kind 'live_course', one row per student per held class):
+ *     each of the first min classes held (live_courses.min_classes, less the
+ *     classes already refunded to that student as a shortfall) earns the
+ *     student's price / min classes, less the fee stored on the order item.
+ *     Late joiners count for every class already held; extra classes earn
+ *     nothing. sold_at is the class start.
  * Bookings made before order_items.mentorship_teacher_id existed are not
  * counted. A refund moves the order off 'completed', so it drops out here; a
- * credit with an order counts only while that order is completed. Live courses
- * pay teachers nothing yet, so they have no branch.
+ * credit with an order counts only while that order is completed, and a live
+ * course enrolment only while it is still enrolled.
  *
  * Every branch here and in earningsRowsFragment skips Cashfree sandbox orders
  * (orders.gateway_env = 'sandbox'): test money is never earnings.
@@ -345,6 +352,39 @@ function liveSessionRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: Teacher
       )
       ${teacherFilter("gl.teacher_id", teacherIdExpr)}
       ${windowFilter("o.created_at", window)}
+    UNION ALL
+    SELECT (lce.amount_paid / lc.min_classes) * (1 - oi.platform_fee_percentage / 100) AS earnings,
+           (lce.amount_paid / lc.min_classes) AS gross,
+           held.start_time AS sold_at,
+           o.id AS order_id,
+           lce.student_id AS buyer_id,
+           'live_course'::text AS kind,
+           (lc.title || ' - class ' || held.class_no)::text AS title,
+           lc.thumbnail_url::text AS thumbnail,
+           held.id AS item_id,
+           NULL::integer AS promo_code_id,
+           0::numeric AS discount,
+           lc.teacher_id AS teacher_id,
+           oi.platform_fee_percentage AS fee_percentage
+    FROM live_course_enrollments lce
+    JOIN live_courses lc ON lc.id = lce.live_course_id
+    JOIN orders o ON o.id = lce.order_id
+    JOIN order_items oi ON oi.order_id = o.id AND oi.live_course_id = lc.id
+    JOIN LATERAL (
+      SELECT ranked.id, ranked.start_time, ranked.class_no
+      FROM (
+        SELECT g.id, g.start_time, ROW_NUMBER() OVER (ORDER BY g.start_time, g.id) AS class_no
+        FROM group_lessons g
+        WHERE g.live_course_id = lc.id AND g.status = 'completed'
+      ) ranked
+      WHERE ranked.class_no <= lc.min_classes - lce.shortfall_refunded_classes
+    ) held ON TRUE
+    WHERE lce.status = 'enrolled'
+      AND lc.min_classes IS NOT NULL
+      AND o.status = 'completed'
+      AND o.gateway_env IS DISTINCT FROM 'sandbox'
+      ${teacherFilter("lc.teacher_id", teacherIdExpr)}
+      ${windowFilter("held.start_time", window)}
   )`;
 }
 
@@ -359,7 +399,7 @@ function allEarningsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEarn
 
 /**
  * Net earnings across ALL sale types (mock tests, courses, digital products,
- * bundles, and held 1:1 sessions and group classes), net of the platform fee captured at time of sale
+ * bundles, and held 1:1 sessions, group classes and live course classes), net of the platform fee captured at time of sale
  * (falling back to the teacher's current live fee only for legacy bundle
  * orders that predate the stored-fee column). Excludes teacher-sponsored
  * orders (those are accounted for separately via

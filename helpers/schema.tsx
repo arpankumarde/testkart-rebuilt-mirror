@@ -1303,6 +1303,11 @@ export interface LiveCourseEnrollments {
   refundId: string | null;
   refundRequestedAt: Timestamp | null;
   refundStatus: string | null;
+  shortfallRefundAmount: Generated<Numeric>;
+  shortfallRefundedClasses: Generated<number>;
+  shortfallRefundId: string | null;
+  shortfallRefundRequestedAt: Timestamp | null;
+  shortfallRefundStatus: string | null;
   status: Generated<string>;
   studentId: number;
   updatedAt: Generated<Timestamp>;
@@ -1330,6 +1335,7 @@ export interface LiveCourses {
   id: Generated<string>;
   languages: Generated<string[]>;
   level: Generated<CourseLevel>;
+  minClasses: number | null;
   originalPrice: Numeric | null;
   price: Generated<Numeric>;
   publishedAt: Timestamp | null;
@@ -2196,6 +2202,27 @@ export interface QuestionBank {
   tags: string[] | null;
   teacherId: number;
   updatedAt: Generated<Timestamp | null>;
+}
+
+export interface RevCopyVariants {
+  aiModel: string | null;
+  body: string | null;
+  brief: string | null;
+  builtinKey: string | null;
+  createdAt: Generated<Timestamp>;
+  createdByAdminId: number | null;
+  cta: string | null;
+  decidedByAdminId: number | null;
+  heading: string | null;
+  id: Generated<number>;
+  liveAt: Timestamp | null;
+  playbookKey: string;
+  retiredAt: Timestamp | null;
+  source: Generated<string>;
+  status: Generated<string>;
+  step: number;
+  subject: string | null;
+  updatedAt: Generated<Timestamp>;
 }
 
 export interface RevEnrolments {
@@ -3189,6 +3216,7 @@ export interface DB {
   promoCodeUsages: PromoCodeUsages;
   pushTokens: PushTokens;
   questionBank: QuestionBank;
+  revCopyVariants: RevCopyVariants;
   revEnrolments: RevEnrolments;
   reviews: Reviews;
   revMessages: RevMessages;

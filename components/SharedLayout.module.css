@@ -255,7 +255,8 @@
 }
 
 /* Right zone: utilities (search, cart, theme) together, a hairline separator, then the account
-   actions (Log In and Create Account, or the avatar), then the hamburger below 1200px. */
+   actions (Log In and Create Account, or the avatar), then the hamburger below 1200px.
+   Signed-in teachers get no search or cart; Create and an avatar + Dashboard link replace the menu. */
 .headerActions {
   display: flex;
   align-items: center;
@@ -351,6 +352,72 @@
 .signupButton:focus-visible {
   outline: 2px solid var(--tk-brand-text);
   outline-offset: 3px;
+}
+
+/* Teacher actions share one tray that mirrors the main nav (same tray fill, hairline edge and
+   radii), so the header reads as two matching controls. Inside: Create as the one filled peach
+   chip, then the account link styled like a nav link - avatar, then "Dashboard". */
+.teacherTray {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  background-color: var(--nav-tray);
+  border: 1px solid var(--nav-tray-line);
+  border-radius: 0.875rem;
+}
+
+.teacherTray .createButton,
+.teacherTray .dashboardButton {
+  display: inline-flex;
+  align-items: center;
+  height: 2.25rem;
+  border-radius: 0.625rem;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.006em;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--animation-duration-fast) ease, color var(--animation-duration-fast) ease;
+}
+
+.teacherTray .createButton {
+  gap: 6px;
+  padding: 0 0.875rem 0 0.625rem;
+  border: 1px solid var(--sp-peach-edge);
+  background: var(--sp-cta);
+  color: var(--sp-cta-ink);
+}
+
+.teacherTray .createButton:hover {
+  background: var(--sp-cta-hover);
+}
+
+.teacherTray .dashboardButton {
+  gap: var(--spacing-2);
+  padding: 0 var(--spacing-3) 0 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--nav-text);
+}
+
+.teacherTray .dashboardButton:hover {
+  background: var(--nav-tray-hover);
+  color: var(--nav-ink);
+}
+
+.teacherTray .dashboardAvatar {
+  width: 1.5rem;
+  height: 1.5rem;
+  box-shadow: 0 0 0 1px var(--nav-tray-line);
+}
+
+.teacherTray .createButton:focus-visible,
+.teacherTray .dashboardButton:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 1px;
 }
 
 /* Plain icon buttons: no resting fill, a soft rounded-square surface on hover. The theme toggle
@@ -463,7 +530,8 @@
   .actionsDivider,
   .signupButton,
   .loginButton,
-  .authLoading {
+  .authLoading,
+  .teacherTray {
     display: none;
   }
 
