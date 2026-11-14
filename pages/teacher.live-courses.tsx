@@ -1,7 +1,7 @@
 import React from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
-import { CalendarDays, Plus, Radio, Users } from "lucide-react";
+import { CalendarDays, ChevronRight, Clock, Plus, Radio, Users } from "lucide-react";
 import { useTeacherLiveCoursesQuery } from "../helpers/useLiveCourses";
 import { formatIstDate, formatIstShort, formatRupees, teacherLiveCoursePath } from "../helpers/liveCourseRules";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
@@ -15,6 +15,12 @@ const STATUS: Record<string, { label: string; tone: string }> = {
   published: { label: "Live", tone: "mint" },
   completed: { label: "Completed", tone: "sage" },
   cancelled: { label: "Cancelled", tone: "peach" },
+};
+
+const LEVEL_LABEL: Record<string, string> = {
+  beginner: "Beginner",
+  intermediate: "Intermediate",
+  advanced: "Advanced",
 };
 
 const TeacherLiveCoursesPage: React.FC = () => {
@@ -42,8 +48,8 @@ const TeacherLiveCoursesPage: React.FC = () => {
 
         {isLoading ? (
           <div className={styles.grid}>
-            <Skeleton style={{ height: "11rem", borderRadius: "1.25rem" }} />
-            <Skeleton style={{ height: "11rem", borderRadius: "1.25rem" }} />
+            <Skeleton className={styles.skeleton} />
+            <Skeleton className={styles.skeleton} />
           </div>
         ) : !data || data.courses.length === 0 ? (
           <ConsoleListEmpty
@@ -57,25 +63,62 @@ const TeacherLiveCoursesPage: React.FC = () => {
           <div className={styles.grid}>
             {data.courses.map((c) => {
               const status = STATUS[c.status] ?? STATUS.draft;
+              const discounted = c.originalPrice !== null && Number(c.originalPrice) > Number(c.price);
               return (
                 <Link key={c.id} to={teacherLiveCoursePath(c.id)} className={styles.card}>
-                  <div className={styles.cardHead}>
-                    <span className={`${styles.chip} ${styles[`tone_${status.tone}`]}`}>{status.label}</span>
-                    {c.examName && <span className={`${styles.chip} ${styles.tone_lavender}`}>{c.examName}</span>}
-                  </div>
-                  <h2 className={styles.cardTitle}>{c.title}</h2>
-                  <p className={styles.meta}>
-                    <CalendarDays size={14} aria-hidden="true" />
-                    {c.startsOn ? `${formatIstDate(c.startsOn)} to ${formatIstDate(c.endsOn ?? c.startsOn)}` : "No classes yet"}
-                    <span aria-hidden="true">&middot;</span>
-                    {c.classCount} {c.classCount === 1 ? "class" : "classes"}
-                  </p>
-                  {c.nextClassAt && <p className={styles.next}>Next class {formatIstShort(c.nextClassAt)} IST</p>}
-                  <div className={styles.cardFoot}>
-                    <span className={styles.price}>{formatRupees(c.price)}</span>
-                    <span className={styles.seats}>
-                      <Users size={14} aria-hidden="true" /> {c.enrolledCount} / {c.seatLimit}
+                  <div className={styles.media}>
+                    {c.thumbnailUrl ? (
+                      <img src={c.thumbnailUrl} alt="" className={styles.mediaImg} loading="lazy" />
+                    ) : (
+                      <span className={styles.mediaEmpty} aria-hidden="true">
+                        <Radio size={32} />
+                      </span>
+                    )}
+                    <span className={`${styles.status} ${styles[`tone_${status.tone}`]}`}>
+                      <span className={styles.statusDot} aria-hidden="true" />
+                      {status.label}
                     </span>
+                  </div>
+
+                  <div className={styles.body}>
+                    <div className={styles.tags}>
+                      {c.examName && <span className={`${styles.tag} ${styles.tone_lavender}`}>{c.examName}</span>}
+                      <span className={styles.tag}>{LEVEL_LABEL[c.level] ?? c.level}</span>
+                    </div>
+                    <h2 className={styles.cardTitle}>{c.title}</h2>
+                    <p className={styles.meta}>
+                      <CalendarDays size={16} aria-hidden="true" />
+                      <span>
+                        {c.startsOn ? `${formatIstDate(c.startsOn)} to ${formatIstDate(c.endsOn ?? c.startsOn)}` : "No classes yet"}
+                        <span className={styles.metaSep} aria-hidden="true">
+                          &middot;
+                        </span>
+                        {c.classCount} {c.classCount === 1 ? "class" : "classes"}
+                      </span>
+                    </p>
+                    {c.nextClassAt && (
+                      <p className={styles.next}>
+                        <Clock size={16} aria-hidden="true" />
+                        <span>
+                          Next class <strong>{formatIstShort(c.nextClassAt)} IST</strong>
+                        </span>
+                      </p>
+                    )}
+                  </div>
+
+                  <div className={styles.cardFoot}>
+                    <span className={styles.price}>
+                      {formatRupees(c.price)}
+                      {discounted && <span className={styles.struck}>{formatRupees(c.originalPrice as number)}</span>}
+                    </span>
+                    <span className={styles.seats}>
+                      <Users size={16} aria-hidden="true" />
+                      <strong>
+                        {c.enrolledCount} / {c.seatLimit}
+                      </strong>{" "}
+                      seats
+                    </span>
+                    <ChevronRight size={18} aria-hidden="true" className={styles.go} />
                   </div>
                 </Link>
               );

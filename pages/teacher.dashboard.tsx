@@ -1,17 +1,13 @@
 import React, { useState } from "react";
 import { Helmet } from "react-helmet";
 import { useLocation } from "react-router-dom";
-import { RefreshCw } from "lucide-react";
 import { useAuth } from "../helpers/useAuth";
 import { useTeacherDashboardOverview } from "../helpers/useTeacherDashboardOverview";
-import {
-  TeacherOverviewRange,
-  TeacherOverviewRangeValues,
-} from "../endpoints/teacher/dashboard/overview_GET.schema";
+import type { TeacherOverviewRange } from "../endpoints/teacher/dashboard/overview_GET.schema";
 import { teacherStage } from "../helpers/teacherStage";
 import { Button } from "../components/Button";
-import { SegmentedControl } from "../components/SegmentedControl";
 import { Skeleton } from "../components/Skeleton";
+import { TeacherOverviewGreeting } from "../components/TeacherOverviewGreeting";
 import { TeacherOverviewStagePanel } from "../components/TeacherOverviewStagePanel";
 import { TeacherOverviewMoneyPanel } from "../components/TeacherOverviewMoneyPanel";
 import { TeacherOverviewNeedsYou } from "../components/TeacherOverviewNeedsYou";
@@ -25,17 +21,6 @@ import { TeacherOverviewLiveTeaching } from "../components/TeacherOverviewLiveTe
 import { TeamStatusBanner } from "../components/TeamStatusBanner";
 import { AiConnectorCard, AI_CONNECTOR_ANCHOR } from "../components/AiConnectorCard";
 import styles from "./teacher.dashboard.module.css";
-
-const RANGE_LABELS: Record<TeacherOverviewRange, string> = {
-  "7d": "7 days",
-  "30d": "30 days",
-  "90d": "90 days",
-};
-const RANGE_OPTIONS = TeacherOverviewRangeValues.map((value) => ({
-  value,
-  label: RANGE_LABELS[value],
-  ariaLabel: `Last ${RANGE_LABELS[value]}`,
-}));
 
 // The period always opens on 30 days and is not remembered: a remembered
 // range meant someone who once clicked 90 days kept landing on it.
@@ -117,36 +102,23 @@ const TeacherDashboardPage: React.FC = () => {
     <>
       {head}
       <div className={`${styles.page} ${isFetching ? styles.busy : ""}`} aria-busy={isFetching}>
-        <header className={styles.header}>
-          <h1 className={styles.title}>{title}</h1>
-          {selling && (
-            <div className={styles.controls}>
-              <SegmentedControl
-                value={range}
-                onValueChange={setRange}
-                options={RANGE_OPTIONS}
-                aria-label="Period"
-                className={styles.rangeGroup}
-              />
-              <Button
-                variant="outline"
-                size="icon-lg"
-                onClick={() => refetch()}
-                disabled={isFetching}
-                aria-label="Refresh"
-                className={styles.refresh}
-              >
-                <RefreshCw size={16} className={isFetching ? styles.spin : undefined} />
-              </Button>
-            </div>
-          )}
-        </header>
+        <TeacherOverviewGreeting
+          name={user.displayName}
+          avatarUrl={user.avatarUrl ?? null}
+          profileSlug={isManager ? null : user.slug ?? null}
+        />
 
         <div className={styles.main}>
           <TeamStatusBanner />
 
           {selling ? (
-            <TeacherOverviewMoneyPanel data={data} />
+            <TeacherOverviewMoneyPanel
+              data={data}
+              range={range}
+              onRangeChange={setRange}
+              onRefresh={() => refetch()}
+              refreshing={isFetching}
+            />
           ) : (
             <TeacherOverviewStagePanel stage={stage} data={data} profileSlug={isManager ? null : user.slug ?? null} />
           )}

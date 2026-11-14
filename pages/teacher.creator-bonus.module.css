@@ -370,6 +370,17 @@
   transform: translateX(2px);
 }
 
+.trackStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 58% 42% 55% 45% / 48% 58% 42% 52%;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  transform: rotate(-3deg);
+}
+
 /* Exam Bonus: track cards with a shared slot count. */
 .examBonus {
   display: flex;

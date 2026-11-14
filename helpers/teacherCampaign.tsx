@@ -4,6 +4,7 @@ import { lockWallet } from "./walletLock";
 import { loadContentExamList } from "./contentExams";
 import {
   CAMPAIGN_CONTENT_NOUNS,
+  bonusWord,
   evaluateCourseVideos,
   meetsCampaignCriteria,
   missingCriteriaText,
@@ -329,19 +330,20 @@ export async function checkClaimable(
     }
   }
 
-  const req = campaignRequirements(campaign);
-  const criteria = await measureContent(executor, type, id, req);
-  if (!meetsCampaignCriteria(criteria, req)) {
-    return { ok: false, reason: `Add ${missingCriteriaText(criteria, req)} to claim the bonus.`, criteria };
-  }
-
+  // Checked before the size rules, so a teacher with no slot left is never shown progress toward one.
   const limit = campaignSlotLimit(campaign, type);
   if ((await slotsUsed(executor, campaign.id, teacherId, type)) >= limit) {
     return {
       ok: false,
-      reason: `You have reached the maximum of ${limit} ${noun} bonuses in the ${campaign.title}.`,
-      criteria,
+      reason: `You have reached the limit of ${limit} ${noun} ${bonusWord(limit)} in the ${campaign.title}.`,
+      criteria: null,
     };
+  }
+
+  const req = campaignRequirements(campaign);
+  const criteria = await measureContent(executor, type, id, req);
+  if (!meetsCampaignCriteria(criteria, req)) {
+    return { ok: false, reason: `Add ${missingCriteriaText(criteria, req)} to claim the bonus.`, criteria };
   }
 
   return { ok: true, criteria, amount: campaignAmount(campaign, type) };
@@ -507,7 +509,7 @@ export async function creditClaim(
   }
   const limit = campaignSlotLimit(campaign, type);
   if ((await slotsUsed(trx, campaign.id, claim.teacherId, type, ["credited"])) >= limit) {
-    throw new Error(`This teacher already has ${limit} ${noun} bonuses credited.`);
+    throw new Error(`This teacher already has ${limit} ${noun} ${bonusWord(limit)} credited.`);
   }
 
   return trx

@@ -60,12 +60,12 @@ const EMAILS = (ctx: OnboardingRenderContext): Record<OnboardingEmailKey, Onboar
     preheader: "Free to join. No upfront cost.",
     hero: {
       image: image(1),
-      alt: "Your Testkart teacher account is live. Free to join, earn up to ₹600 in Creator Bonus.",
+      alt: "Your Testkart teacher account is live. Free to join, earn up to ₹200 in Creator Bonus.",
       link: page("/teacher/dashboard", "e1_hero_dashboard"),
     },
     paragraphs: [
       "Your **Testkart** teacher account is ready, and joining is free.",
-      `Earn up to **₹600 in Creator Bonus**. [See the Creator Bonus](${site("/teacher/creator-bonus", "e1_link_creator_bonus")}).`,
+      `Earn up to **₹200 in Creator Bonus**. [See the Creator Bonus](${site("/teacher/creator-bonus", "e1_link_creator_bonus")}).`,
     ],
     bullets: [
       "**Mock tests:** Sell a test series or single papers with timers and marks.",
@@ -167,7 +167,7 @@ const EMAILS = (ctx: OnboardingRenderContext): Record<OnboardingEmailKey, Onboar
     },
     paragraphs: ["Earn from student sales and the **Creator Bonus**.", "At **₹100**, add bank details and withdraw."],
     bullets: [
-      "Earn ₹100 per qualifying test series or course, up to 3 of each (₹600 total). Series need 10+ tests and 500+ questions.",
+      "Earn ₹100 for 1 qualifying test series and ₹100 for 1 qualifying course (₹200 total). Series need 10+ tests and 500+ questions.",
       `Courses need 10+ Testkart videos, 10+ minutes each and 200+ minutes total; YouTube links do not count. Each item earns once after review. At ₹100, add your bank account on [Earnings page](${site("/teacher/earnings", "e7_link_earnings")}).`,
     ],
     cta: { label: "See my Creator Bonus", url: site("/teacher/creator-bonus", "e7_btn_creator_bonus") },

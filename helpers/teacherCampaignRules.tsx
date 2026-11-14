@@ -109,6 +109,33 @@ export const CAMPAIGN_CONTENT_NOUNS: Record<CampaignContentType, string> = {
   course: "course",
 };
 
+export const bonusWord = (count: number): string => (count === 1 ? "bonus" : "bonuses");
+
+/** "1 test series", "2 courses". */
+export const contentCountText = (type: CampaignContentType, count: number): string =>
+  `${count} ${type === "course" && count !== 1 ? "courses" : CAMPAIGN_CONTENT_NOUNS[type]}`;
+
+/** "1 test series and 1 course", leaving out a type with none. */
+export const contentListText = (counts: Record<CampaignContentType, number>): string =>
+  (["mock_test", "course"] as const)
+    .filter((type) => counts[type] > 0)
+    .map((type) => contentCountText(type, counts[type]))
+    .join(" and ");
+
+/**
+ * Creator Bonus slots still open per type. done means every slot is claimed or
+ * credited, so no screen should invite the teacher to claim again. Pending
+ * claims hold their slot; a declined one frees it and reopens the offer.
+ */
+export function creatorBonusLeft(slots: Record<CampaignContentType, { used: number; limit: number }>) {
+  const left = {
+    mock_test: Math.max(0, slots.mock_test.limit - slots.mock_test.used),
+    course: Math.max(0, slots.course.limit - slots.course.used),
+  };
+  const total = left.mock_test + left.course;
+  return { left, total, done: total === 0 };
+}
+
 /** Only videos uploaded to Testkart count; links to other sites (YouTube) do not. */
 export const UPLOADED_VIDEO_PREFIX = "https://cdn.testkart.in/";
 

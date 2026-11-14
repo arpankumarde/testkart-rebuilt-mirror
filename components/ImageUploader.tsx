@@ -1,7 +1,8 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { UploadCloud, Image as ImageIcon, X, AlertCircle } from 'lucide-react';
+import { UploadCloud, Image as ImageIcon, X, AlertCircle, RefreshCw, Trash2 } from 'lucide-react';
 import { uploadFileToR2, deleteR2File } from '../helpers/useR2Upload';
 import { Spinner } from './Spinner';
+import { Button } from './Button';
 import styles from './ImageUploader.module.css';
 
 export interface ImageUploaderProps {
@@ -16,6 +17,8 @@ export interface ImageUploaderProps {
   aspectRatio?: string;
   label?: string;
   className?: string;
+  /* "overlay" floats a remove X on the image; "toolbar" puts labelled Replace and Remove buttons under it. */
+  actions?: 'overlay' | 'toolbar';
 }
 
 export const ImageUploader: React.FC<ImageUploaderProps> = ({
@@ -30,7 +33,9 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
   aspectRatio = '16 / 9',
   label = 'Upload Image',
   className,
+  actions = 'overlay',
 }) => {
+  const toolbarMode = actions === 'toolbar';
   const uploadRef = useRef<HTMLInputElement>(null);
 
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -121,10 +126,22 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
 
   const effectiveImageUrl = previewUrl || currentImageUrl;
 
-  return (
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.target !== e.currentTarget) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      triggerFileInput();
+    }
+  };
+
+  const dropZone = (
     <div
-      className={`${styles.container} ${isDragging ? styles.dragging : ''} ${className ?? ''}`}
+      className={`${styles.container} ${isDragging ? styles.dragging : ''} ${toolbarMode && effectiveImageUrl ? styles.framed : ''} ${className ?? ''}`}
       style={{ aspectRatio }}
+      role={toolbarMode ? 'button' : undefined}
+      tabIndex={toolbarMode ? 0 : undefined}
+      aria-label={toolbarMode ? (effectiveImageUrl ? 'Replace image' : label) : undefined}
+      onKeyDown={toolbarMode ? handleKeyDown : undefined}
       onClick={triggerFileInput}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragEnter}
@@ -147,14 +164,16 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
             alt="Preview"
             className={styles.previewImage}
           />
-          <button
-            type="button"
-            className={styles.removeButton}
-            onClick={handleRemoveImage}
-            aria-label="Remove image"
-          >
-            <X size={16} />
-          </button>
+          {!toolbarMode && (
+            <button
+              type="button"
+              className={styles.removeButton}
+              onClick={handleRemoveImage}
+              aria-label="Remove image"
+            >
+              <X size={16} />
+            </button>
+          )}
         </div>
       ) : (
         <div className={styles.placeholder}>
@@ -182,10 +201,28 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
         </div>
       )}
 
-      {!effectiveImageUrl && !isUploading && !error && (
+      {!toolbarMode && !effectiveImageUrl && !isUploading && !error && (
         <div className={styles.initialOverlay}>
           <ImageIcon size={24} />
           <span>{label}</span>
+        </div>
+      )}
+    </div>
+  );
+
+  if (!toolbarMode) return dropZone;
+
+  return (
+    <div className={styles.stack}>
+      {dropZone}
+      {effectiveImageUrl && !isUploading && (
+        <div className={styles.toolbar}>
+          <Button type="button" variant="outline" size="sm" onClick={triggerFileInput}>
+            <RefreshCw aria-hidden="true" /> Replace
+          </Button>
+          <Button type="button" variant="ghost" size="sm" className={styles.toolbarRemove} onClick={handleRemoveImage}>
+            <Trash2 aria-hidden="true" /> Remove
+          </Button>
         </div>
       )}
     </div>

@@ -16,7 +16,7 @@ interface MoreResourcesMenuProps {
   align?: "start" | "center" | "end";
 }
 
-/** The MORE_RESOURCES sections (Exams, 1:1 Tutors, Current Affairs, Exam News, Blogs, Masterclass, App), as a dropdown of ordinary links. */
+/** The MORE_RESOURCES sections (Exams, Bundles, 1:1 Tutors, Current Affairs, Exam News, Blogs, Masterclass, App), as a dropdown of ordinary links. */
 export const MoreResourcesMenu: React.FC<MoreResourcesMenuProps> = ({ trigger, openOnHover = false, side = "bottom", align = "start" }) => {
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);

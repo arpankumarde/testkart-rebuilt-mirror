@@ -13,7 +13,8 @@ export type InputType = z.infer<typeof schema>;
 /*
  * credited, claimed and reversed come from the item's claim. Otherwise:
  * excluded = live before the campaign started; final = declined too often;
- * building = rules not met yet; full = no slots left; ready = can claim with
+ * full = no slots left of its type (and no Exam Bonus open to it), checked
+ * before the size rules; building = rules not met yet; ready = can claim with
  * its next submission for review.
  */
 export type CampaignItemState = "credited" | "claimed" | "reversed" | "final" | "excluded" | "building" | "full" | "ready";

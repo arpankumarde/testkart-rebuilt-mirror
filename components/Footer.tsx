@@ -71,7 +71,7 @@ export const Footer: React.FC = () => {
             <p className={styles.ctaText}>
               Create, sell and host mock tests and courses on Testkart.
             </p>
-            <Button asChild size="lg" variant="primary" className={styles.ctaButton}>
+            <Button asChild variant="primary" className={styles.ctaButton}>
               <Link to="/teach">
                 Teach on Testkart
                 <ArrowRight size={18} />
@@ -168,6 +168,7 @@ export const Footer: React.FC = () => {
                 </li>
               ))}
             </ul>
+            <h3 className={`${styles.columnTitle} ${styles.appTitle}`}>Get the Student App</h3>
             <PlayStoreBadge className={styles.playBadge} />
           </div>
         </div>

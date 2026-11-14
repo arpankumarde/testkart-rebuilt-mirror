@@ -168,8 +168,8 @@ export async function handle(request: Request): Promise<Response> {
         if (active) state = active.status as CampaignItemState;
         else if (declined.length >= campaign.maxDeclinesPerItem) state = "final";
         else if (row.excluded) state = "excluded";
+        else if (slots[type].used >= slots[type].limit && !exam) state = "full";
         else if (!meetsCampaignCriteria(criteria, req)) state = "building";
-        else if (slots[type].used >= slots[type].limit) state = exam ? "ready" : "full";
         else state = "ready";
         const noteSource = active?.status === "reversed" ? active.reverseReason : declined[0]?.decisionNote;
         return {

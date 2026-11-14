@@ -28,6 +28,41 @@
   box-shadow: var(--shadow-focus);
 }
 
+.container:focus-visible {
+  outline: none;
+  border-color: var(--tk-brand-text);
+  box-shadow: var(--shadow-focus);
+}
+
+/* Toolbar mode: a set image gets a thin solid frame; the dashed edge marks the empty drop area only. */
+.framed {
+  border: 1px solid var(--tc-line-strong, var(--border));
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  width: 100%;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.toolbar button {
+  min-height: 2.5rem;
+}
+
+.toolbarRemove,
+.toolbarRemove:hover,
+.toolbarRemove:active {
+  color: var(--error-text);
+  font-weight: 600;
+}
+
 .skeleton {
   width: 100%;
   height: auto;

@@ -82,28 +82,37 @@
   color: var(--ft-heading);
 }
 
-/* Button's primary hover drops to the deep orange, which would sink into this
-   card; here it lifts to a lighter coral and keeps the ink label. */
+/* The navbar's Create Account CTA: peach fill, peach-edge outline and a 2px ledge, in the leaf
+   shape (round corners, a tight bottom-left). Hover deepens the peach and lifts a pixel. */
 .cta .ctaButton {
-  border-radius: var(--radius-full);
-  padding: 0 var(--spacing-6);
+  height: 2.875rem;
+  min-height: 2.875rem;
+  padding: 0 1.25rem 0 var(--spacing-6);
+  border: 1px solid var(--sp-peach-edge);
+  border-radius: 1.4375rem 1.4375rem 1.4375rem 0.5rem;
+  background: var(--sp-cta);
+  color: var(--sp-cta-ink);
+  font-size: 0.9375rem;
   font-weight: 700;
+  box-shadow: 0 2px 0 var(--sp-peach-edge);
   transition:
     background-color var(--animation-duration-fast) ease,
-    border-color var(--animation-duration-fast) ease,
-    color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease,
     transform var(--animation-duration-fast) ease;
 }
 
-.cta .ctaButton:hover,
-.cta .ctaButton:active {
-  background-color: hsl(20 100% 80%);
-  border-color: hsl(20 100% 80%);
-  color: var(--tk-brand-ink);
+.cta .ctaButton:hover {
+  background: var(--sp-cta-hover);
+  color: var(--sp-cta-ink);
+  box-shadow: 0 3px 0 var(--sp-peach-edge);
+  transform: translateY(-1px);
 }
 
-.cta .ctaButton:hover {
-  transform: translateY(-2px);
+.cta .ctaButton:active {
+  background: var(--sp-cta-hover);
+  color: var(--sp-cta-ink);
+  box-shadow: 0 1px 0 var(--sp-peach-edge);
+  transform: translateY(1px);
 }
 
 .cta .ctaButton:focus-visible {
@@ -200,11 +209,15 @@
   border-color: var(--ft-accent);
 }
 
-/* The Google Play badge under the social chips, about as wide as their
-   three-chip row. Its focus ring is redrawn against the dark card. */
+/* "Get the student app" and the Google Play badge under the social chips; the badge is about
+   as wide as their three-chip row. Its focus ring is redrawn against the dark card. */
+.appTitle {
+  margin-top: var(--spacing-8);
+  margin-bottom: var(--spacing-3);
+}
+
 .linksColumn .playBadge {
   --badge-h: 2.75rem;
-  margin-top: 1.25rem;
 }
 
 .linksColumn .playBadge:focus-visible {

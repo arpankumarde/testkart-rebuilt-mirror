@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { ArrowLeft, ExternalLink, Send, Undo2 } from "lucide-react";
+import { ArrowLeft, CalendarDays, Clock, ExternalLink, IndianRupee, Radio, Send, Undo2, Users } from "lucide-react";
 import {
   usePublishLiveCourseMutation,
   useTeacherLiveCourseQuery,
@@ -11,6 +11,7 @@ import {
 } from "../helpers/useLiveCourses";
 import { formatRupees, liveCoursePath, teacherLiveCoursePath, teacherLiveCoursesPath } from "../helpers/liveCourseRules";
 import { ConsolePageHeader } from "../components/ConsolePageHeader";
+import { ConsoleListEmpty } from "../components/ConsoleListEmpty";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
 import { SegmentedControl } from "../components/SegmentedControl";
@@ -32,14 +33,36 @@ const STATUS: Record<string, { label: string; tone: string }> = {
   cancelled: { label: "Cancelled", tone: "peach" },
 };
 
+const LEVEL_LABEL: Record<string, string> = {
+  beginner: "Beginner",
+  intermediate: "Intermediate",
+  advanced: "Advanced",
+};
+
+const formatDay = (at: Date | string) =>
+  new Intl.DateTimeFormat("en-IN", { weekday: "short", day: "numeric", month: "short", timeZone: "Asia/Kolkata" }).format(new Date(at));
+
+const BackLink: React.FC = () => (
+  <nav aria-label="Breadcrumb">
+    <Link to={teacherLiveCoursesPath} className={styles.back}>
+      <ArrowLeft size={16} aria-hidden="true" /> Live courses
+    </Link>
+  </nav>
+);
+
+const TabLabel: React.FC<{ label: string; count?: number }> = ({ label, count }) => (
+  <>
+    {label}
+    {count !== undefined && <span className={styles.count}>{count}</span>}
+  </>
+);
+
 const NewLiveCourse: React.FC = () => {
   const navigate = useNavigate();
   const upsert = useUpsertLiveCourseMutation();
   return (
     <div className={`${styles.page} tk-flow`}>
-      <Link to={teacherLiveCoursesPath} className={styles.back}>
-        <ArrowLeft size={14} /> Live courses
-      </Link>
+      <BackLink />
       <ConsolePageHeader title="New live course" description="Start with the basics. Add the syllabus and the timetable next." />
       <LiveCourseDetailsForm
         course={null}
@@ -59,6 +82,16 @@ const NewLiveCourse: React.FC = () => {
   );
 };
 
+const LoadingState: React.FC = () => (
+  <div className={styles.page} aria-busy="true" aria-label="Loading live course">
+    <Skeleton className={styles.skeletonBack} />
+    <Skeleton className={styles.skeletonTitle} />
+    <Skeleton className={styles.skeletonTabs} />
+    <Skeleton className={styles.skeletonCard} />
+    <Skeleton className={styles.skeletonCard} />
+  </div>
+);
+
 const EditLiveCourse: React.FC<{ id: string }> = ({ id }) => {
   const initialTab = (new URLSearchParams(window.location.search).get("tab") as Tab) || "details";
   const [tab, setTab] = useState<Tab>(initialTab);
@@ -68,12 +101,16 @@ const EditLiveCourse: React.FC<{ id: string }> = ({ id }) => {
   const publish = usePublishLiveCourseMutation();
   const [confirm, setConfirm] = useState<"publish" | "unpublish" | null>(null);
 
-  if (isLoading) return <Skeleton style={{ height: "20rem", borderRadius: "1.25rem" }} />;
+  if (isLoading) return <LoadingState />;
   if (error || !data) {
     return (
-      <div className={styles.page}>
-        <p className={styles.error}>{error instanceof Error ? error.message : "Live course not found."}</p>
-        <Link to={teacherLiveCoursesPath}>Back to live courses</Link>
+      <div className={`${styles.page} tk-flow`}>
+        <BackLink />
+        <ConsoleListEmpty tone="error" title="Live course not found" description={error instanceof Error ? error.message : "It may have been removed."}>
+          <Button variant="outline" asChild>
+            <Link to={teacherLiveCoursesPath}>Back to live courses</Link>
+          </Button>
+        </ConsoleListEmpty>
       </div>
     );
   }
@@ -81,6 +118,12 @@ const EditLiveCourse: React.FC<{ id: string }> = ({ id }) => {
   const course = data.course;
   const status = STATUS[course.status] ?? STATUS.draft;
   const editable = course.status === "draft" || course.status === "published";
+  const pageHref = liveCoursePath(course.slug);
+  const canUnpublish = course.status === "published" && course.enrolledCount === 0;
+  const now = Date.now();
+  const nextClass = course.classes
+    .filter((c) => c.status === "scheduled" && new Date(c.startTime).getTime() > now)
+    .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())[0];
 
   return (
     <>
@@ -88,71 +131,144 @@ const EditLiveCourse: React.FC<{ id: string }> = ({ id }) => {
         <title>{`${course.title} - Live course - Testkart`}</title>
       </Helmet>
       <div className={`${styles.page} tk-flow`}>
-        <Link to={teacherLiveCoursesPath} className={styles.back}>
-          <ArrowLeft size={14} /> Live courses
-        </Link>
-        <ConsolePageHeader title={course.title}>
-          <span className={`${styles.chip} ${styles[`tone_${status.tone}`]}`}>{status.label}</span>
-          {course.status !== "draft" && (
-            <Button variant="outline" asChild>
-              <a href={liveCoursePath(course.slug)} target="_blank" rel="noopener noreferrer">
-                <ExternalLink size={14} /> View page
-              </a>
-            </Button>
-          )}
-          {course.status === "draft" && (
-            <Button onClick={() => setConfirm("publish")}>
-              <Send size={14} /> Publish
-            </Button>
-          )}
-          {course.status === "published" && course.enrolledCount === 0 && (
-            <Button variant="outline" onClick={() => setConfirm("unpublish")}>
-              <Undo2 size={14} /> Back to draft
-            </Button>
-          )}
-        </ConsolePageHeader>
+        <BackLink />
+
+        <header className={styles.hero}>
+          <div className={styles.heroTop}>
+            <div className={styles.thumb} aria-hidden="true">
+              {course.thumbnailUrl ? <img src={course.thumbnailUrl} alt="" className={styles.thumbImg} /> : <Radio size={24} />}
+            </div>
+            <div className={styles.heroMain}>
+              <div className={styles.chips}>
+                <span className={`${styles.statusPill} ${styles[`pill_${status.tone}`]}`}>
+                  <span className={styles.pillDot} aria-hidden="true" />
+                  {status.label}
+                </span>
+                {course.examName && <span className={styles.tag}>{course.examName}</span>}
+                <span className={styles.tag}>{LEVEL_LABEL[course.level] ?? course.level}</span>
+              </div>
+              <h1 className={styles.title}>{course.title}</h1>
+            </div>
+            <div className={styles.actions}>
+              {canUnpublish && (
+                <Button variant="ghost" className={styles.quiet} onClick={() => setConfirm("unpublish")}>
+                  <Undo2 size={16} aria-hidden="true" /> Back to draft
+                </Button>
+              )}
+              {course.status !== "draft" && (
+                <Button variant="outline" asChild>
+                  <a href={pageHref} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink size={16} aria-hidden="true" /> View page
+                  </a>
+                </Button>
+              )}
+              {course.status === "draft" && (
+                <Button onClick={() => setConfirm("publish")}>
+                  <Send size={16} aria-hidden="true" /> Publish
+                </Button>
+              )}
+            </div>
+          </div>
+
+          <dl className={styles.stats}>
+            <div className={styles.stat}>
+              <dt>
+                <IndianRupee size={14} aria-hidden="true" /> Price
+              </dt>
+              <dd>
+                {formatRupees(course.price)}
+                {course.originalPrice && Number(course.originalPrice) > Number(course.price) && (
+                  <span className={styles.struck}>{formatRupees(course.originalPrice)}</span>
+                )}
+              </dd>
+            </div>
+            <div className={styles.stat}>
+              <dt>
+                <CalendarDays size={14} aria-hidden="true" /> Classes
+              </dt>
+              <dd>{course.classCount}</dd>
+            </div>
+            <div className={styles.stat}>
+              <dt>
+                <Users size={14} aria-hidden="true" /> Seats filled
+              </dt>
+              <dd>
+                {course.enrolledCount}
+                <span className={styles.statOf}> / {course.seatLimit}</span>
+              </dd>
+            </div>
+            <div className={styles.stat}>
+              <dt>
+                <Clock size={14} aria-hidden="true" /> Next class
+              </dt>
+              <dd>{nextClass ? formatDay(nextClass.startTime) : "None scheduled"}</dd>
+            </div>
+          </dl>
+        </header>
 
         {course.status === "cancelled" && (
-          <p className={styles.banner}>This course was cancelled{course.cancellationReason ? `: ${course.cancellationReason}` : "."}</p>
+          <p className={styles.banner} role="status">
+            This course was cancelled{course.cancellationReason ? `: ${course.cancellationReason}` : "."}
+          </p>
         )}
 
-        <SegmentedControl
-          aria-label="Course sections"
-          value={tab}
-          onValueChange={setTab}
-          options={[
-            { value: "details", label: "Details" },
-            { value: "syllabus", label: "Syllabus" },
-            { value: "schedule", label: `Classes (${course.classCount})` },
-            { value: "students", label: `Students (${course.enrolledCount})` },
-          ]}
-        />
+        <div className={styles.tabsScroller}>
+          <SegmentedControl
+            aria-label="Course sections"
+            value={tab}
+            onValueChange={setTab}
+            className={styles.tabs}
+            options={[
+              { value: "details", label: "Details" },
+              { value: "syllabus", label: "Syllabus" },
+              {
+                value: "schedule",
+                label: <TabLabel label="Classes" count={course.classCount} />,
+                ariaLabel: `Classes, ${course.classCount}`,
+              },
+              {
+                value: "students",
+                label: <TabLabel label="Students" count={course.enrolledCount} />,
+                ariaLabel: `Students, ${course.enrolledCount}`,
+              },
+            ]}
+          />
+        </div>
 
-        {tab === "details" &&
-          (editable ? (
-            <LiveCourseDetailsForm
-              course={course}
-              pending={upsert.isPending}
-              submitLabel="Save details"
-              platformFeePercentage={data.earnings.platformFeePercentage}
-              onSubmit={(values) =>
-                upsert.mutate(
-                  { ...values, id: course.id },
-                  {
-                    onSuccess: () => toast.success("Saved."),
-                    onError: (e) => toast.error(e instanceof Error ? e.message : "Could not save."),
-                  }
-                )
-              }
+        <div className={styles.panel}>
+          {tab === "details" &&
+            (editable ? (
+              <LiveCourseDetailsForm
+                course={course}
+                pending={upsert.isPending}
+                submitLabel="Save details"
+                platformFeePercentage={data.earnings.platformFeePercentage}
+                onSubmit={(values) =>
+                  upsert.mutate(
+                    { ...values, id: course.id },
+                    {
+                      onSuccess: () => toast.success("Saved."),
+                      onError: (e) => toast.error(e instanceof Error ? e.message : "Could not save."),
+                    }
+                  )
+                }
+              />
+            ) : (
+              <p className={styles.banner}>A {course.status} course cannot be edited.</p>
+            ))}
+          {tab === "syllabus" && <LiveCourseSyllabusEditor course={course} readOnly={!editable} />}
+          {tab === "schedule" && (
+            <LiveCourseSchedule course={course} refundClosesAt={data.refundClosesAt} mode="teacher" earnings={data.earnings} />
+          )}
+          {tab === "students" && (
+            <LiveCourseStudents
+              roster={students.data}
+              loading={students.isLoading}
+              canMark
+              viewPageHref={course.status === "published" ? pageHref : undefined}
             />
-          ) : (
-            <p className={styles.banner}>A {course.status} course cannot be edited.</p>
-          ))}
-        {tab === "syllabus" && <LiveCourseSyllabusEditor course={course} readOnly={!editable} />}
-        {tab === "schedule" && (
-          <LiveCourseSchedule course={course} refundClosesAt={data.refundClosesAt} mode="teacher" earnings={data.earnings} />
-        )}
-        {tab === "students" && <LiveCourseStudents roster={students.data} loading={students.isLoading} canMark />}
+          )}
+        </div>
       </div>
 
       <ConsoleConfirmDialog

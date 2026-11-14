@@ -1,13 +1,170 @@
-/* Live course editor panels: details form, syllabus, schedule, students and attendance. */
-.panel {
+/* Live course editor panels: details cards, syllabus sections, class timetable, students and attendance. */
+.form,
+.stack {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding: 1.25rem;
+  min-width: 0;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+  padding: 1.5rem;
   background: var(--tc-card, var(--card));
   border: 1px solid var(--tc-line, var(--border));
-  border-radius: 1.25rem;
+  border-radius: var(--tc-radius-card, 1rem);
 }
+
+/* Titled cards: an icon tile and heading on a cream strip, then the fields. */
+.card.formCard {
+  gap: 0;
+  padding: 0;
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: var(--tc-bg, var(--background));
+  border-bottom: 1px solid var(--tc-line, var(--border));
+  border-radius: calc(var(--tc-radius-card, 1rem) - 1px) calc(var(--tc-radius-card, 1rem) - 1px) 0 0;
+}
+
+.cardHeadText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.cardIcon {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid transparent;
+  border-radius: 0.75rem;
+}
+
+.cardIcon svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.icon_peach {
+  background: var(--sp-peach-tint);
+  border-color: var(--fc-peach-line);
+  color: var(--tk-brand-text);
+}
+
+.icon_lavender {
+  background: var(--sp-lavender-tint);
+  border-color: var(--sp-lavender-line);
+  color: var(--sp-lavender-ink);
+}
+
+.icon_blue {
+  background: var(--fc-blue-tint);
+  border-color: var(--fc-blue-line);
+  color: var(--fc-blue-ink);
+}
+
+.icon_mint {
+  background: var(--fc-mint-tint);
+  border-color: var(--sp-mint-line);
+  color: var(--fc-mint-ink);
+}
+
+.icon_butter {
+  background: var(--fc-butter-tint);
+  border-color: var(--fc-butter-line);
+  color: var(--fc-butter-ink);
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.5rem;
+}
+
+.coverLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 1.5rem;
+}
+
+.coverLayout .cover {
+  max-width: none;
+}
+
+.coverGuide {
+  padding: 1rem 1.25rem;
+  background: var(--tc-bg, var(--background));
+  border: 1px solid var(--tc-line, var(--border));
+  border-radius: 0.75rem;
+}
+
+.guideTitle {
+  margin: 0 0 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--tc-ink, var(--foreground));
+}
+
+.guideList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--tc-text, var(--foreground));
+}
+
+.guideList li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.guideList svg {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.125rem;
+  color: var(--fc-mint-edge);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--tc-ink, var(--foreground));
+}
+
+.cardHelper {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--tc-text, var(--foreground));
+}
+
+.cardActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ----------------------------------------------------------------- fields --- */
 
 .field {
   display: flex;
@@ -19,13 +176,7 @@
 
 .row {
   display: flex;
-  gap: 0.75rem;
-}
-
-/* A 16:9 drop zone at full form width is taller than the viewport; cap it. */
-.coverField {
-  width: 100%;
-  max-width: 30rem;
+  gap: 1rem;
 }
 
 .label {
@@ -34,165 +185,779 @@
   color: var(--tc-ink, var(--foreground));
 }
 
-.hint {
-  margin: 0;
-  font-size: 0.8125rem;
-  color: var(--tc-text, var(--muted-foreground));
+.labelNote {
+  font-weight: 500;
+  color: var(--tc-text, var(--foreground));
 }
 
-.empty {
-  margin: 0;
-  padding: 1rem;
-  border: 1.5px dashed var(--tc-line-strong, var(--border));
-  border-radius: 1rem;
-  font-size: 0.875rem;
-  text-align: center;
-  color: var(--tc-text, var(--muted-foreground));
-}
-
-.actions,
-.toolbar {
+.labelRow {
   display: flex;
-  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
   gap: 0.5rem;
 }
 
-.actions {
-  justify-content: flex-end;
+.counter {
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--tc-text, var(--foreground));
 }
 
-.subhead {
-  margin: 0.25rem 0 0;
+.counterOver {
+  font-weight: 700;
+  color: var(--error-text);
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--tc-text, var(--foreground));
+}
+
+.error {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--error-text);
+}
+
+.form input:where(:not([type="checkbox"], [type="radio"], [type="file"])) {
+  height: 2.75rem;
+}
+
+.form button[role="combobox"] {
+  width: 100%;
+  height: 2.75rem;
   font-size: 1rem;
+}
+
+.form input[aria-invalid="true"] {
+  border-color: var(--error-text);
+}
+
+.form textarea:focus {
+  border-color: var(--tk-brand-text);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tk-brand) 35%, transparent);
+}
+
+/* The chip box draws its own 3px inset and border around this input: 36 + 6 + 2 = 44px. */
+.languages input {
+  height: 2.25rem;
+}
+
+.about {
+  min-height: 9rem;
+  resize: vertical;
+}
+
+.cover {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 30rem;
+}
+
+.money {
+  position: relative;
+}
+
+.moneyPrefix {
+  position: absolute;
+  top: 50%;
+  left: 0.875rem;
+  z-index: 1;
+  transform: translateY(-50%);
+  font-weight: 600;
+  color: var(--tc-ink, var(--foreground));
+  pointer-events: none;
+}
+
+.money input {
+  padding-left: 2rem;
+}
+
+.priceNotes {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.pricePreview {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--fc-mint-edge);
+  border-radius: 0.5rem;
+  background: var(--fc-mint-tint);
+  color: var(--fc-mint-ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.struck {
+  font-weight: 500;
+  text-decoration: line-through;
+}
+
+/* --------------------------------------------------------------- save bar --- */
+
+/* Rests at the end of the form and follows the teacher down the page once there is something to save. */
+.saveBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0.75rem 0.75rem 1.25rem;
+  background: var(--tc-card, var(--card));
+  border: 1px solid var(--tc-line, var(--border));
+  border-radius: var(--tc-radius-card, 1rem);
+  box-shadow: var(--sp-shadow);
+}
+
+.saveBarDirty {
+  position: sticky;
+  bottom: 1rem;
+  z-index: 2;
+  background: var(--fc-butter-tint);
+  border-color: var(--fc-butter-line);
+  box-shadow: var(--sp-shadow-hover);
+}
+
+.saveBar button:disabled {
+  opacity: 1;
+  background: var(--tc-bg, var(--muted));
+  border-color: var(--tc-line-strong, var(--border));
+  color: var(--tc-text, var(--foreground));
+  box-shadow: none;
+}
+
+.savedIcon {
+  color: var(--fc-mint-edge);
+}
+
+.saveStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--tc-ink, var(--foreground));
+}
+
+.saveBarDirty .saveStatus {
+  color: var(--fc-butter-ink);
+}
+
+.dirtyDot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--fc-butter-edge);
+}
+
+/* --------------------------------------------------------------- syllabus --- */
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.syllabusBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding: 0.5rem 0.5rem 0.5rem 1rem;
+  background: var(--tc-card, var(--card));
+  border: 1px solid var(--tc-line, var(--border));
+  border-radius: var(--tc-radius-card, 1rem);
+}
+
+.syllabusSummary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--tc-text, var(--foreground));
+}
+
+.syllabusSummary strong {
   font-weight: 800;
   color: var(--tc-ink, var(--foreground));
 }
 
-.dialogFields {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.syllabusSummaryIcon {
+  flex-shrink: 0;
+  color: var(--tk-brand-text);
 }
 
-/* earnings */
-.earnings {
+.toggleAll {
+  color: var(--tc-ink, var(--foreground));
+  font-weight: 600;
+}
+
+/* Accordion cards: the header always shows; an open section lifts and lists its topics in an inset panel. */
+.section {
+  min-width: 0;
+  background: var(--tc-card, var(--card));
+  border: 1px solid var(--tc-line, var(--border));
+  border-radius: var(--tc-radius-card, 1rem);
+  transition:
+    border-color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease;
+}
+
+.sectionOpen {
+  border-color: var(--tc-line-strong, var(--border));
+  box-shadow: var(--sp-shadow);
+}
+
+.sectionHeader {
+  display: grid;
+  grid-template-columns: 2.5rem 2.5rem minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem 0.75rem 0.75rem;
+  border-radius: calc(var(--tc-radius-card, 1rem) - 1px);
+}
+
+.sectionHeaderRead {
+  grid-template-columns: 2.5rem 2.5rem minmax(0, 1fr) auto;
+}
+
+.sectionOpen .sectionHeader {
+  background: var(--tc-bg, var(--background));
+  border-bottom: 1px solid var(--tc-line, var(--border));
+  border-radius: calc(var(--tc-radius-card, 1rem) - 1px) calc(var(--tc-radius-card, 1rem) - 1px) 0 0;
+}
+
+.chevron svg {
+  transition: transform var(--animation-duration-fast) ease;
+}
+
+.chevron:not(.chevronOpen) svg {
+  transform: rotate(-90deg);
+}
+
+.chevron.chevronOpen {
+  color: var(--tk-brand-text);
+}
+
+.sectionNo {
+  display: inline-grid;
+  place-items: center;
+  justify-self: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--fc-peach-line);
+  border-radius: 999px;
+  background: var(--sp-peach-tint);
+  color: var(--tk-brand-text);
+  font-size: 0.9375rem;
+  font-weight: 800;
+}
+
+.sectionTitleWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.sectionName {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--tc-ink, var(--foreground));
+  overflow-wrap: anywhere;
+}
+
+.section .sectionInput {
+  height: 2.75rem;
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+
+.topicPreview {
+  margin: 0;
+  overflow: hidden;
+  font-size: 0.8125rem;
+  color: var(--tc-text, var(--foreground));
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sectionHeader:not(.sectionHeaderRead) .topicPreview {
+  padding-left: 0.75rem;
+}
+
+.topicCount {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.625rem;
+  border: 1px solid var(--sp-lavender-line);
+  border-radius: 999px;
+  background: var(--sp-lavender-tint);
+  color: var(--sp-lavender-ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.rowActions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Topics sit under the section number, so the outline reads as a tree. */
+.sectionBody {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  padding: 1rem 1.125rem;
-  background: var(--sp-sage-tint);
-  border: 1px solid var(--sp-sage-edge);
-  border-radius: 1rem;
-  color: var(--sp-sage-ink);
+  padding: 1rem 1rem 1rem 4rem;
 }
 
-.earningsFigures {
+.sectionBody[hidden] {
+  display: none;
+}
+
+.topicList {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  list-style: none;
+  background: var(--tc-card, var(--card));
+  border: 1px solid var(--tc-line, var(--border));
+  border-radius: 0.75rem;
+}
+
+.topicItem {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0;
+}
+
+.topicItem + .topicItem {
+  border-top: 1px solid var(--tc-line, var(--border));
+}
+
+.topicItem:hover {
+  background: var(--tc-bg, var(--background));
+}
+
+.topicItem input {
+  height: 2.5rem;
+}
+
+.topicItemRead {
+  grid-template-columns: 2.75rem minmax(0, 1fr);
+  padding: 0.625rem 0.75rem 0.625rem 0;
+}
+
+.topicIndex {
+  justify-self: center;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--tc-text, var(--foreground));
+}
+
+.topicName {
+  font-size: 0.9375rem;
+  color: var(--tc-ink, var(--foreground));
+  overflow-wrap: anywhere;
+}
+
+.topicEmpty {
+  padding: 1rem;
+  font-size: 0.875rem;
+  text-align: center;
+  color: var(--tc-text, var(--foreground));
+}
+
+.addTopicRow,
+.addSectionRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 2.75rem;
+  border: 1.5px dashed var(--tc-line-strong, var(--border));
+  border-radius: 0.75rem;
+  background: transparent;
+  color: var(--tk-brand-text);
+  font-family: var(--font-family-base);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    border-color var(--animation-duration-fast) ease;
+}
+
+.addSectionRow {
+  min-height: 3.5rem;
+  border-radius: var(--tc-radius-card, 1rem);
+  background: var(--tc-card, var(--card));
+  font-size: 1rem;
+}
+
+.addTopicRow:hover,
+.addSectionRow:hover {
+  background: var(--sp-peach-tint);
+  border-color: var(--fc-peach-edge);
+}
+
+.addTopicRow:focus-visible,
+.addSectionRow:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section,
+  .chevron svg,
+  .addTopicRow,
+  .addSectionRow {
+    transition: none;
+  }
+}
+
+.iconAction {
+  color: var(--tc-text, var(--foreground));
+}
+
+.iconAction svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.iconAction:disabled {
+  opacity: 1;
+  color: var(--tc-line-strong, var(--border));
+}
+
+.iconDanger:hover,
+.iconDanger:active {
+  background-color: color-mix(in srgb, var(--error-text) 10%, var(--tc-card, var(--card)));
+  color: var(--error-text);
+}
+
+/* ---------------------------------------------------------------- classes --- */
+
+.titleRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem 2rem;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
 }
 
-.earningsFigures > div {
+/* A card head that also carries the card's actions on the right. */
+.cardHeadSplit {
+  flex-wrap: wrap;
+}
+
+.cardHeadSplit .cardHeadText {
+  flex: 1 1 16rem;
+}
+
+.cardHeadOnly {
+  border-bottom: 0;
+  border-radius: calc(var(--tc-radius-card, 1rem) - 1px);
+}
+
+.headActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.policyList {
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
-  min-width: 9rem;
-}
-
-.earningsValue {
-  font-size: 1.375rem;
-  font-weight: 800;
-  line-height: 1.2;
-}
-
-.earningsLabel,
-.earningsNote {
-  font-size: 0.8125rem;
-  font-weight: 500;
-}
-
-.earningsNote {
+  gap: 0.75rem;
   margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--tc-ink, var(--foreground));
+}
+
+.policyList li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.policyList svg {
+  flex-shrink: 0;
+  margin-top: 0.1875rem;
+  color: var(--fc-blue-ink);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(8.5rem, 100%), 1fr));
+  gap: 1rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem;
+  background: var(--tc-bg, var(--background));
+  border: 1px solid var(--tc-line, var(--border));
+  border-radius: 0.75rem;
+}
+
+.statValue {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--tc-ink, var(--foreground));
+}
+
+.statLabel {
+  font-size: 0.875rem;
+  color: var(--tc-text, var(--foreground));
+}
+
+.earningsNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--tc-text, var(--foreground));
+}
+
+.earningsNoteIcon {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+  color: var(--fc-mint-edge);
 }
 
 .earningsInline {
   margin: 0;
   padding: 0.625rem 0.75rem;
-  font-size: 0.8125rem;
-  background: var(--sp-sage-tint);
-  border: 1px solid var(--sp-sage-edge);
-  border-radius: 0.75rem;
-  color: var(--sp-sage-ink);
-}
-
-/* syllabus */
-.module {
-  display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
-  padding: 0.875rem;
-  border: 1px solid var(--tc-line, var(--border));
-  border-radius: 1rem;
-  background: var(--background);
-}
-
-.moduleHead,
-.topicRow {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-}
-
-.moduleNo {
-  display: inline-grid;
-  place-items: center;
-  flex: 0 0 1.75rem;
-  height: 1.75rem;
-  border-radius: 999px;
-  background: var(--sp-lavender-tint);
-  color: var(--sp-lavender-ink);
-  font-size: 0.8125rem;
-  font-weight: 800;
-}
-
-.topics {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-  padding-left: 2.125rem;
-}
-
-.topics > button {
-  align-self: flex-start;
-}
-
-.topicList {
-  margin: 0;
-  padding-left: 1.25rem;
   font-size: 0.875rem;
-  color: var(--tc-text, var(--muted-foreground));
+  line-height: 1.5;
+  background: var(--tc-card, var(--card));
+  border: 1px solid var(--tc-line, var(--border));
+  border-left: 4px solid var(--fc-mint-edge);
+  border-radius: 0.75rem;
+  color: var(--tc-ink, var(--foreground));
 }
 
-/* schedule */
+.schedule {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.listHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.listTitle {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--tc-ink, var(--foreground));
+}
+
+.viewToggle > button {
+  height: 2.5rem;
+}
+
+.listControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.months {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* One accordion card per month; an open month keeps its header pinned while its classes scroll past. */
+.monthCard {
+  min-width: 0;
+  background: var(--tc-card, var(--card));
+  border: 1px solid var(--tc-line, var(--border));
+  border-radius: var(--tc-radius-card, 1rem);
+  transition:
+    border-color var(--animation-duration-fast) ease,
+    box-shadow var(--animation-duration-fast) ease;
+}
+
+.monthCardOpen {
+  border-color: var(--tc-line-strong, var(--border));
+  box-shadow: var(--sp-shadow);
+}
+
+.monthHeading {
+  margin: 0;
+}
+
+.monthCardOpen .monthHeading {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.monthToggle {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr) auto 1.25rem;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.875rem 1.25rem 0.875rem 1rem;
+  background: var(--tc-card, var(--card));
+  border: 0;
+  border-radius: calc(var(--tc-radius-card, 1rem) - 1px);
+  color: var(--tc-ink, var(--foreground));
+  font-family: var(--font-family-base);
+  text-align: left;
+  cursor: pointer;
+}
+
+.monthCardOpen .monthToggle {
+  background: var(--tc-bg, var(--background));
+  border-bottom: 1px solid var(--tc-line, var(--border));
+  border-radius: calc(var(--tc-radius-card, 1rem) - 1px) calc(var(--tc-radius-card, 1rem) - 1px) 0 0;
+}
+
+.monthToggle:hover .monthName {
+  color: var(--tk-brand-text);
+}
+
+.monthToggle:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: -2px;
+}
+
+.monthText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.monthName {
+  font-size: 1.0625rem;
+  font-weight: 800;
+  color: var(--tc-ink, var(--foreground));
+}
+
+.monthRange {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--tc-text, var(--foreground));
+}
+
+.monthChevron {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--tc-text, var(--foreground));
+  transform: rotate(-90deg);
+  transition: transform var(--animation-duration-fast) ease;
+}
+
+.monthChevronOpen {
+  color: var(--tk-brand-text);
+  transform: none;
+}
+
+.monthBody {
+  padding: 0.75rem;
+  background: var(--tc-bg, var(--background));
+  border-radius: 0 0 calc(var(--tc-radius-card, 1rem) - 1px) calc(var(--tc-radius-card, 1rem) - 1px);
+}
+
+.monthBody[hidden] {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .monthCard,
+  .monthChevron {
+    transition: none;
+  }
+}
+
 .classList {
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .classRow {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: 4rem minmax(0, 1fr) auto;
   align-items: center;
-  gap: 0.875rem;
-  padding: 0.75rem;
+  gap: 1rem;
+  padding: 0.75rem 1rem 0.75rem 0.75rem;
+  background: var(--tc-card, var(--card));
   border: 1px solid var(--tc-line, var(--border));
-  border-radius: 1rem;
-  background: var(--background);
+  border-radius: var(--tc-radius-card, 1rem);
 }
 
-.classMuted .classTitle {
-  color: var(--tc-text, var(--muted-foreground));
+.dateBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  background: color-mix(in srgb, var(--tc-line, var(--border)) 35%, var(--tc-card, var(--card)));
+  border-radius: 0.75rem;
+  line-height: 1;
+}
+
+.dateMonth,
+.dateWeekday {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tc-text, var(--foreground));
+}
+
+.dateDay {
+  margin: 0.125rem 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--tc-ink, var(--foreground));
 }
 
 .classBody {
@@ -202,25 +967,41 @@
   min-width: 0;
 }
 
+.classHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .classTitle {
-  font-size: 0.9375rem;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
   color: var(--tc-ink, var(--foreground));
   overflow-wrap: anywhere;
 }
 
+.classSettled .classTitle {
+  color: var(--tc-text, var(--foreground));
+}
+
 .classMeta {
-  font-size: 0.8125rem;
-  color: var(--tc-text, var(--muted-foreground));
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--tc-text, var(--foreground));
 }
 
 .classActions {
   display: flex;
   align-items: center;
-  gap: 0.375rem;
+  gap: 0.5rem;
 }
 
 .reason {
   align-self: flex-start;
+  margin: 0;
   padding: 0.125rem 0.5rem;
   border-radius: 0.5rem;
   background: var(--fc-peach-tint);
@@ -228,107 +1009,330 @@
   font-size: 0.8125rem;
 }
 
-.chips {
-  display: flex;
-  gap: 0.375rem;
-}
-
-.chips:empty {
-  display: none;
+.empty {
+  margin: 0;
+  padding: 1.5rem 1rem;
+  border: 1px dashed var(--tc-line-strong, var(--border));
+  border-radius: var(--tc-radius-card, 1rem);
+  font-size: 0.875rem;
+  text-align: center;
+  color: var(--tc-text, var(--foreground));
 }
 
 .chip {
   display: inline-flex;
-  padding: 0.125rem 0.5625rem;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid transparent;
   border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .tone_mint {
   background: var(--fc-mint-tint);
+  border-color: var(--fc-mint-edge);
   color: var(--fc-mint-ink);
 }
 
 .tone_sage {
   background: var(--fc-sage-tint);
+  border-color: var(--fc-sage-edge);
   color: var(--fc-sage-ink);
 }
 
 .tone_peach {
   background: var(--fc-peach-tint);
+  border-color: var(--fc-peach-edge);
   color: var(--fc-peach-ink);
+}
+
+.tone_butter {
+  background: var(--fc-butter-tint);
+  border-color: var(--fc-butter-edge);
+  color: var(--fc-butter-ink);
+}
+
+/* ---------------------------------------------------------------- dialogs --- */
+
+.dialogFields {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .weekdays {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem 0.875rem;
+  gap: 0.5rem 1rem;
 }
 
 .weekday {
   display: inline-flex;
   align-items: center;
-  gap: 0.375rem;
+  gap: 0.5rem;
   font-size: 0.875rem;
   color: var(--tc-ink, var(--foreground));
 }
 
-/* students */
-.tableWrap {
+/* --------------------------------------------------------------- students --- */
+
+.tableCard {
+  gap: 0;
+  padding: 0;
   overflow-x: auto;
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
 }
 
 .table th {
-  padding: 0.5rem 0.625rem;
-  text-align: left;
+  padding: 0.75rem 1rem;
+  background: var(--tc-bg, var(--background));
+  border-bottom: 1px solid var(--tc-line, var(--border));
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--tc-text, var(--muted-foreground));
-  border-bottom: 1px solid var(--tc-line, var(--border));
+  letter-spacing: 0.04em;
+  text-align: left;
+  text-transform: uppercase;
   white-space: nowrap;
+  color: var(--tc-text, var(--foreground));
 }
 
 .table td {
-  padding: 0.625rem;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--tc-line, var(--border));
-  color: var(--tc-ink, var(--foreground));
   vertical-align: middle;
+  color: var(--tc-ink, var(--foreground));
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.student {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.studentText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .studentName {
-  display: block;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .studentSub {
-  display: block;
-  font-size: 0.75rem;
-  color: var(--tc-text, var(--muted-foreground));
+  font-size: 0.8125rem;
+  color: var(--tc-text, var(--foreground));
+  overflow-wrap: anywhere;
+}
+
+.actionCell {
+  text-align: right;
+}
+
+.skeletonRow {
+  height: 3rem;
+  border-radius: 0.75rem;
+}
+
+.classSelect {
+  width: 100%;
+  max-width: 28rem;
+  height: 2.75rem;
 }
 
 .attendanceList {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .attendanceRow {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 0.625rem;
-  padding: 0.5rem 0.625rem;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
   border: 1px solid var(--tc-line, var(--border));
   border-radius: 0.75rem;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: var(--tc-ink, var(--foreground));
+  cursor: pointer;
+}
+
+.attendanceName {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 768px) {
+  .monthCardOpen .monthHeading {
+    top: calc(var(--site-notice-offset, 0px) + 56px);
+  }
+}
+
+@media (max-width: 640px) {
+  .card {
+    padding: 1rem;
+  }
+
+  .headActions {
+    flex: 1 1 100%;
+  }
+
+  .headActions > * {
+    flex: 1 1 auto;
+  }
+
+  .monthToggle {
+    grid-template-columns: 2.25rem minmax(0, 1fr) auto 1.25rem;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .monthBody {
+    padding: 0.5rem;
+  }
+
+  .cardHead {
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+  }
+
+  .cardBody {
+    padding: 1rem;
+  }
+
+  .coverLayout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+
+  .stats {
+    gap: 0.5rem;
+  }
+
+  .stat {
+    padding: 0.75rem;
+  }
+
+  .statValue {
+    font-size: 1.375rem;
+  }
+
+  .statLabel {
+    font-size: 0.8125rem;
+  }
+
+  .classRow {
+    grid-template-columns: 3.5rem minmax(0, 1fr);
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .dateBlock {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+
+  .dateDay {
+    font-size: 1.25rem;
+  }
+
+  .classActions {
+    grid-column: 2 / -1;
+    flex-wrap: wrap;
+  }
+
+  .tableCard {
+    overflow: visible;
+  }
+
+  .table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+
+  .table,
+  .table tbody,
+  .table tr,
+  .table td {
+    display: block;
+    width: 100%;
+  }
+
+  .table tr {
+    padding: 1rem;
+    border-bottom: 1px solid var(--tc-line, var(--border));
+  }
+
+  .table tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.25rem 0;
+    border-bottom: 0;
+  }
+
+  .table td[data-label]::before {
+    content: attr(data-label);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--tc-text, var(--foreground));
+  }
+
+  .table .studentCell {
+    padding-bottom: 0.5rem;
+  }
+
+  .table .actionCell {
+    justify-content: flex-end;
+    padding-top: 0.5rem;
+  }
+
+  .saveBar {
+    padding-left: 1rem;
+  }
+
+  .saveBarDirty {
+    bottom: 0.5rem;
+  }
 }
 
 @media (max-width: 560px) {
@@ -336,12 +1340,38 @@
     flex-direction: column;
   }
 
-  .classRow {
-    grid-template-columns: auto minmax(0, 1fr);
+  .sectionHeader,
+  .sectionHeaderRead {
+    grid-template-columns: 2.5rem 2rem minmax(0, 1fr);
+    gap: 0.5rem;
+    padding: 0.625rem 0.75rem 0.625rem 0.375rem;
   }
 
-  .classActions {
+  .sectionNo {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.875rem;
+  }
+
+  .topicCount {
+    display: none;
+  }
+
+  .sectionHeader .rowActions {
     grid-column: 1 / -1;
     justify-content: flex-end;
+  }
+
+  .sectionBody {
+    padding: 0.75rem;
+  }
+
+  .topicItem {
+    grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+    gap: 0.25rem;
+  }
+
+  .topicItemRead {
+    grid-template-columns: 2.25rem minmax(0, 1fr);
   }
 }

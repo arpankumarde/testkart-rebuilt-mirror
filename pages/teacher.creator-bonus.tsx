@@ -13,12 +13,21 @@ import {
   Newspaper,
   Send,
   Sparkles,
+  Trophy,
   Wallet,
 } from "lucide-react";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
 import { useCreatorBonusOverview } from "../helpers/useCreatorBonus";
-import { formatRupees, shortfallText, type CampaignContentType } from "../helpers/teacherCampaignRules";
+import {
+  CAMPAIGN_CONTENT_NOUNS,
+  bonusWord,
+  contentListText,
+  creatorBonusLeft,
+  formatRupees,
+  shortfallText,
+  type CampaignContentType,
+} from "../helpers/teacherCampaignRules";
 import type {
   CampaignItem,
   CampaignItemState,
@@ -104,7 +113,10 @@ function nextStep(item: CampaignItem, slots: CampaignSlots): { text: string; act
       return { text: "Live before the bonus started." };
     case "full":
       return {
-        text: `Maximum of ${slots.limit} ${item.type === "mock_test" ? "test series" : "course"} bonuses reached.`,
+        text:
+          slots.limit === 1
+            ? `Your ${CAMPAIGN_CONTENT_NOUNS[item.type]} bonus is already claimed.`
+            : `All ${slots.limit} ${CAMPAIGN_CONTENT_NOUNS[item.type]} bonuses are claimed.`,
       };
   }
 }
@@ -201,7 +213,12 @@ const TeacherCreatorBonusPage: React.FC = () => {
   const [filter, setFilter] = useState<Filter>("all");
 
   const allItems = data && data.campaign ? data.items : [];
-  const items = useMemo(() => allItems.filter((i) => !isSubmittedUnclaimed(i)), [allItems]);
+  const done = data && data.campaign ? creatorBonusLeft(data.slots).done : false;
+  // Once every bonus is claimed, drafts that can no longer claim are just noise.
+  const items = useMemo(
+    () => allItems.filter((i) => !isSubmittedUnclaimed(i) && !(done && i.state === "full")),
+    [allItems, done]
+  );
   const visibleItems = useMemo(() => {
     const states = FILTERS.find((f) => f.value === filter)?.states ?? [];
     const shown =
@@ -257,11 +274,40 @@ const TeacherCreatorBonusPage: React.FC = () => {
 
   const { campaign, slots, earned, examEarned, examCampaigns } = data;
   const req = campaign.requirements;
+  const types = ["mock_test", "course"] as const;
+  const { left } = creatorBonusLeft(slots);
   const maxTotal = slots.mock_test.limit * slots.mock_test.amount + slots.course.limit * slots.course.amount;
+  const leftValue = left.mock_test * slots.mock_test.amount + left.course * slots.course.amount;
   // Bonuses credited under an earlier, higher cap can exceed today's maximum.
   const meterMax = Math.max(maxTotal, earned);
   const earnedShare = meterMax > 0 ? Math.min(100, (earned / meterMax) * 100) : 0;
   const readyCount = items.filter((i) => i.state === "ready").length;
+  const waitingTotal = types.reduce((sum, t) => sum + slots[t].used - slots[t].credited, 0);
+  const limitsText = contentListText({ mock_test: slots.mock_test.limit, course: slots.course.limit });
+  const amount = formatRupees(slots.mock_test.amount);
+  const claimedTypes = types.filter((t) => slots[t].limit > 0 && left[t] === 0);
+  const claimedCount = claimedTypes.reduce((sum, t) => sum + slots[t].limit, 0);
+
+  const hero = done
+    ? {
+        chip: "All claimed",
+        title: "All Creator Bonuses claimed",
+        lead:
+          waitingTotal > 0
+            ? `Congratulations, every bonus is claimed. ${waitingTotal} ${waitingTotal === 1 ? "is" : "are"} with our team for review, and we email you once it is decided.`
+            : "Congratulations, you have earned every Creator Bonus on offer. Thank you for building great content for Testkart students.",
+      }
+    : claimedTypes.length > 0
+      ? {
+          chip: campaign.title,
+          title: `${contentListText(left)} ${bonusWord(left.mock_test + left.course)} left`,
+          lead: `Your ${claimedTypes.map((t) => CAMPAIGN_CONTENT_NOUNS[t]).join(" and ")} ${bonusWord(claimedCount)} ${claimedCount === 1 ? "is" : "are"} claimed. Earn up to ${formatRupees(leftValue)} more.`,
+        }
+      : {
+          chip: campaign.title,
+          title: `Earn ${amount} each for ${limitsText}`,
+          lead: `Build ${limitsText} to the rules below, tick the bonus when you submit, and earn up to ${formatRupees(maxTotal)}.`,
+        };
 
   const steps = [
     { icon: Hammer, tone: "peach", title: "Build it", text: `Test series: ${req.minTests}+ tests, ${req.minQuestions}+ questions. Course: ${req.minVideos}+ uploaded videos of ${req.minMinutesPerVideo}+ min.` },
@@ -280,13 +326,11 @@ const TeacherCreatorBonusPage: React.FC = () => {
       <div className={styles.page}>
         <section className={styles.hero} aria-labelledby="creator-bonus-title">
           <div className={styles.heroText}>
-            <span className={styles.chip}>{campaign.title}</span>
+            <span className={styles.chip}>{hero.chip}</span>
             <h1 id="creator-bonus-title" className={styles.heroTitle}>
-              Get paid {formatRupees(slots.mock_test.amount)} for every great test series and course
+              {hero.title}
             </h1>
-            <p className={styles.heroLead}>
-              Up to {slots.mock_test.limit} test series and {slots.course.limit} courses. Earn up to {formatRupees(maxTotal)}.
-            </p>
+            <p className={styles.heroLead}>{hero.lead}</p>
             <div className={styles.meter}>
               <div className={styles.meterHead}>
                 <span className={styles.meterValue}>{formatRupees(earned)}</span>
@@ -301,7 +345,7 @@ const TeacherCreatorBonusPage: React.FC = () => {
             <span className={`${styles.bigCoin} ${styles.bigCoinA}`}>{formatRupees(slots.mock_test.amount)}</span>
             <span className={`${styles.bigCoin} ${styles.bigCoinB}`}>{formatRupees(slots.course.amount)}</span>
             <span className={`${styles.bigCoin} ${styles.bigCoinC}`}>
-              <Gift size={30} />
+              {done ? <Trophy size={30} /> : <Gift size={30} />}
             </span>
           </div>
         </section>
@@ -327,10 +371,16 @@ const TeacherCreatorBonusPage: React.FC = () => {
         )}
 
         <div className={styles.tracks}>
-          {(["mock_test", "course"] as const).map((type) => {
+          {types.map((type) => {
             const track = TRACKS[type];
             const s = slots[type];
-            const atLimit = s.used >= s.limit;
+            const atLimit = left[type] === 0;
+            const waiting = s.used - s.credited;
+            const counts = [
+              s.credited > 0 && `${s.credited} credited`,
+              waiting > 0 && `${waiting} in review`,
+              !atLimit && `${left[type]} of ${s.limit} left`,
+            ].filter(Boolean);
             const Icon = track.icon;
             const rule =
               type === "mock_test"
@@ -341,7 +391,7 @@ const TeacherCreatorBonusPage: React.FC = () => {
                 key={type}
                 className={styles.track}
                 style={{ "--track-accent": track.accent } as React.CSSProperties}
-                {...cardTapProps}
+                {...(atLimit ? {} : cardTapProps)}
               >
                 <span className={styles.trackStrip} aria-hidden="true" />
                 <div className={styles.trackCard}>
@@ -359,9 +409,13 @@ const TeacherCreatorBonusPage: React.FC = () => {
                   </div>
                   <CoinSlots slots={s} accent={track.accent} />
                   <p className={styles.trackFoot}>
-                    {s.credited} credited · {s.used - s.credited} waiting ·{" "}
-                    {atLimit ? `Maximum of ${s.limit} reached` : `${s.limit - s.used} left`}
-                    {!atLimit && (
+                    <span>{counts.join(" · ")}</span>
+                    {atLimit ? (
+                      <span className={`${styles.trackStatus} ${waiting > 0 ? styles.tone_sky : styles.tone_mint}`}>
+                        {waiting > 0 ? <Clock size={14} aria-hidden="true" /> : <CheckCircle2 size={14} aria-hidden="true" />}
+                        {waiting > 0 ? "Claimed" : "Done"}
+                      </span>
+                    ) : (
                       <Link to={track.createHref} className={styles.trackLink} data-card-primary>
                         Create one <ArrowRight size={14} aria-hidden="true" />
                       </Link>
@@ -373,24 +427,26 @@ const TeacherCreatorBonusPage: React.FC = () => {
           })}
         </div>
 
-        <section className={styles.steps} aria-labelledby="creator-bonus-how">
-          <h2 id="creator-bonus-how" className={styles.sectionTitle}>How it works</h2>
-          <ol className={styles.stepList}>
-            {steps.map((step, i) => {
-              const Icon = step.icon;
-              return (
-                <li key={step.title} className={styles.step}>
-                  <span className={`${styles.stepBlob} ${styles[`tone_${step.tone}`]}`} aria-hidden="true">
-                    <Icon size={20} />
-                    <span className={styles.stepNumber}>{i + 1}</span>
-                  </span>
-                  <h3 className={styles.stepTitle}>{step.title}</h3>
-                  <p className={styles.stepText}>{step.text}</p>
-                </li>
-              );
-            })}
-          </ol>
-        </section>
+        {!done && (
+          <section className={styles.steps} aria-labelledby="creator-bonus-how">
+            <h2 id="creator-bonus-how" className={styles.sectionTitle}>How it works</h2>
+            <ol className={styles.stepList}>
+              {steps.map((step, i) => {
+                const Icon = step.icon;
+                return (
+                  <li key={step.title} className={styles.step}>
+                    <span className={`${styles.stepBlob} ${styles[`tone_${step.tone}`]}`} aria-hidden="true">
+                      <Icon size={20} />
+                      <span className={styles.stepNumber}>{i + 1}</span>
+                    </span>
+                    <h3 className={styles.stepTitle}>{step.title}</h3>
+                    <p className={styles.stepText}>{step.text}</p>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+        )}
 
         <section className={styles.content} aria-labelledby="creator-bonus-content">
           <div className={styles.contentHead}>
@@ -416,20 +472,26 @@ const TeacherCreatorBonusPage: React.FC = () => {
           {visibleItems.length === 0 ? (
             <div className={styles.emptyList}>
               <p>
-                {allItems.length === 0
-                  ? "No test series or courses yet."
-                  : items.length === 0
-                    ? "Nothing to claim yet. Content published or sent for review without the bonus does not count."
-                    : "Nothing here for this filter."}
+                {items.length > 0
+                  ? "Nothing here for this filter."
+                  : done
+                    ? "Every Creator Bonus is claimed, so there is nothing left to claim."
+                    : allItems.length === 0
+                      ? "No test series or courses yet."
+                      : "Nothing to claim yet. Content published or sent for review without the bonus does not count."}
               </p>
-              {items.length === 0 && (
+              {items.length === 0 && !done && (
                 <div className={styles.emptyActions}>
-                  <Button asChild>
-                    <Link to="/teacher/create-test">Create a test series</Link>
-                  </Button>
-                  <Button asChild variant="outline">
-                    <Link to="/teacher/courses/create">Create a course</Link>
-                  </Button>
+                  {left.mock_test > 0 && (
+                    <Button asChild>
+                      <Link to={TRACKS.mock_test.createHref}>Create a test series</Link>
+                    </Button>
+                  )}
+                  {left.course > 0 && (
+                    <Button asChild variant={left.mock_test > 0 ? "outline" : "primary"}>
+                      <Link to={TRACKS.course.createHref}>Create a course</Link>
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
@@ -490,6 +552,9 @@ const TeacherCreatorBonusPage: React.FC = () => {
         <section className={styles.rules} aria-labelledby="creator-bonus-rules">
           <h2 id="creator-bonus-rules" className={styles.sectionTitle}>Good to know</h2>
           <ul>
+            <li>
+              Up to {limitsText} per teacher, {amount} each.
+            </li>
             <li>One bonus per test series or course.</li>
             <li>Approval does not guarantee the bonus.</li>
             <li>Content live before {new Date(campaign.startsAt).toLocaleDateString("en-IN")} does not count.</li>
