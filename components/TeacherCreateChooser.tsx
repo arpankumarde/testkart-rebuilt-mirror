@@ -1,5 +1,5 @@
-import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./Dialog";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "./Sheet";
@@ -88,10 +88,23 @@ const TeacherCreateChooser = ({ open, onOpenChange }: { open: boolean; onOpenCha
   );
 };
 
+/** Navigation state that opens the chooser on arrival, e.g. the public navbar's Create going to the dashboard. */
+export const OPEN_CREATE_CHOOSER_STATE = { openCreateChooser: true } as const;
+
 /** Mounted once by the teacher layout; any page inside opens it with useTeacherCreateChooser. */
 export const TeacherCreateChooserProvider = ({ children }: { children: React.ReactNode }) => {
   const [open, setOpen] = useState(false);
   const openChooser = useCallback(() => setOpen(true), []);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Open once, then drop the flag so a refresh or Back does not reopen it.
+  useEffect(() => {
+    if ((location.state as { openCreateChooser?: boolean } | null)?.openCreateChooser) {
+      setOpen(true);
+      navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
+    }
+  }, [location, navigate]);
   const value = useMemo(() => ({ openChooser }), [openChooser]);
 
   return (

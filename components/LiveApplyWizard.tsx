@@ -14,7 +14,6 @@ import {
   Mail,
   Pencil,
   Send,
-  ShieldCheck,
   UserRound,
   Video,
 } from "lucide-react";
@@ -30,7 +29,7 @@ import { TeacherFlowSteps, type TeacherFlowStep } from "./TeacherFlowSteps";
 import { LiveCard, FieldLabel, FieldHint, FieldError, StatusPill } from "./LiveField";
 import { LivePriceEditor } from "./LivePriceEditor";
 import { LiveHoursEditor } from "./LiveHoursEditor";
-import { LiveIntroVideo, SampleIntroVideo } from "./LiveIntroVideo";
+import { LiveIntroVideo } from "./LiveIntroVideo";
 import { LiveDaysOff } from "./LiveDaysOff";
 import { useAuth } from "../helpers/useAuth";
 import { useUploadLimits } from "../helpers/useUploadLimits";
@@ -414,11 +413,7 @@ export const LiveApplyWizard: React.FC<{
                       aria-describedby="apply-email-hint"
                     />
                   )}
-                  <FieldHint id="apply-email-hint">
-                    {lockedEmail
-                      ? "Saved on your account. Change it in Settings."
-                      : "We send the result of your application here."}
-                  </FieldHint>
+                  {!lockedEmail && <FieldHint id="apply-email-hint">We send the result of your application here.</FieldHint>}
                   {!lockedEmail && showErrors.contact && <FieldError message={contactErrors(contact).email} />}
                 </div>
 
@@ -451,18 +446,14 @@ export const LiveApplyWizard: React.FC<{
                       />
                     </div>
                   )}
-                  <FieldHint id="apply-phone-hint">
-                    {lockedPhone
-                      ? "Saved on your account. Change it in Settings."
-                      : "10-digit Indian mobile number. Our team may call about your application."}
-                  </FieldHint>
+                  {!lockedPhone && (
+                    <FieldHint id="apply-phone-hint">
+                      10-digit Indian mobile number. Our team may call about your application.
+                    </FieldHint>
+                  )}
                   {!lockedPhone && showErrors.contact && <FieldError message={contactErrors(contact).mobileNumber} />}
                 </div>
               </div>
-              <p className={styles.privacy}>
-                <ShieldCheck size={16} aria-hidden="true" />
-                Private to your account. Public contact details are set in your Profile.
-              </p>
             </LiveCard>
           )}
 
@@ -621,18 +612,10 @@ export const LiveApplyWizard: React.FC<{
               icon={<Video size={18} />}
               tone="sage"
               title="Record your intro video"
-              hint="It plays at the top of the Learn live section on your profile. The strongest applications keep it short and warm."
+              hint="It plays at the top of the Learn live section on your profile."
             >
-              <div className={styles.videoGrid}>
-                <div className={styles.videoMain}>
-                  <LiveIntroVideo live={live} />
-                  <FieldError message={videoError} />
-                </div>
-                <div className={styles.videoAside}>
-                  <p className={styles.asideLabel}>See an example</p>
-                  <SampleIntroVideo caption="How an intro video plays on a teacher profile." />
-                </div>
-              </div>
+              <LiveIntroVideo live={live} />
+              <FieldError message={videoError} />
             </LiveCard>
           )}
 

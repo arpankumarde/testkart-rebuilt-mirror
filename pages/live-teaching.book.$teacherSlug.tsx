@@ -10,6 +10,7 @@ import { startCashfreeCheckout } from "../helpers/cashfreeCheckout";
 import { postPaymentCashfreeVerify } from "../endpoints/payment/cashfree/verify_POST.schema";
 import { classLengthName, formatRupees, LiveClassMinutes, LivePrices, trialPriceFor } from "../helpers/livePricing";
 import { MENTORSHIP_SESSION_DURATIONS } from "../helpers/liveLessonConfig";
+import { requestedSessionMinutes } from "../helpers/liveBookingRoutes";
 import { Button } from "../components/Button";
 import { Skeleton } from "../components/Skeleton";
 import { NotFoundState } from "../components/NotFoundState";
@@ -258,7 +259,7 @@ const TrialBooking: React.FC<{
   onBooked: () => void;
 }> = ({ teacherId, prices, balance, signedIn, onLogin, onBooked }) => {
   const location = useLocation();
-  const requested = Number(new URLSearchParams(location.search).get("duration"));
+  const requested = requestedSessionMinutes(location.search);
   const [minutes, setMinutes] = useState<LiveClassMinutes>(
     MENTORSHIP_SESSION_DURATIONS.find((m) => m === requested) ?? MENTORSHIP_SESSION_DURATIONS[0]
   );

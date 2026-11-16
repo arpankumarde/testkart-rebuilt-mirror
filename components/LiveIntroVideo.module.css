@@ -15,14 +15,461 @@
   object-fit: contain;
 }
 
-.tips {
-  margin: 0;
-  padding: 0.75rem 0.875rem 0.75rem 1.875rem;
-  border-radius: 0.75rem;
-  background: var(--tc-bg, var(--muted));
+/* A saved video: the player with its action bar attached below. */
+.player {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--tc-line, var(--border));
+  border-radius: 0.875rem;
+  background: var(--tc-card, var(--card));
+}
+
+.playerVideo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 0.8125rem 0.8125rem 0 0;
+  background: #111;
+  object-fit: contain;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  padding: 0.875rem 1rem;
+  border-top: 1px solid var(--tc-line, var(--border));
+}
+
+.fileInput {
+  display: none;
+}
+
+.toolbarInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3125rem;
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  align-self: flex-start;
+  padding: 0.1875rem 0.625rem;
+  border-radius: 999px;
+  border: 1px solid;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.statusLive {
+  background: var(--fc-mint-tint);
+  border-color: var(--fc-mint-edge);
+  color: var(--fc-mint-ink);
+}
+
+.statusReview {
+  background: var(--fc-butter-tint);
+  border-color: var(--fc-butter-line);
+  color: var(--fc-butter-ink);
+}
+
+.statusSaved {
+  background: var(--fc-blue-tint);
+  border-color: var(--fc-blue-line);
+  color: var(--fc-blue-ink);
+}
+
+.toolbarHint {
   font-size: 0.8125rem;
-  line-height: 1.6;
+  line-height: 1.45;
+  color: var(--tc-muted, var(--muted-foreground));
+}
+
+.toolbarActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.toolbarActions button {
+  gap: 0.375rem;
+}
+
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.progressHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--tc-ink, var(--foreground));
+}
+
+.progressName {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.progressName svg {
+  flex-shrink: 0;
+  color: var(--primary);
+}
+
+.progressFile {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progressPct {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.progressTrack {
+  height: 0.375rem;
+  border-radius: 999px;
+  background: var(--tc-line, var(--border));
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--primary);
+  transition: width 0.2s ease;
+}
+
+.spin {
+  animation: introVideoSpin 0.9s linear infinite;
+}
+
+@keyframes introVideoSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+}
+
+.uploadError {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0 1rem 0.875rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--fc-peach-line);
+  background: var(--fc-peach-tint);
+  color: var(--fc-peach-ink);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.uploadError svg {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+@media (max-width: 560px) {
+  .toolbarActions {
+    width: 100%;
+  }
+
+  .toolbarActions button {
+    flex: 1;
+  }
+
+  .toolbarActions .infoButton {
+    flex: 0 0 auto;
+  }
+}
+
+.tipList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.tipIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.625rem;
+  border: 1px solid var(--fc-peach-line);
+  background: var(--fc-peach-tint);
+  color: var(--fc-peach-ink);
+}
+
+.tipBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.tipTitle {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--tc-ink, var(--foreground));
+}
+
+.tipText {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--tc-muted, var(--muted-foreground));
+}
+
+/* First upload: a roomy dropzone with the specs as short chips and the example link beneath it. */
+.drop {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  min-width: 0;
+}
+
+.dropZone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 15rem;
+  padding: 2rem 1.5rem;
+  border: 1.5px dashed var(--fc-sage-edge);
+  border-radius: 1.25rem;
+  background: var(--fc-sage-tint);
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.dropZone:hover,
+.dropZone[data-dragging] {
+  border-style: solid;
+  background: color-mix(in srgb, var(--fc-sage-tint) 80%, var(--tc-card, var(--card)));
+}
+
+.dropZone[data-busy] {
+  cursor: default;
+}
+
+.dropZone:focus-visible {
+  outline: 2px solid var(--fc-sage-ink);
+  outline-offset: 3px;
+}
+
+.dropIcon {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  margin-bottom: 0.25rem;
+  border: 1px solid var(--fc-sage-line);
+  border-radius: 50%;
+  background: var(--tc-card, var(--card));
+  color: var(--fc-sage-ink);
+}
+
+.dropTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--tc-ink, var(--foreground));
+}
+
+.dropSub {
+  margin: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.875rem;
   color: var(--tc-text, var(--foreground));
+}
+
+.dropButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  margin-top: 0.625rem;
+  padding: 0 1.25rem;
+  border-radius: 0.75rem;
+  background: var(--fc-sage-ink);
+  color: var(--tc-card, var(--card));
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.dropZone:hover .dropButton {
+  background: color-mix(in srgb, var(--fc-sage-ink) 88%, var(--tc-ink, var(--foreground)));
+}
+
+.dropProgress {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: min(22rem, 100%);
+}
+
+.dropBar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.dropBar .progressTrack {
+  flex: 1;
+  background: var(--tc-card, var(--card));
+}
+
+.dropFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.625rem 1rem;
+}
+
+.specs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.spec {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.3125rem 0.75rem;
+  border: 1px solid var(--tc-line, var(--border));
+  border-radius: 999px;
+  background: var(--tc-card, var(--card));
+  color: var(--tc-text, var(--foreground));
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.spec svg {
+  flex-shrink: 0;
+  color: var(--fc-sage-edge);
+}
+
+.exampleLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--tk-brand-text);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.exampleLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.exampleLink:focus-visible {
+  outline: 2px solid var(--tk-brand-text);
+  outline-offset: 3px;
+  border-radius: 0.25rem;
+}
+
+.uploadErrorInline {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--fc-peach-line);
+  background: var(--fc-peach-tint);
+  color: var(--fc-peach-ink);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.uploadErrorInline svg {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .dropZone {
+    min-height: 13rem;
+    padding: 1.5rem 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dropZone {
+    transition: none;
+  }
+}
+
+.tipsPopover {
+  width: min(20rem, calc(100vw - 2rem));
+  padding: 1rem;
+}
+
+.tipsHeading {
+  margin: 0 0 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--tc-ink, var(--foreground));
 }
 
 /* An approved teacher's new intro video waiting for review: butter, like other in-review states. */
@@ -73,18 +520,5 @@
 .empty {
   margin: 0;
   font-size: 0.875rem;
-  color: var(--tc-muted, var(--muted-foreground));
-}
-
-.sample {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin: 0;
-}
-
-.sampleCaption {
-  font-size: 0.8125rem;
-  line-height: 1.45;
   color: var(--tc-muted, var(--muted-foreground));
 }

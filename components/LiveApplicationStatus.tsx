@@ -16,13 +16,11 @@ import {
   Search,
   Send,
   UserRound,
-  Users,
   Video,
 } from "lucide-react";
 import { Button } from "./Button";
 import { ConsoleConfirmDialog } from "./ConsoleConfirmDialog";
 import { StatusPill } from "./LiveField";
-import { SampleIntroVideo } from "./LiveIntroVideo";
 import { useWithdrawLiveTeachingMutation } from "../helpers/useLiveTeaching";
 import { formatDay, type LiveApplyStep } from "../helpers/liveTeachingForms";
 import type { OutputType as LiveStatus } from "../endpoints/teacher/live-teaching/status_GET.schema";
@@ -31,43 +29,18 @@ import styles from "./LiveApplicationStatus.module.css";
 type Props = { live: LiveStatus; onOpen: (step?: LiveApplyStep) => void };
 
 const BENEFITS = [
-  {
-    tone: "mint",
-    icon: <IndianRupee size={18} />,
-    title: "Your price, your hours",
-    text: "Set a short and a full session price and open only the hours that suit you.",
-  },
-  {
-    tone: "lavender",
-    icon: <CalendarCheck size={18} />,
-    title: "Steady weekly students",
-    text: "Students start with a trial, then book 1 to 6 classes a week, paid every 4 weeks.",
-  },
-  {
-    tone: "butter",
-    icon: <Search size={18} />,
-    title: "Found where students look",
-    text: "Your card shows in the tutor list and a Learn live section opens on your profile.",
-  },
+  { tone: "mint", icon: <IndianRupee size={20} />, title: "Your prices", text: "Set short and full session rates." },
+  { tone: "lavender", icon: <CalendarCheck size={20} />, title: "Your hours", text: "Open only the times that suit you." },
+  { tone: "butter", icon: <Search size={20} />, title: "Get found", text: "Shown in the tutor list and on your profile." },
 ] as const;
 
-const SHOW_PLACES = [
-  {
-    icon: <UserRound size={16} />,
-    title: "Your public profile",
-    text: "A Learn live section with your intro video, 1:1 prices and a button to see your open times.",
-  },
-  {
-    icon: <Search size={16} />,
-    title: "Tutor list",
-    text: "Students looking for a 1:1 tutor see your card and can book a trial session.",
-  },
-  {
-    icon: <Users size={16} />,
-    title: "Group classes",
-    text: "Live courses you create show on your profile and in the live classes list.",
-  },
+const STEPS = [
+  { title: "Apply", text: "Six short steps, about 10 minutes." },
+  { title: "Get reviewed", text: "We email you the result in a few days." },
+  { title: "Go live", text: "Turn on bookings in Live settings." },
 ];
+
+const NEEDS = ["Contact details", "Photo and bio", "Subjects and languages", "1:1 rate", "Weekly hours", "Intro video"];
 
 const ChecklistSummary: React.FC<{ live: LiveStatus }> = ({ live }) => (
   <ul className={styles.checklist}>
@@ -81,7 +54,7 @@ const ChecklistSummary: React.FC<{ live: LiveStatus }> = ({ live }) => (
   </ul>
 );
 
-/* Not applied yet, or withdrawn: what live teaching gives, how applying works, and the way in. */
+/* Not applied yet, or withdrawn: the header with the way in, three short benefits, and one how-it-works card. */
 export const LiveApplyLanding: React.FC<Props> = ({ live, onOpen }) => {
   const doneCount = live.checklist.filter((item) => item.done).length;
   const total = live.checklist.length;
@@ -110,10 +83,7 @@ export const LiveApplyLanding: React.FC<Props> = ({ live, onOpen }) => {
             </h2>
             <StatusPill tone="neutral">Not applied yet</StatusPill>
           </div>
-          <p className={styles.heroLead}>
-            Offer 1:1 sessions and live classes to students who already know your tests and notes. Our team reviews
-            your application before students can book you.
-          </p>
+          <p className={styles.heroLead}>Offer 1:1 sessions and live classes. Our team reviews every application.</p>
         </div>
         <div className={styles.heroActions}>
           {live.isOwner ? (
@@ -149,59 +119,34 @@ export const LiveApplyLanding: React.FC<Props> = ({ live, onOpen }) => {
         ))}
       </ul>
 
-      <div className={styles.split}>
-        <section className={styles.card} aria-labelledby="live-how-title">
-          <h3 className={styles.cardTitle} id="live-how-title">
-            How it works
-          </h3>
-          <ol className={styles.steps}>
-            <li className={styles.stepItem}>
-              <span className={styles.stepNum}>1</span>
+      <section className={styles.card} aria-labelledby="live-how-title">
+        <h3 className={styles.cardTitle} id="live-how-title">
+          How it works
+        </h3>
+        <ol className={styles.steps}>
+          {STEPS.map((s, i) => (
+            <li key={s.title} className={styles.stepItem}>
+              <span className={styles.stepNum} aria-hidden="true">
+                {i + 1}
+              </span>
               <span className={styles.stepText}>
-                <span className={styles.stepTitle}>Apply in six short steps</span>
-                <span className={styles.stepHint}>Contact details, profile, prices, weekly hours and an intro video.</span>
+                <span className={styles.stepTitle}>{s.title}</span>
+                <span className={styles.stepHint}>{s.text}</span>
               </span>
             </li>
-            <li className={styles.stepItem}>
-              <span className={styles.stepNum}>2</span>
-              <span className={styles.stepText}>
-                <span className={styles.stepTitle}>The Testkart team reviews it</span>
-                <span className={styles.stepHint}>Usually within a few working days. We email you the result.</span>
-              </span>
-            </li>
-            <li className={styles.stepItem}>
-              <span className={styles.stepNum}>3</span>
-              <span className={styles.stepText}>
-                <span className={styles.stepTitle}>Go live</span>
-                <span className={styles.stepHint}>Turn on 1:1 bookings in Live settings and students can book you.</span>
-              </span>
-            </li>
-          </ol>
-
-          <h3 className={styles.cardTitle}>What you need</h3>
-          <ChecklistSummary live={live} />
-        </section>
-
-        <section className={styles.card} aria-labelledby="live-where-title">
-          <h3 className={styles.cardTitle} id="live-where-title">
-            Where students will see you
-          </h3>
-          <ul className={styles.places}>
-            {SHOW_PLACES.map((place) => (
-              <li key={place.title} className={styles.place}>
-                <span className={styles.placeIcon} aria-hidden="true">
-                  {place.icon}
-                </span>
-                <span className={styles.stepText}>
-                  <span className={styles.stepTitle}>{place.title}</span>
-                  <span className={styles.stepHint}>{place.text}</span>
-                </span>
+          ))}
+        </ol>
+        <div className={styles.needs}>
+          <span className={styles.needsLabel}>You will need</span>
+          <ul className={styles.needsList}>
+            {NEEDS.map((n) => (
+              <li key={n} className={styles.need}>
+                {n}
               </li>
             ))}
           </ul>
-          <SampleIntroVideo caption="A sample intro video, as it plays at the top of the Learn live section." />
-        </section>
-      </div>
+        </div>
+      </section>
     </div>
   );
 };

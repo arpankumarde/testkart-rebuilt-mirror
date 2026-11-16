@@ -621,17 +621,11 @@
   white-space: nowrap;
 }
 
-.overviewSplit {
-  display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-  gap: 2rem;
-  align-items: start;
-}
-
 .prose {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  max-width: 52rem;
 }
 
 .prose p {
@@ -663,132 +657,10 @@
   color: var(--fc-mint-edge);
 }
 
-.steps {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.stepsStacked {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.step {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4375rem;
-  padding: 1.25rem;
-  border: 1px solid var(--t-line);
-  border-radius: 1.25rem;
-  background: var(--t-tint);
-  color: var(--t-ink);
-}
-
-.stepTop {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.375rem;
-}
-
-.stepIcon {
-  display: grid;
-  place-items: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  border: 1px solid var(--t-line);
-  border-radius: 50%;
-  background: var(--sp-card);
-  color: var(--t-ink);
-}
-
-.stepNum {
-  font-family: var(--font-family-heading);
-  font-size: 1.625rem;
-  font-weight: 800;
-  line-height: 1;
-  color: var(--t-edge);
-}
-
-.step strong {
-  font-size: 1.0625rem;
-  line-height: 1.3;
-}
-
-.step > span:last-child {
+.headMeta {
   font-size: 0.875rem;
-  line-height: 1.5;
-}
-
-.learn {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
-  gap: 1rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.learnItem {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 1.125rem;
-  border: 1px solid var(--sp-line);
-  border-radius: 1.25rem;
-  background: var(--sp-surface);
-  transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
-}
-
-.learnItem:hover {
-  transform: translateY(-2px);
-  border-color: var(--sp-line-strong);
-  box-shadow: var(--sp-shadow);
-}
-
-.learnHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  margin-bottom: 0.25rem;
-}
-
-.learnIcon {
-  display: grid;
-  place-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border: 1px solid var(--t-line);
-  border-radius: 0.875rem;
-  background: var(--t-tint);
-  color: var(--t-ink);
-}
-
-.learnCount {
-  padding: 0.1875rem 0.5rem;
-  border: 1px solid var(--sp-line);
-  border-radius: 999px;
-  background: var(--sp-card);
+  font-weight: 600;
   color: var(--sp-text);
-  font-size: 0.6875rem;
-  font-weight: 700;
-}
-
-.learnTitle {
-  font-family: var(--font-family-heading);
-  font-size: 1.0625rem;
-  font-weight: 800;
-  color: var(--sp-ink);
-}
-
-.learnText {
-  font-size: 0.8125rem;
-  line-height: 1.5;
-  color: var(--sp-muted);
 }
 
 /* Enrol bar, portalled to <body>: shown once the card's CTA scrolls out of view. */
@@ -940,19 +812,11 @@
 }
 
 @container lcmain (max-width: 760px) {
-  .overviewSplit {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1.25rem;
-  }
-
-  .steps {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
   .section {
     padding: 1.25rem;
     border-radius: 1.25rem;
   }
+
 
   .headPills {
     width: 100%;
@@ -963,15 +827,13 @@
 @media (prefers-reduced-motion: reduce) {
   .buy,
   .hostPill,
-  .learnItem,
   .enrolBar,
   .enrolBar[data-visible] {
     transition: none;
   }
 
   .buy:hover:not(:disabled),
-  .buy:active:not(:disabled),
-  .learnItem:hover {
+  .buy:active:not(:disabled) {
     transform: none;
   }
 }

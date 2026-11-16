@@ -17,6 +17,7 @@ import { Skeleton } from "../components/Skeleton";
 import { Switch } from "../components/Switch";
 import { RichTextEditor } from "../components/RichTextEditor";
 import { ImageUploader } from "../components/ImageUploader";
+import { BLOG_IMAGE_FOLDER, BLOG_EDITOR_IMAGE_FOLDER, BLOG_NEWS_IMAGE_MAX_MB } from "../helpers/blogNewsImageRules";
 import { Form, FormItem, FormLabel, FormControl, FormMessage, useForm } from "../components/Form";
 import { ArrowLeft, Newspaper, BookOpen, Check, Loader2, X } from "lucide-react";
 import { useAdminLayout } from "../helpers/useAdminLayout";
@@ -383,6 +384,8 @@ const AdminBlogEditorPage = () => {
                       onChange={(val) => form.setValues((prev) => ({ ...prev, content: val }))}
                       placeholder="Start writing your post here..." 
                       enableProductEmbed
+                      imageFolder={BLOG_EDITOR_IMAGE_FOLDER}
+                      imageMaxMb={BLOG_NEWS_IMAGE_MAX_MB}
                     />
                   </FormControl>
                   <FormMessage />
@@ -462,7 +465,9 @@ const AdminBlogEditorPage = () => {
                       <FormLabel>Social image</FormLabel>
                       <FormControl>
                         <ImageUploader
-                          folder="platform/blog-images"
+                          folder={BLOG_IMAGE_FOLDER}
+                          maxSizeInMB={BLOG_NEWS_IMAGE_MAX_MB}
+                          showSizeLimit
                           currentImageUrl={form.values.ogImage || undefined}
                           onSuccess={({ url }) => form.setValues((prev) => ({ ...prev, ogImage: url }))}
                           label="Upload social image"

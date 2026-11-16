@@ -2204,6 +2204,43 @@ export interface QuestionBank {
   updatedAt: Generated<Timestamp | null>;
 }
 
+export interface QuestionBankDedupeBackup {
+  correctOption: string | null;
+  correctOptions: string[] | null;
+  createdAt: Timestamp | null;
+  durationSeconds: number | null;
+  examId: number | null;
+  explanation: string | null;
+  id: number | null;
+  matchData: Json | null;
+  negativeMarks: Numeric | null;
+  numericalAnswer: Numeric | null;
+  numericalTolerance: Numeric | null;
+  optionA: string | null;
+  optionB: string | null;
+  optionC: string | null;
+  optionD: string | null;
+  optionE: string | null;
+  paragraphText: string | null;
+  partialMarking: boolean | null;
+  positiveMarks: Numeric | null;
+  questionText: string | null;
+  questionType: QuestionType | null;
+  sourceMockTestId: number | null;
+  sourceTestItemId: number | null;
+  sourceTestQuestionId: number | null;
+  subjectName: string | null;
+  tags: string[] | null;
+  teacherId: number | null;
+  updatedAt: Timestamp | null;
+}
+
+export interface QuestionBankDedupeMap {
+  deletedId: number | null;
+  keeperId: number | null;
+  teacherId: number | null;
+}
+
 export interface RevCopyVariants {
   aiModel: string | null;
   body: string | null;
@@ -3216,6 +3253,8 @@ export interface DB {
   promoCodeUsages: PromoCodeUsages;
   pushTokens: PushTokens;
   questionBank: QuestionBank;
+  questionBankDedupeBackup: QuestionBankDedupeBackup;
+  questionBankDedupeMap: QuestionBankDedupeMap;
   revCopyVariants: RevCopyVariants;
   revEnrolments: RevEnrolments;
   reviews: Reviews;

@@ -148,33 +148,19 @@
   font-weight: 700;
 }
 
-/* The one solid action, in ink: white on coral is 2.1:1, white on ink clears 12:1. */
+/* The one solid action: a peach 3D button with one sharp corner, the same skin
+   in both themes. Button reads the --btn-* tokens. */
 .ink {
   flex-shrink: 0;
-  background-color: var(--tk-brand-ink);
-  border-color: var(--tk-brand-ink);
-  color: #fff;
+  --btn-bg: var(--sp-cta);
+  --btn-bg-hover: var(--sp-cta-hover);
+  --btn-fg: var(--sp-cta-ink);
+  --btn-edge: var(--sp-peach-edge);
+  --btn-depth: 3px;
+  --btn-radius: 1.25rem 1.25rem 1.25rem 0.5rem;
+  --btn-lift: translateY(-2px);
+  --btn-press: translateY(2px);
   font-weight: 700;
-}
-
-.ink:hover,
-.ink:active {
-  background-color: var(--tk-brand-ink-hover);
-  border-color: var(--tk-brand-ink-hover);
-  color: #fff;
-}
-
-:global(.dark) .ink {
-  background-color: var(--tk-brand);
-  border-color: var(--tk-brand);
-  color: var(--tk-brand-ink);
-}
-
-:global(.dark) .ink:hover,
-:global(.dark) .ink:active {
-  background-color: var(--tk-brand-hover);
-  border-color: var(--tk-brand-hover);
-  color: var(--tk-brand-hover-foreground);
 }
 
 .empty,

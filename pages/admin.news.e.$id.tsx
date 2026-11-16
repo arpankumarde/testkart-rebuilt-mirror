@@ -51,6 +51,7 @@ import { ConsoleConfirmDialog } from "../components/ConsoleConfirmDialog";
 import { ConsoleListEmpty } from "../components/ConsoleListEmpty";
 import { DeleteConfirmationDialog } from "../components/DeleteConfirmationDialog";
 import { ImageUploader } from "../components/ImageUploader";
+import { EXAM_NEWS_IMAGE_FOLDER, EXAM_NEWS_EDITOR_IMAGE_FOLDER, BLOG_NEWS_IMAGE_MAX_MB } from "../helpers/blogNewsImageRules";
 import { RichTextEditor } from "../components/RichTextEditor";
 import { CurrentAffairsStatusBadge } from "../components/CurrentAffairsStatusBadge";
 import { CurrentAffairsSourcesEditor } from "../components/CurrentAffairsSourcesEditor";
@@ -735,7 +736,9 @@ const AdminExamNewsEditorPage: React.FC = () => {
                     <FormItem name="heroImageUrl" className={styles.coverUpload}>
                       <FormLabel>Hero image</FormLabel>
                       <ImageUploader
-                        folder="platform/exam-news"
+                        folder={EXAM_NEWS_IMAGE_FOLDER}
+                        maxSizeInMB={BLOG_NEWS_IMAGE_MAX_MB}
+                        showSizeLimit
                         currentImageUrl={values.heroImageUrl || undefined}
                         currentFileId={values.heroImageFileId || undefined}
                         aspectRatio="16 / 9"
@@ -778,6 +781,8 @@ const AdminExamNewsEditorPage: React.FC = () => {
                         onChange={(body) => set("body", body)}
                         placeholder="What changed, who it affects, and what students should do next..."
                         minHeight={340}
+                        imageFolder={EXAM_NEWS_EDITOR_IMAGE_FOLDER}
+                        imageMaxMb={BLOG_NEWS_IMAGE_MAX_MB}
                       />
                     </FormControl>
                     <FormMessage />
@@ -901,7 +906,9 @@ const AdminExamNewsEditorPage: React.FC = () => {
                     <FormItem name="ogImageUrl" className={styles.ogField}>
                       <FormLabel>Sharing image</FormLabel>
                       <ImageUploader
-                        folder="platform/exam-news"
+                        folder={EXAM_NEWS_IMAGE_FOLDER}
+                        maxSizeInMB={BLOG_NEWS_IMAGE_MAX_MB}
+                        showSizeLimit
                         currentImageUrl={values.ogImageUrl || undefined}
                         currentFileId={values.ogImageFileId || undefined}
                         aspectRatio="1200 / 630"

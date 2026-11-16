@@ -1,6 +1,7 @@
 import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./bulk-upload_POST.schema";
+import { dropQuestionsAlreadyInBank } from "../../../helpers/questionBankDedupe";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
@@ -124,21 +125,28 @@ export async function handle(request: Request): Promise<Response> {
       );
     }
 
-    const createdQuestions = await db.transaction().execute(async (trx) => {
-      return await trx
-        .insertInto("questionBank")
-        .values(questionsToInsert)
-        .returning(["id"])
-        .execute();
-    });
+    const { fresh, skipped } = await dropQuestionsAlreadyInBank(effectiveTeacherId, questionsToInsert);
+
+    const createdQuestions =
+      fresh.length === 0
+        ? []
+        : await db.transaction().execute(async (trx) => {
+            return await trx
+              .insertInto("questionBank")
+              .values(fresh)
+              .returning(["id"])
+              .execute();
+          });
 
     const questionIds = createdQuestions.map((q) => q.id);
+    const skippedNote =
+      skipped > 0 ? ` ${skipped} already in your question bank, so not added again.` : "";
 
     return new Response(
       superjson.stringify({
         count: questionIds.length,
         questionIds,
-        message: `${questionIds.length} questions added to question bank successfully.`,
+        message: `${questionIds.length} questions added to question bank successfully.${skippedNote}`,
       } satisfies OutputType)
     );
   } catch (error) {

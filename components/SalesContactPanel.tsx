@@ -7,6 +7,7 @@ import { formatDemoCallSlot } from "../endpoints/demo-request/submit_POST.schema
 import { OutputType as SalesTeamOutput } from "../endpoints/admin/sales/team_GET.schema";
 import { useUpdateSalesContactMutation } from "../helpers/useAdminSalesContacts";
 import { SalesStage, CallDisposition } from "../helpers/schema";
+import { buildWaplifyChatUrl } from "../helpers/waplifyChatUrl";
 import { Button } from "./Button";
 import { Badge } from "./Badge";
 import { Skeleton } from "./Skeleton";
@@ -503,9 +504,18 @@ export const SalesContactPanel: React.FC<SalesContactPanelProps> = ({
                     {detailData.contact.mobileNumber && (
                       <>
                         <a href={`tel:+91${detailData.contact.mobileNumber}`} className={styles.phoneLink}>{detailData.contact.mobileNumber}</a>
-                        <a href={`https://wa.me/91${detailData.contact.mobileNumber}`} target="_blank" rel="noreferrer" className={styles.waLink}>
-                          <MessageCircle size={14} />
-                        </a>
+                        {buildWaplifyChatUrl(detailData.contact.mobileNumber) && (
+                          <a
+                            href={buildWaplifyChatUrl(detailData.contact.mobileNumber)!}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={styles.waLink}
+                            aria-label="Open in Waplify"
+                            title="Open in Waplify"
+                          >
+                            <MessageCircle size={14} />
+                          </a>
+                        )}
                       </>
                     )}
                     {detailData.contact.email && (

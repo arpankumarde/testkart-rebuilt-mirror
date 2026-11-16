@@ -103,7 +103,6 @@
   overflow-wrap: anywhere;
 }
 
-.privacy,
 .ownerNote {
   display: flex;
   align-items: flex-start;
@@ -111,56 +110,17 @@
   margin: 0;
   padding: 0.75rem 0.875rem;
   border-radius: 0.75rem;
-  font-size: 0.8125rem;
-  line-height: 1.45;
-}
-
-.privacy {
-  background: var(--fc-blue-tint);
-  color: var(--fc-blue-ink);
-}
-
-.ownerNote {
   background: var(--fc-butter-tint);
   border: 1px solid var(--fc-butter-line);
   color: var(--fc-butter-ink);
+  font-size: 0.8125rem;
+  line-height: 1.45;
   font-weight: 600;
 }
 
-.privacy svg,
 .ownerNote svg {
   flex-shrink: 0;
   margin-top: 0.0625rem;
-}
-
-/* ------------------------------------------------------------- video --- */
-
-.videoGrid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-  gap: 1.25rem;
-  align-items: start;
-}
-
-.videoMain {
-  min-width: 0;
-}
-
-.videoAside {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  min-width: 0;
-  padding: 0.875rem;
-  border: 1px dashed var(--tc-line-strong, var(--border));
-  border-radius: 1rem;
-}
-
-.asideLabel {
-  margin: 0;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: var(--tc-ink, var(--foreground));
 }
 
 /* ------------------------------------------------------------ review --- */
@@ -476,8 +436,7 @@
 /* ------------------------------------------------------------ narrow --- */
 
 @media (max-width: 760px) {
-  .fieldPair,
-  .videoGrid {
+  .fieldPair {
     grid-template-columns: minmax(0, 1fr);
   }
 }

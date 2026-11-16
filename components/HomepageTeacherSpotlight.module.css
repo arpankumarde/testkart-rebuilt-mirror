@@ -185,25 +185,54 @@
   vector-effect: non-scaling-stroke;
 }
 
+/* Underlined panel ink at rest. On hover it becomes a peach pill using the panel's own themed
+   peach pair (light peach with deep orange ink on the pine panel, deep peach with light ink on
+   the dark-mode sage panel); the padding is cancelled by negative margin so nothing shifts. */
 .tutorsLink {
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-1);
+  margin: -0.25rem -0.625rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-full);
   font-size: 0.9375rem;
   font-weight: 700;
   color: var(--fc-panel-ink);
   text-decoration: underline;
   text-underline-offset: 3px;
+  transition:
+    background-color var(--animation-duration-fast) ease,
+    color var(--animation-duration-fast) ease;
+}
+
+.tutorsLink svg {
+  transition: transform var(--animation-duration-fast) ease;
 }
 
 .tutorsLink:hover {
-  color: var(--tk-brand-text);
+  background-color: var(--fc-peach-tint);
+  color: var(--fc-peach-ink);
+  text-decoration: none;
+}
+
+.tutorsLink:hover svg {
+  transform: translateX(2px);
 }
 
 .tutorsLink:focus-visible {
-  outline: 2px solid var(--tk-brand-text);
+  outline: 2px solid var(--fc-peach-edge);
   outline-offset: 2px;
-  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tutorsLink,
+  .tutorsLink svg {
+    transition: none;
+  }
+
+  .tutorsLink:hover svg {
+    transform: none;
+  }
 }
 
 .arrows {

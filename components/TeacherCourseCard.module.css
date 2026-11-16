@@ -39,7 +39,6 @@
 .cover .thumbnail {
   width: 100%;
   aspect-ratio: 16 / 9;
-  max-height: 190px;
   border-radius: 0;
 }
 

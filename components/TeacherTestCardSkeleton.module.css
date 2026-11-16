@@ -12,7 +12,6 @@
 .cover {
   position: relative;
   aspect-ratio: 16 / 9;
-  max-height: 190px;
   overflow: hidden;
   border-bottom: 1px solid var(--tc-line, var(--border));
 }

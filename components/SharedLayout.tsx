@@ -9,7 +9,7 @@ import { Button } from "./Button";
 import { Skeleton } from "./Skeleton";
 import { ShoppingCart, Radio, Users, Search, ChevronDown, Menu, Plus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./Avatar";
-import { TeacherCreateChooserProvider, useTeacherCreateChooser } from "./TeacherCreateChooser";
+import { OPEN_CREATE_CHOOSER_STATE } from "./TeacherCreateChooser";
 import { SiteNavDrawer } from "./SiteNavDrawer";
 import { Footer } from "./Footer";
 import { useCartItemsQuery } from "../helpers/useCartQuery";
@@ -74,15 +74,13 @@ const CartLink: React.FC = () => {
   );
 };
 
-const TeacherNavCreateButton: React.FC = () => {
-  const { openChooser } = useTeacherCreateChooser();
-  return (
-    <button type="button" className={styles.createButton} onClick={openChooser}>
-      <Plus size={16} strokeWidth={2.5} aria-hidden="true" />
-      Create
-    </button>
-  );
-};
+// Goes to the dashboard and opens its "What do you want to create?" chooser there.
+const TeacherNavCreateButton: React.FC = () => (
+  <Link to="/teacher/dashboard" state={OPEN_CREATE_CHOOSER_STATE} className={styles.createButton}>
+    <Plus size={16} strokeWidth={2.5} aria-hidden="true" />
+    Create
+  </Link>
+);
 
 const AuthNav: React.FC<{ onLogin: () => void; onSignup: () => void }> = ({ onLogin, onSignup }) => {
   const { authState, logout } = useAuth();
@@ -121,24 +119,23 @@ const AuthNav: React.FC<{ onLogin: () => void; onSignup: () => void }> = ({ onLo
 
   const { user } = authState;
 
-  // Teachers get one tray, styled like the main nav: Create (the console's "What do you want to
-  // create?" chooser) and an avatar + "Dashboard" link in place of the account menu.
+  // Teachers get one tray, styled like the main nav: Create (opens the dashboard with its
+  // "What do you want to create?" chooser) and an avatar + "Dashboard" link in place of the
+  // account menu.
   if (user.role === "teacher") {
     const initials =
       user.displayName?.trim().split(/\s+/).map((part) => part[0]).join("").substring(0, 2) || "T";
     return (
-      <TeacherCreateChooserProvider>
-        <div className={styles.teacherTray}>
-          <TeacherNavCreateButton />
-          <Link to="/teacher/dashboard" className={styles.dashboardButton}>
-            <Avatar className={styles.dashboardAvatar}>
-              {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt="" />}
-              <AvatarFallback>{initials}</AvatarFallback>
-            </Avatar>
-            Dashboard
-          </Link>
-        </div>
-      </TeacherCreateChooserProvider>
+      <div className={styles.teacherTray}>
+        <TeacherNavCreateButton />
+        <Link to="/teacher/dashboard" className={styles.dashboardButton}>
+          <Avatar className={styles.dashboardAvatar}>
+            {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt="" />}
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
+          Dashboard
+        </Link>
+      </div>
     );
   }
 

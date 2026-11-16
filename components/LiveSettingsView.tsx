@@ -56,10 +56,10 @@ const isTab = (v: string | null): v is Tab => TABS.some((t) => t.value === v);
 const errorMessage = (err: unknown, fallback: string) => (err instanceof Error && err.message ? err.message : fallback);
 
 /*
- * Live settings for an approved teacher: an approval banner with the booking
- * state, then three tabs so bookings and prices, availability and the intro
- * video are each one short screen. Drafts live here, so switching tabs keeps
- * unsaved edits.
+ * Live settings for an approved teacher: three tabs so bookings and prices,
+ * availability and the intro video are each one short screen, beside a status
+ * card (approval, at a glance, public profile) and shortcuts. Drafts live here,
+ * so switching tabs keeps unsaved edits.
  */
 export const LiveSettingsView: React.FC<{ live: LiveStatus }> = ({ live }) => {
   const [params, setParams] = useSearchParams();
@@ -192,35 +192,6 @@ export const LiveSettingsView: React.FC<{ live: LiveStatus }> = ({ live }) => {
 
   return (
     <div className={styles.page}>
-      <section className={styles.banner} aria-labelledby="live-approved-title">
-        <span className={styles.bannerIcon} aria-hidden="true">
-          <BadgeCheck size={18} />
-        </span>
-        <div className={styles.bannerText}>
-          <div className={styles.bannerTitleRow}>
-            <h2 className={styles.bannerTitle} id="live-approved-title">
-              Live Teaching approved
-            </h2>
-            <span className={styles.approvedBadge}>Approved</span>
-          </div>
-          <p className={styles.bannerMeta}>
-            {live.decidedAt && <span>Approved on {formatDay(live.decidedAt)}</span>}
-            {rate && (
-              <span className={styles.bookingState} data-on={bookingsOn || undefined}>
-                <span className={styles.bookingDot} aria-hidden="true" />
-                1:1 bookings {bookingsOn ? "on" : "off"}
-              </span>
-            )}
-          </p>
-        </div>
-        {slug && (
-          <a href={`/expert/${slug}`} target="_blank" rel="noreferrer" className={styles.profileLink}>
-            Public profile
-            <ExternalLink size={14} aria-hidden="true" />
-          </a>
-        )}
-      </section>
-
       <div className={styles.layout}>
         <div className={styles.main}>
           <SegmentedControl
@@ -363,11 +334,32 @@ export const LiveSettingsView: React.FC<{ live: LiveStatus }> = ({ live }) => {
         </div>
 
         <aside className={styles.aside}>
-          <div className={styles.summary}>
-            <p className={styles.summaryTitle}>At a glance</p>
+          <section className={styles.statusCard} aria-labelledby="live-approved-title">
+            <div className={styles.statusHead}>
+              <span className={styles.statusIcon} aria-hidden="true">
+                <BadgeCheck size={18} />
+              </span>
+              <div className={styles.statusText}>
+                <h2 className={styles.statusTitle} id="live-approved-title">
+                  Live Teaching
+                </h2>
+                <p className={styles.statusMeta}>
+                  {live.decidedAt ? `Approved on ${formatDay(live.decidedAt)}` : "Approved"}
+                </p>
+              </div>
+            </div>
             <dl className={styles.summaryList}>
               <dt>Bookings</dt>
-              <dd>{rate ? (bookingsOn ? "On" : "Off") : "-"}</dd>
+              <dd>
+                {rate ? (
+                  <span className={styles.bookingState} data-on={bookingsOn || undefined}>
+                    <span className={styles.bookingDot} aria-hidden="true" />
+                    {bookingsOn ? "On" : "Off"}
+                  </span>
+                ) : (
+                  "-"
+                )}
+              </dd>
               <dt>Short session</dt>
               <dd>{rate?.prices ? `₹${rate.prices.classShort.toLocaleString("en-IN")}` : "Not set"}</dd>
               <dt>Full session</dt>
@@ -375,7 +367,13 @@ export const LiveSettingsView: React.FC<{ live: LiveStatus }> = ({ live }) => {
               <dt>Open days</dt>
               <dd>{hours ? `${openDays} a week` : "-"}</dd>
             </dl>
-          </div>
+            {slug && (
+              <a href={`/expert/${slug}`} target="_blank" rel="noreferrer" className={styles.profileLink}>
+                View public profile
+                <ExternalLink size={15} aria-hidden="true" />
+              </a>
+            )}
+          </section>
           <nav className={styles.shortcuts} aria-label="Live teaching">
             <Link to="/teacher/mentorship/bookings" className={styles.shortcut}>
               <span className={styles.shortcutIcon} data-tone="blue" aria-hidden="true">

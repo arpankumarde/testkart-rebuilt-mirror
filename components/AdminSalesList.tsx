@@ -9,6 +9,7 @@ import { formatDemoCallSlot } from "../endpoints/demo-request/submit_POST.schema
 import { useUpdateSalesContactMutation } from "../helpers/useAdminSalesContacts";
 import { SalesStage } from "../helpers/schema";
 import type { SortOrder } from "../helpers/useTableSort";
+import { buildWaplifyChatUrl } from "../helpers/waplifyChatUrl";
 import { SortableTh } from "./SortableTh";
 import { Button } from "./Button";
 import { Badge } from "./Badge";
@@ -227,20 +228,22 @@ export const AdminSalesList: React.FC<AdminSalesListProps> = ({
     contact.mobileNumber ? (
       <div className={styles.phoneLine}>
         <a href={`tel:+91${contact.mobileNumber}`} className={styles.phoneLink}>{contact.mobileNumber}</a>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <a
-              href={`https://wa.me/91${contact.mobileNumber}`}
-              target="_blank"
-              rel="noreferrer"
-              className={`${styles.iconLink} ${styles.waLink}`}
-              aria-label={`Message ${contact.displayName} on WhatsApp`}
-            >
-              <MessageCircle />
-            </a>
-          </TooltipTrigger>
-          <TooltipContent>WhatsApp</TooltipContent>
-        </Tooltip>
+        {buildWaplifyChatUrl(contact.mobileNumber) && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <a
+                href={buildWaplifyChatUrl(contact.mobileNumber)!}
+                target="_blank"
+                rel="noreferrer"
+                className={`${styles.iconLink} ${styles.waLink}`}
+                aria-label={`Open ${contact.displayName} in Waplify`}
+              >
+                <MessageCircle />
+              </a>
+            </TooltipTrigger>
+            <TooltipContent>Open in Waplify</TooltipContent>
+          </Tooltip>
+        )}
       </div>
     ) : (
       <span className={styles.emptyLine}>N/A</span>

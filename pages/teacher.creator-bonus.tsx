@@ -37,20 +37,25 @@ import type {
 import { cardTapProps } from "../helpers/cardTap";
 import styles from "./teacher.creator-bonus.module.css";
 
-type Filter = "all" | "ready" | "building" | "claimed" | "done";
+type Tab = "apply" | "applied";
 
-const FILTERS: { value: Filter; label: string; states: CampaignItemState[] }[] = [
-  { value: "all", label: "Everything", states: [] },
-  { value: "ready", label: "Ready to claim", states: ["ready"] },
-  { value: "building", label: "Still building", states: ["building"] },
-  { value: "claimed", label: "Claimed", states: ["claimed"] },
-  { value: "done", label: "Decided", states: ["credited", "reversed", "final"] },
+/*
+ * Apply: drafts that can still claim, only for a type with a slot left (or an
+ * Exam Bonus open to it). Applied: everything submitted with a claim, in the
+ * order the teacher cares about.
+ */
+const APPLY_ORDER: Partial<Record<CampaignItemState, number>> = { ready: 0, building: 1 };
+const APPLIED_ORDER: Partial<Record<CampaignItemState, number>> = { claimed: 0, credited: 1, reversed: 2, final: 3 };
+
+const TABS: { value: Tab; label: string; tone: string }[] = [
+  { value: "apply", label: "Apply", tone: "var(--cb-peach)" },
+  { value: "applied", label: "Applied", tone: "var(--cb-mint)" },
 ];
 
 const STATE_STICKERS: Record<CampaignItemState, { label: string; tone: string }> = {
   ready: { label: "Ready to claim", tone: "peach" },
   building: { label: "Keep building", tone: "butter" },
-  claimed: { label: "Claimed", tone: "sky" },
+  claimed: { label: "In review", tone: "sky" },
   credited: { label: "Credited", tone: "mint" },
   reversed: { label: "Reversed", tone: "pink" },
   final: { label: "Not selected", tone: "grey" },
@@ -101,7 +106,9 @@ function nextStep(item: CampaignItem, slots: CampaignSlots): { text: string; act
     }
     case "claimed":
       return {
-        text: item.approved ? "Approved. Bonus decision pending." : "In review.",
+        text: item.approved
+          ? "Approved. Our team is deciding on the bonus."
+          : "Submitted with the bonus. We email you once it is reviewed.",
       };
     case "credited":
       return { text: item.claimedExamBonus ? `The ${item.claimedExamBonus} is in your wallet.` : `${amount} is in your wallet.` };
@@ -210,26 +217,31 @@ const ExamCard = ({ card, accent }: { card: ExamCampaignCard; accent: string }) 
 
 const TeacherCreatorBonusPage: React.FC = () => {
   const { data, isFetching, error, refetch } = useCreatorBonusOverview();
-  const [filter, setFilter] = useState<Filter>("all");
+  const [pickedTab, setPickedTab] = useState<Tab | null>(null);
 
   const allItems = data && data.campaign ? data.items : [];
-  const done = data && data.campaign ? creatorBonusLeft(data.slots).done : false;
-  // Once every bonus is claimed, drafts that can no longer claim are just noise.
-  const items = useMemo(
-    () => allItems.filter((i) => !isSubmittedUnclaimed(i) && !(done && i.state === "full")),
-    [allItems, done]
-  );
-  const visibleItems = useMemo(() => {
-    const states = FILTERS.find((f) => f.value === filter)?.states ?? [];
-    const shown =
-      states.length === 0
-        ? items.filter((i) => i.state !== "excluded")
-        : items.filter((i) => states.includes(i.state));
-    const rank: Record<CampaignItemState, number> = {
-      ready: 0, claimed: 1, building: 2, credited: 3, reversed: 4, final: 5, full: 6, excluded: 7,
+  const slotsLeft = data && data.campaign ? creatorBonusLeft(data.slots) : null;
+  const done = slotsLeft?.done ?? false;
+  const lists = useMemo(() => {
+    const items = allItems.filter((i) => !isSubmittedUnclaimed(i));
+    const pick = (order: Partial<Record<CampaignItemState, number>>, keep: (i: CampaignItem) => boolean) =>
+      items
+        .filter((i) => order[i.state] !== undefined && keep(i))
+        .sort((a, b) => order[a.state]! - order[b.state]!);
+    return {
+      apply: pick(APPLY_ORDER, (i) => (slotsLeft?.left[i.type] ?? 0) > 0 || Boolean(i.examBonus)),
+      applied: pick(APPLIED_ORDER, () => true),
     };
-    return [...shown].sort((a, b) => rank[a.state] - rank[b.state]);
-  }, [items, filter]);
+  }, [allItems, slotsLeft]);
+  const activeTab: Tab = pickedTab ?? (done || (lists.apply.length === 0 && lists.applied.length > 0) ? "applied" : "apply");
+  const visibleItems = lists[activeTab];
+
+  const onTabKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+    const next: Tab = activeTab === "apply" ? "applied" : "apply";
+    setPickedTab(next);
+    event.currentTarget.querySelector<HTMLButtonElement>(`[data-tab="${next}"]`)?.focus();
+  };
 
   if (!data) {
     return (
@@ -281,12 +293,12 @@ const TeacherCreatorBonusPage: React.FC = () => {
   // Bonuses credited under an earlier, higher cap can exceed today's maximum.
   const meterMax = Math.max(maxTotal, earned);
   const earnedShare = meterMax > 0 ? Math.min(100, (earned / meterMax) * 100) : 0;
-  const readyCount = items.filter((i) => i.state === "ready").length;
   const waitingTotal = types.reduce((sum, t) => sum + slots[t].used - slots[t].credited, 0);
   const limitsText = contentListText({ mock_test: slots.mock_test.limit, course: slots.course.limit });
   const amount = formatRupees(slots.mock_test.amount);
   const claimedTypes = types.filter((t) => slots[t].limit > 0 && left[t] === 0);
   const claimedCount = claimedTypes.reduce((sum, t) => sum + slots[t].limit, 0);
+  const openTypes = types.filter((t) => left[t] > 0);
 
   const hero = done
     ? {
@@ -450,37 +462,52 @@ const TeacherCreatorBonusPage: React.FC = () => {
 
         <section className={styles.content} aria-labelledby="creator-bonus-content">
           <div className={styles.contentHead}>
-            <div className={styles.titleRow}>
-              <h2 id="creator-bonus-content" className={styles.sectionTitle}>Your content</h2>
-              {readyCount > 0 && <span className={styles.readyBadge}>{readyCount} ready to claim</span>}
-            </div>
-            <div className={styles.filters} role="group" aria-label="Show">
-              {FILTERS.map((f) => (
-                <button
-                  key={f.value}
-                  type="button"
-                  className={`${styles.filter} ${filter === f.value ? styles.filterOn : ""}`}
-                  aria-pressed={filter === f.value}
-                  onClick={() => setFilter(f.value)}
-                >
-                  {f.label}
-                </button>
-              ))}
+            <h2 id="creator-bonus-content" className={styles.sectionTitle}>Your content</h2>
+            <div className={styles.tabs} role="tablist" aria-label="Your content" onKeyDown={onTabKey}>
+              {TABS.map((t) => {
+                const on = t.value === activeTab;
+                return (
+                  <button
+                    key={t.value}
+                    type="button"
+                    role="tab"
+                    id={`bonus-tab-${t.value}`}
+                    data-tab={t.value}
+                    aria-selected={on}
+                    aria-controls="bonus-tab-panel"
+                    tabIndex={on ? 0 : -1}
+                    className={`${styles.tab} ${on ? styles.tabOn : ""}`}
+                    style={{ "--tab-tone": t.tone } as React.CSSProperties}
+                    onClick={() => setPickedTab(t.value)}
+                  >
+                    {t.label}
+                    <span className={styles.tabCount}>{lists[t.value].length}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
+          {activeTab === "apply" && !done && claimedTypes.length > 0 && (
+            <p className={styles.applyNote}>
+              <CheckCircle2 size={16} aria-hidden="true" />
+              <span>
+                Your {claimedTypes.map((t) => CAMPAIGN_CONTENT_NOUNS[t]).join(" and ")} {bonusWord(claimedCount)}{" "}
+                {claimedCount === 1 ? "is" : "are"} taken, so only {openTypes.map((t) => (t === "course" ? "courses" : "test series")).join(" and ")} show here.
+              </span>
+            </p>
+          )}
+
           {visibleItems.length === 0 ? (
-            <div className={styles.emptyList}>
+            <div className={styles.emptyList} id="bonus-tab-panel" role="tabpanel" aria-labelledby={`bonus-tab-${activeTab}`}>
               <p>
-                {items.length > 0
-                  ? "Nothing here for this filter."
+                {activeTab === "applied"
+                  ? "Nothing applied yet. Tick the bonus when you submit a test series or course for review."
                   : done
-                    ? "Every Creator Bonus is claimed, so there is nothing left to claim."
-                    : allItems.length === 0
-                      ? "No test series or courses yet."
-                      : "Nothing to claim yet. Content published or sent for review without the bonus does not count."}
+                    ? "Every Creator Bonus is claimed, so there is nothing left to apply for."
+                    : `No ${openTypes.map((t) => (t === "course" ? "courses" : "test series")).join(" or ")} to apply with yet. Content published or sent for review without the bonus does not count.`}
               </p>
-              {items.length === 0 && !done && (
+              {activeTab === "apply" && !done && (
                 <div className={styles.emptyActions}>
                   {left.mock_test > 0 && (
                     <Button asChild>
@@ -496,7 +523,13 @@ const TeacherCreatorBonusPage: React.FC = () => {
               )}
             </div>
           ) : (
-            <ul className={styles.itemList} aria-busy={isFetching}>
+            <ul
+              id="bonus-tab-panel"
+              role="tabpanel"
+              aria-labelledby={`bonus-tab-${activeTab}`}
+              className={styles.itemList}
+              aria-busy={isFetching}
+            >
               {visibleItems.map((item) => {
                 const sticker = STATE_STICKERS[item.state];
                 const step = nextStep(item, slots[item.type]);

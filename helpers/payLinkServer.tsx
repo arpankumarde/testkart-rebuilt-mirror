@@ -171,7 +171,9 @@ export function payLinkMessageHtml(title: string, message: string, backUrl: stri
     .box { max-width: 420px; padding: 2rem; background: #ffffff; border: 1px solid #e6d5c8; border-radius: 12px; }
     h1 { font-size: 1.35rem; margin: 0 0 0.75rem; }
     p { margin: 0 0 1.5rem; line-height: 1.5; color: #4a3424; }
-    a { display: inline-block; padding: 0.75rem 1.5rem; background: #903209; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 700; }
+    a { display: inline-block; padding: 0.75rem 1.5rem; background: #fdba91; color: #2b1a10; border: 1px solid #d9692f; box-shadow: 0 3px 0 #d9692f; text-decoration: none; border-radius: 20px 20px 20px 8px; font-weight: 700; transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease; }
+    a:hover { background: #fca777; box-shadow: 0 5px 0 #d9692f; transform: translateY(-2px); }
+    a:active { box-shadow: 0 1px 0 #d9692f; transform: translateY(2px); }
   </style>
 </head>
 <body>

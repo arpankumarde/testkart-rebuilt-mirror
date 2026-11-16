@@ -1,7 +1,7 @@
 /*
- * Live settings: a compact approval card (card surface, hairline, a small sage
- * check and one meta line), segmented tabs over one section at a time, and an
- * "at a glance" summary with shortcuts beside it from 1100px.
+ * Live settings: segmented tabs over one section at a time, and beside them
+ * from 1100px a compact status card (approval, key numbers, public profile
+ * link) with shortcuts under it.
  */
 .page {
   display: flex;
@@ -12,82 +12,65 @@
   margin: 0 auto;
 }
 
-/* -------------------------------------------------------------- banner --- */
+/* --------------------------------------------------------- status card --- */
 
-.banner {
-  display: flex;
-  align-items: center;
-  gap: 0.875rem;
-  padding: 0.875rem 1.125rem;
+.statusCard {
+  overflow: hidden;
   border: 1px solid var(--tc-line, var(--border));
-  border-radius: var(--tc-radius-card, 1rem);
+  border-radius: 1.25rem;
   background: var(--tc-card, var(--card));
 }
 
-.bannerIcon {
+.statusHead {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1rem 0.875rem;
+  border-bottom: 1px solid var(--tc-line, var(--border));
+}
+
+.statusIcon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   width: 2.25rem;
   height: 2.25rem;
-  border-radius: 0.625rem;
-  background: var(--fc-sage-tint);
-  color: var(--fc-sage-ink);
+  border-radius: 0.75rem;
+  background: var(--fc-mint-tint);
+  color: var(--fc-mint-ink);
 }
 
-.bannerText {
+.statusText {
   flex: 1;
   min-width: 0;
 }
 
-.bannerTitleRow {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.25rem 0.5rem;
-}
-
-.bannerTitle {
+.statusTitle {
   margin: 0;
   font-family: var(--font-family-heading);
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 700;
   line-height: 1.3;
   color: var(--tc-ink, var(--foreground));
 }
 
-.approvedBadge {
-  padding: 0.0625rem 0.4375rem;
-  border-radius: 999px;
-  background: var(--fc-sage-tint);
-  color: var(--fc-sage-ink);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  line-height: 1.5;
-}
-
-.bannerMeta {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.125rem 0.875rem;
+.statusMeta {
   margin: 0.125rem 0 0;
-  font-size: 0.8125rem;
-  color: var(--tc-muted, var(--muted-foreground));
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--fc-mint-edge);
 }
 
 .bookingState {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  font-weight: 600;
-  color: var(--tc-text, var(--foreground));
 }
 
 .bookingDot {
-  width: 0.4375rem;
-  height: 0.4375rem;
+  width: 0.5rem;
+  height: 0.5rem;
   border-radius: 50%;
   background: var(--tc-line-strong, var(--border));
 }
@@ -97,29 +80,25 @@
 }
 
 .profileLink {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 0.375rem;
-  flex-shrink: 0;
-  min-height: 2.25rem;
-  padding: 0 0.75rem;
-  border: 1px solid var(--tc-line, var(--border));
-  border-radius: 0.625rem;
-  font-size: 0.8125rem;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--tc-line, var(--border));
+  font-size: 0.875rem;
   font-weight: 700;
-  color: var(--tc-ink, var(--foreground));
+  color: var(--tk-brand-text);
   text-decoration: none;
-  white-space: nowrap;
 }
 
 .profileLink:hover {
-  border-color: var(--tc-line-strong, var(--border));
   background: var(--tc-bg, var(--muted));
 }
 
 .profileLink:focus-visible {
-  outline: 2px solid var(--tk-brand-text);
-  outline-offset: 1px;
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--tk-brand-text);
 }
 
 /* -------------------------------------------------------------- layout --- */
@@ -193,26 +172,13 @@
 
 /* ------------------------------------------------------------- summary --- */
 
-.summary {
-  padding: 1.125rem;
-  border: 1px solid var(--tc-line, var(--border));
-  border-radius: 1.25rem;
-  background: var(--tc-card, var(--card));
-}
-
-.summaryTitle {
-  margin: 0 0 0.75rem;
-  font-family: var(--font-family-heading);
-  font-weight: 700;
-  color: var(--tc-ink, var(--foreground));
-}
-
 .summaryList {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.5rem 0.75rem;
+  gap: 0.625rem 0.75rem;
   margin: 0;
-  font-size: 0.875rem;
+  padding: 0.875rem 1rem;
+  font-size: 0.8125rem;
 }
 
 .summaryList dt {
@@ -306,20 +272,6 @@
 }
 
 @media (max-width: 640px) {
-  .banner {
-    flex-wrap: wrap;
-    align-items: flex-start;
-    padding: 0.875rem 1rem;
-  }
-
-  .bannerText {
-    flex-basis: calc(100% - 3.125rem);
-  }
-
-  .profileLink {
-    margin-left: 3.125rem;
-  }
-
   /* Three equal segments across the width; long labels wrap instead of
      pushing the last tab past the screen edge. */
   .tabs {

@@ -95,6 +95,41 @@
   transform: rotate(3deg);
 }
 
+/* A small red dot on the icon tile's corner with a soft ring that breathes outward: a quiet "not done yet" cue. */
+.alertDot {
+  position: absolute;
+  top: 0.0625rem;
+  left: 0.0625rem;
+  z-index: 2;
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 2px solid var(--tc-card);
+  border-radius: 50%;
+  background: var(--error);
+}
+
+.alertDot::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: var(--error);
+  opacity: 0;
+  animation: alertBreathe 2.4s ease-out infinite;
+}
+
+@keyframes alertBreathe {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  70%,
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
 .body {
   display: flex;
   flex: 1;
@@ -327,6 +362,10 @@
   .cta svg,
   .ctaQuiet svg {
     transition: none;
+  }
+
+  .alertDot::before {
+    animation: none;
   }
 }
 

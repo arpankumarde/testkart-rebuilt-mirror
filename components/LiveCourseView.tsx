@@ -5,24 +5,15 @@ import { toast } from "sonner";
 import {
   Award,
   BadgeCheck,
-  BookOpen,
   CalendarDays,
   CalendarRange,
   CheckCircle2,
-  ClipboardCheck,
   Clock,
-  Compass,
-  CreditCard,
   Info,
   Languages,
   Layers,
-  Lightbulb,
-  MonitorPlay,
-  Puzzle,
-  Rocket,
   ShieldCheck,
   Star,
-  Target,
   Timer,
   UserRound,
   Users,
@@ -47,9 +38,7 @@ import { LiveCourseRelated } from "./LiveCourseRelated";
 import styles from "./LiveCourseView.module.css";
 
 const LEVEL: Record<string, string> = { beginner: "Beginner", intermediate: "Intermediate", advanced: "Advanced" };
-const MODULE_ICONS = [BookOpen, Lightbulb, Compass, Puzzle, Target, Rocket];
 type Tone = "peach" | "mint" | "lavender" | "blue" | "butter" | "sage";
-const TONE_CYCLE: Tone[] = ["lavender", "mint", "blue", "butter", "peach", "sage"];
 
 /** Settles a Cashfree return (?order_id=..&gateway=cashfree) once, then refreshes the course. */
 export function useCashfreeReturn() {
@@ -214,6 +203,14 @@ export const LiveCourseView: React.FC<{ data: LiveCourseViewData }> = ({ data })
     },
   ].filter(Boolean) as { icon: React.ReactNode; tone: Tone; label: string; value: string; sub?: string }[];
 
+  const hours = Math.round(heldMinutes / 6) / 10;
+  const summary = [
+    course.modules.length > 0 && `${course.modules.length} ${course.modules.length === 1 ? "subject" : "subjects"}`,
+    topicCount > 0 && `${topicCount} ${topicCount === 1 ? "topic" : "topics"}`,
+    course.classCount > 0 && `${course.classCount} live ${course.classCount === 1 ? "class" : "classes"}`,
+    heldMinutes >= 60 && `${hours} ${hours === 1 ? "hr" : "hrs"} of teaching`,
+  ].filter(Boolean) as string[];
+
   const teacherName = course.teacher.name;
 
   return (
@@ -348,95 +345,25 @@ export const LiveCourseView: React.FC<{ data: LiveCourseViewData }> = ({ data })
       </header>
 
       <div className={styles.sections}>
-        <section className={styles.section} aria-labelledby="lc-overview">
-          <SectionHead
-            id="lc-overview"
-            icon={<Info />}
-            tone="lavender"
-            title={rest.length > 0 ? "About this course" : "How this course works"}
-          />
-          <div className={rest.length > 0 ? styles.overviewSplit : undefined}>
-            {rest.length > 0 && (
-              <div className={styles.prose}>
-                {rest.map((b, i) =>
-                  b.kind === "p" ? (
-                    <p key={i}>{b.text}</p>
-                  ) : (
-                    <ul key={i} className={styles.proseList}>
-                      {b.items.map((item, j) => (
-                        <li key={j}>
-                          <CheckCircle2 size={16} aria-hidden="true" />
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )
-                )}
-              </div>
-            )}
-            <ol className={`${styles.steps} ${rest.length > 0 ? styles.stepsStacked : ""}`} aria-label="How live classes work">
-              {[
-                { tone: "butter" as Tone, icon: <CreditCard size={20} />, title: "Enrol and pay securely", text: "Your seat is yours once the payment is confirmed." },
-                {
-                  tone: "mint" as Tone,
-                  icon: <MonitorPlay size={20} />,
-                  title: "Join live from your browser",
-                  text: `The Join button opens ${JOIN_WINDOW_MINUTES_BEFORE} min before each class.`,
-                },
-                { tone: "blue" as Tone, icon: <ClipboardCheck size={20} />, title: "Track every class", text: "Your attendance shows against each class in the timetable." },
-              ].map((s, i) => (
-                <li key={s.title} className={styles.step} data-tone={s.tone}>
-                  <span className={styles.stepTop}>
-                    <span className={styles.stepIcon} aria-hidden="true">
-                      {s.icon}
-                    </span>
-                    <span className={styles.stepNum} aria-hidden="true">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                  </span>
-                  <strong>{s.title}</strong>
-                  <span>{s.text}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-
-        {course.modules.length > 0 && (
-          <section className={styles.section} aria-labelledby="lc-learn">
-            <SectionHead
-              id="lc-learn"
-              icon={<Lightbulb />}
-              tone="butter"
-              title="What you'll learn"
-              pills={<span className={styles.countPill} data-tone="butter">{course.modules.length} {course.modules.length === 1 ? "subject" : "subjects"}</span>}
-            />
-            <ul className={styles.learn}>
-              {course.modules.map((m, i) => {
-                const Icon = MODULE_ICONS[i % MODULE_ICONS.length];
-                const preview = m.topics.slice(0, 3).map((t) => t.title);
-                const more = m.topics.length - preview.length;
-                return (
-                  <li key={m.id} className={styles.learnItem}>
-                    <span className={styles.learnHead}>
-                      <span className={styles.learnIcon} data-tone={TONE_CYCLE[i % TONE_CYCLE.length]} aria-hidden="true">
-                        <Icon size={18} />
-                      </span>
-                      <span className={styles.learnCount}>
-                        {m.topics.length} {m.topics.length === 1 ? "topic" : "topics"}
-                      </span>
-                    </span>
-                    <strong className={styles.learnTitle}>{m.title}</strong>
-                    {preview.length > 0 && (
-                      <span className={styles.learnText}>
-                        {preview.join(", ")}
-                        {more > 0 ? ` and ${more} more` : ""}
-                      </span>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
+        {rest.length > 0 && (
+          <section className={styles.section} aria-labelledby="lc-overview">
+            <SectionHead id="lc-overview" icon={<Info />} tone="lavender" title="About this course" />
+            <div className={styles.prose}>
+              {rest.map((b, i) =>
+                b.kind === "p" ? (
+                  <p key={i}>{b.text}</p>
+                ) : (
+                  <ul key={i} className={styles.proseList}>
+                    {b.items.map((item, j) => (
+                      <li key={j}>
+                        <CheckCircle2 size={16} aria-hidden="true" />
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )
+              )}
+            </div>
           </section>
         )}
 
@@ -446,26 +373,7 @@ export const LiveCourseView: React.FC<{ data: LiveCourseViewData }> = ({ data })
             icon={<Layers />}
             tone="blue"
             title="Course content"
-            pills={
-              <>
-                {course.modules.length > 0 && (
-                  <span className={styles.countPill} data-tone="blue">
-                    {course.modules.length} {course.modules.length === 1 ? "module" : "modules"}
-                  </span>
-                )}
-                {topicCount > 0 && (
-                  <span className={styles.countPill} data-tone="lavender">
-                    {topicCount} {topicCount === 1 ? "topic" : "topics"}
-                  </span>
-                )}
-                {course.classCount > 0 && (
-                  <span className={styles.countPill} data-tone="butter">
-                    {course.classCount} live {course.classCount === 1 ? "class" : "classes"}
-                    {heldMinutes >= 60 ? ` · ${Math.round(heldMinutes / 6) / 10} hrs` : ""}
-                  </span>
-                )}
-              </>
-            }
+            pills={summary.length > 0 ? <span className={styles.headMeta}>{summary.join(" · ")}</span> : undefined}
           />
           <LiveCourseCurriculum course={course} enrolled={enrolled} attended={attended} now={now} />
         </section>

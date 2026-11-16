@@ -1,6 +1,7 @@
 import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./create_POST.schema";
+import { dropQuestionsAlreadyInBank } from "../../../helpers/questionBankDedupe";
 import superjson from "superjson";
 
 export async function handle(request: Request): Promise<Response> {
@@ -83,6 +84,14 @@ export async function handle(request: Request): Promise<Response> {
         optionE: input.optionE ?? null,
         correctOption: input.correctOption,
       };
+    }
+
+    const { fresh } = await dropQuestionsAlreadyInBank(effectiveTeacherId, [questionData]);
+    if (fresh.length === 0) {
+      return new Response(
+        superjson.stringify({ error: "This question is already in your Question Bank." }),
+        { status: 400 }
+      );
     }
 
     const newQuestion = await db

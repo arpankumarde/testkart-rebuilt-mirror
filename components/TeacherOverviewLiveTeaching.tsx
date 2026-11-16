@@ -71,21 +71,24 @@ type FeatureTone = "blue" | "lavender" | "butter";
  * small LIVE TEACHING label with the title and an optional badge, one detail
  * line, and the action on the right in the row's own tone. Only the tone,
  * copy, detail and action change, so the row keeps its height across states.
+ * `alert` adds a softly breathing red dot on the icon tile for the not-yet-applied row.
  */
 const FeatureCard: React.FC<{
   id: string;
   tone: FeatureTone;
   icon: React.ReactNode;
   badge?: string;
+  alert?: boolean;
   title: string;
   detail: React.ReactNode;
   action: React.ReactNode;
-}> = ({ id, tone, icon, badge, title, detail, action }) => (
+}> = ({ id, tone, icon, badge, alert, title, detail, action }) => (
   <section className={styles.featureWrap} aria-labelledby={id}>
     <div className={styles.feature} data-tone={tone}>
       <span className={styles.art} aria-hidden="true">
         <span className={styles.artBack} />
         <span className={styles.artIcon}>{icon}</span>
+        {alert && <span className={styles.alertDot} />}
       </span>
       <div className={styles.body}>
         <p className={styles.eyebrow}>
@@ -192,22 +195,24 @@ export const TeacherOverviewLiveTeaching: React.FC<{ isOwner: boolean }> = ({ is
   if (!isOwner) return null;
 
   const started = live.checklist.some((item) => item.done && item.key !== "email" && item.key !== "phone");
-  const doneCount = live.checklist.filter((item) => item.done).length;
   return (
     <FeatureCard
       id="ov-live-apply"
       tone="blue"
       icon={<Video size={18} />}
+      alert
       title="Teach 1:1 classes live on Testkart"
       detail={
         <span className={styles.meta}>
           Set your own prices
           <span className={styles.metaSep} aria-hidden="true" />
           Teach on your schedule
-          <span className={styles.metaSep} aria-hidden="true" />
-          <span className={styles.metaSoft}>
-            {started ? `${doneCount} of ${live.checklist.length} ready` : "About 10 min to apply"}
-          </span>
+          {!started && (
+            <>
+              <span className={styles.metaSep} aria-hidden="true" />
+              <span className={styles.metaSoft}>About 10 min to apply</span>
+            </>
+          )}
         </span>
       }
       action={

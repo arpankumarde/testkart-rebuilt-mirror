@@ -1,6 +1,7 @@
 import { db } from "./db";
 import { sql } from "kysely";
 import type { QuestionType } from "./schema";
+import { dropQuestionsAlreadyInBank } from "./questionBankDedupe";
 
 function toTitleCase(str: string): string {
   if (!str) return str;
@@ -66,8 +67,11 @@ export async function syncToQuestionBank(
       sourceTestQuestionId: options?.sourceTestQuestionIds?.[index] ?? null,
     }));
 
+    // A question the teacher's bank already holds is not added again.
+    const { fresh } = await dropQuestionsAlreadyInBank(teacherId, values);
+
     // Perform individual inserts/upserts
-    for (const value of values) {
+    for (const value of fresh) {
       try {
         if (value.sourceTestQuestionId != null) {
           // Upsert against the partial unique index idx_question_bank_source_test_question.

@@ -14,7 +14,8 @@
       background-color var(--animation-duration-fast) ease,
       border-color var(--animation-duration-fast) ease,
       color var(--animation-duration-fast) ease,
-      box-shadow var(--animation-duration-fast) ease;
+      box-shadow var(--animation-duration-fast) ease,
+      transform var(--animation-duration-fast) ease;
     outline: none;
     border: 1px solid transparent;
     position: relative;
@@ -108,27 +109,57 @@
     height: 1.5rem;
   }
 
-  /* Primary - White text on solid brand color (high contrast) */
+  /* Primary - White text on solid brand color (high contrast).
+     3D skin: a container that sets --btn-bg, --btn-bg-hover, --btn-fg,
+     --btn-edge, --btn-depth, --btn-radius, --btn-lift and --btn-press turns
+     every primary Button inside it into a chunky ledge button with one sharp
+     corner. Unset, the variant is the plain coral button below. */
   .primary {
-    background-color: var(--primary);
-    color: var(--primary-foreground);
-    border-color: var(--primary);
-    --spinner-color: var(--primary-foreground);
+    background-color: var(--btn-bg, var(--primary));
+    color: var(--btn-fg, var(--primary-foreground));
+    border-color: var(--btn-edge, var(--primary));
+    box-shadow: 0 var(--btn-depth, 0px) 0 var(--btn-edge, transparent);
+    --spinner-color: var(--btn-fg, var(--primary-foreground));
+  }
+
+  .primary:is(.sm, .md) {
+    border-radius: var(--btn-radius, var(--radius));
+  }
+
+  .primary.lg {
+    border-radius: var(--btn-radius, var(--radius-md));
   }
 
   /* Hover drops the fill to the deep orange and inverts the label to white, so
      the resting state carries the brand colour and the hover carries the
-     weight. */
+     weight. A 3D skin swaps the fill and lifts the button off its ledge. */
   .primary:hover {
-    background-color: var(--tk-brand-hover);
-    border-color: var(--tk-brand-hover);
-    color: var(--tk-brand-hover-foreground);
+    background-color: var(--btn-bg-hover, var(--tk-brand-hover));
+    border-color: var(--btn-edge, var(--tk-brand-hover));
+    color: var(--btn-fg, var(--tk-brand-hover-foreground));
+    box-shadow: 0 calc(var(--btn-depth, 0px) + 2px) 0 var(--btn-edge, transparent);
+    transform: var(--btn-lift, none);
   }
 
   .primary:active {
-    background-color: color-mix(in srgb, var(--tk-brand-hover), black 12%);
-    border-color: color-mix(in srgb, var(--tk-brand-hover), black 12%);
-    color: var(--tk-brand-hover-foreground);
+    background-color: var(
+      --btn-bg-hover,
+      color-mix(in srgb, var(--tk-brand-hover), black 12%)
+    );
+    border-color: var(
+      --btn-edge,
+      color-mix(in srgb, var(--tk-brand-hover), black 12%)
+    );
+    color: var(--btn-fg, var(--tk-brand-hover-foreground));
+    box-shadow: 0 calc(var(--btn-depth, 0px) - 2px) 0 var(--btn-edge, transparent);
+    transform: var(--btn-press, none);
+  }
+
+  .primary:focus-visible {
+    box-shadow:
+      0 0 0 2px var(--background),
+      0 0 0 4px var(--tk-brand-text),
+      0 var(--btn-depth, 0px) 0 var(--btn-edge, transparent);
   }
 
   /* Secondary - themed teal text on a teal wash mixed over the surface. A mix

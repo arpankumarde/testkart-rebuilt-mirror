@@ -273,6 +273,16 @@
   --tk-brand-hover-foreground: #fff;
   --background: var(--tk-brand);
   --border: color-mix(in srgb, var(--tk-brand-ink) 35%, transparent);
+  /* Primary buttons are the exception to the ink fill: a cream 3D button with
+     an ink edge, so the boundary against the coral stays at 6.2:1. */
+  --btn-bg: hsl(30 100% 97%);
+  --btn-bg-hover: #fff;
+  --btn-fg: var(--tk-brand-ink);
+  --btn-edge: var(--tk-brand-ink);
+  --btn-depth: 4px;
+  --btn-radius: 1.25rem 1.25rem 1.25rem 0.5rem;
+  --btn-lift: translateY(-2px);
+  --btn-press: translateY(2px);
 
   padding: var(--spacing-16) var(--spacing-6);
   background-color: var(--tk-brand);
@@ -295,22 +305,11 @@
   color: var(--tk-brand-ink);
 }
 
-/* The darkest thing on the block, so the eye lands on it. A white fill would
-   separate from this coral at only 2.1:1, under the 3:1 floor for a control's
-   boundary; ink gives 6.2:1. */
+/* Size only: the cream 3D skin comes from the --btn-* tokens on the block. */
 .ctaButton {
   font-size: 1.1rem;
   padding: 0 var(--spacing-8);
   height: 3.5rem;
-  background-color: var(--tk-brand-ink);
-  border-color: var(--tk-brand-ink);
-  color: #fff;
-}
-
-.ctaButton:hover {
-  background-color: var(--tk-brand-ink-hover);
-  border-color: var(--tk-brand-ink-hover);
-  color: #fff;
 }
 
 .finalCtaHighlights {

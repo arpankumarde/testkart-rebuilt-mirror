@@ -1,6 +1,7 @@
 import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType } from "./save-from-test_POST.schema";
+import { dropQuestionsAlreadyInBank } from "../../../helpers/questionBankDedupe";
 import superjson from "superjson";
 
 export async function handle(request: Request): Promise<Response> {
@@ -64,12 +65,16 @@ export async function handle(request: Request): Promise<Response> {
       sourceMockTestId: q.mockTestId,
     }));
 
-    await db.insertInto("questionBank").values(newBankQs).execute();
+    const { fresh } = await dropQuestionsAlreadyInBank(effectiveTeacherId, newBankQs);
+
+    if (fresh.length > 0) {
+      await db.insertInto("questionBank").values(fresh).execute();
+    }
 
     return new Response(
       superjson.stringify({ 
         success: true, 
-        savedCount: newBankQs.length 
+        savedCount: fresh.length 
       } satisfies OutputType)
     );
   } catch (error) {

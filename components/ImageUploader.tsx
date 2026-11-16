@@ -17,6 +17,8 @@ export interface ImageUploaderProps {
   aspectRatio?: string;
   label?: string;
   className?: string;
+  /* Adds the size limit to the placeholder text, for uploaders with a tighter limit than the default. */
+  showSizeLimit?: boolean;
   /* "overlay" floats a remove X on the image; "toolbar" puts labelled Replace and Remove buttons under it. */
   actions?: 'overlay' | 'toolbar';
 }
@@ -33,6 +35,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
   aspectRatio = '16 / 9',
   label = 'Upload Image',
   className,
+  showSizeLimit = false,
   actions = 'overlay',
 }) => {
   const toolbarMode = actions === 'toolbar';
@@ -181,6 +184,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
           <p className={styles.placeholderText}>{label}</p>
           <p className={styles.placeholderSubtext}>
             Drag & drop or click to upload
+            {showSizeLimit ? ` (max ${maxSizeInMB} MB)` : ''}
           </p>
         </div>
       )}

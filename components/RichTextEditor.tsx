@@ -98,6 +98,11 @@ function domSpecToNode(spec: DomSpec): globalThis.Node {
 
 export interface RichTextEditorProps {
   value: string;
+  // Where inline images upload and their size cap in MB. Defaults to the shared
+  // editor-images folder and the admin-set rich text image limit; the blog and
+  // exam news editors override both to hold images to 1 MB.
+  imageFolder?: string;
+  imageMaxMb?: number;
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
@@ -722,6 +727,8 @@ const transformHtmlForEditor = (html: string): string => {
 
 export const RichTextEditor = ({
   value,
+  imageFolder = 'editor-images',
+  imageMaxMb,
   onChange,
   placeholder,
   className,
@@ -1179,14 +1186,15 @@ export const RichTextEditor = ({
             toast.error('Please upload a valid image file (JPEG, PNG, GIF, or WebP)');
             return;
           }
-          if (file.size > limits.richTextImageMaxMb * 1024 * 1024) {
-            toast.error(`Image size must be less than ${limits.richTextImageMaxMb}MB`);
+          const imageLimitMb = imageMaxMb ?? limits.richTextImageMaxMb;
+          if (file.size > imageLimitMb * 1024 * 1024) {
+            toast.error(`Image size must be ${imageLimitMb} MB or smaller`);
             return;
           }
           
           setIsUploadingImage(true);
           try {
-            const result = await uploadFileToR2(file, 'editor-images');
+            const result = await uploadFileToR2(file, imageFolder);
             editor?.chain().focus().setImage({ src: result.url, alt: file.name || 'Uploaded image' }).run();
             toast.success('Image uploaded successfully');
           } catch (err) {

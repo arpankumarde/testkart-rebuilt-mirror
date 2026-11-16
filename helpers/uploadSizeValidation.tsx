@@ -2,6 +2,11 @@ import { db } from "./db";
 import { STUDY_NOTES_PDF_MAX_MB } from "./digitalProductRules";
 import { assetKindForMime, isLibraryFolder, libraryMimeType } from "./teacherAssetFiles";
 import { LIVE_TEACHING_VIDEO_FOLDER, LIVE_TEACHING_VIDEO_MAX_MB } from "./liveTeachingRules";
+import {
+  BLOG_NEWS_IMAGE_MAX_MB,
+  BLOG_NEWS_IMAGE_TOO_LARGE_MESSAGE,
+  isBlogNewsImageFolder,
+} from "./blogNewsImageRules";
 
 export const DEFAULT_UPLOAD_LIMITS = {
   thumbnailMaxMb: 3,
@@ -39,6 +44,9 @@ function getCategoryLimit(
     return null;
   }
 
+  if (isBlogNewsImageFolder(normalizedFolder)) {
+    return Math.min(limits.richTextImageMaxMb, BLOG_NEWS_IMAGE_MAX_MB);
+  }
   if (normalizedFolder.startsWith("editor-images")) {
     return limits.richTextImageMaxMb;
   }
@@ -130,9 +138,12 @@ export async function validateUploadSize(
   const categoryLimitMb = getCategoryLimit(folder, contentType, limits);
 
   if (categoryLimitMb !== null && fileSize > categoryLimitMb * 1024 * 1024) {
+    const isBlogNews = isBlogNewsImageFolder(folder);
     return new Response(
       superjson.stringify({
-        error: `File size exceeds the maximum allowed limit of ${categoryLimitMb}MB for this upload type.`,
+        error: isBlogNews
+          ? BLOG_NEWS_IMAGE_TOO_LARGE_MESSAGE
+          : `File size exceeds the maximum allowed limit of ${categoryLimitMb}MB for this upload type.`,
       }),
       { status: 400 }
     );

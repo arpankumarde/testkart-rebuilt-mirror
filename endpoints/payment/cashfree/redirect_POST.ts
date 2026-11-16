@@ -20,7 +20,9 @@ const STYLE = `
   h1 { font-size: 20px; margin: 0 0 8px; }
   p { font-size: 15px; line-height: 1.5; margin: 0; color: #4a3a2e; }
   .loader { width: 36px; height: 36px; margin: 20px auto 0; border: 4px solid #eadfd2; border-top-color: #903209; border-radius: 50%; animation: spin 1s linear infinite; }
-  a { display: inline-block; margin-top: 18px; padding: 10px 18px; border-radius: 8px; background: #903209; color: #ffffff; text-decoration: none; font-weight: 600; }
+  a { display: inline-block; margin-top: 18px; padding: 10px 18px; border-radius: 20px 20px 20px 8px; background: #fdba91; color: #2b1d14; border: 1px solid #d9692f; box-shadow: 0 3px 0 #d9692f; text-decoration: none; font-weight: 700; transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease; }
+  a:hover { background: #fca777; box-shadow: 0 5px 0 #d9692f; transform: translateY(-2px); }
+  a:active { box-shadow: 0 1px 0 #d9692f; transform: translateY(2px); }
   @keyframes spin { to { transform: rotate(360deg); } }
 `;
 
