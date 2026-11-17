@@ -6,7 +6,7 @@ import { Button } from '../components/Button';
 import { TeacherRejectionBanner } from '../components/TeacherRejectionBanner';
 import { TestSeriesSteps } from '../components/TestSeriesSteps';
 import { AddTestItemsButton, TestSeriesItemsList } from '../components/TestSeriesItemsEditor';
-import { useTeacherTestItemsQuery } from '../helpers/useTeacherTestsQuery';
+import { useTeacherTestItemsQuery, useTeacherTestsQuery } from '../helpers/useTeacherTestsQuery';
 import { MIN_SERIES_QUESTIONS } from '../helpers/testSeriesMinimum';
 import { isScheduledAhead } from '../helpers/testSchedule';
 import styles from "./teacher.create-test.$testId.test-items.module.css";
@@ -17,6 +17,8 @@ const Page = () => {
   const packageId = Number(testId);
 
   const { data: testItems } = useTeacherTestItemsQuery(packageId);
+  const { data: tests } = useTeacherTestsQuery();
+  const seriesIsFree = !!tests?.find((t) => t.id === packageId)?.isFree;
 
   // The two series-wide rules the review page enforces, shown while building.
   const totalQuestions = (testItems ?? []).reduce((sum, item) => sum + item.questionsCount, 0);
@@ -58,7 +60,7 @@ const Page = () => {
           <AddTestItemsButton packageId={packageId} />
         </div>
 
-        <TestSeriesItemsList packageId={packageId} guided />
+        <TestSeriesItemsList packageId={packageId} guided seriesIsFree={seriesIsFree} />
 
         <div className={styles.navigation}>
           <Button onClick={() => navigate(`/teacher/create-test/${packageId}/review`)} disabled={!testItems?.length}>

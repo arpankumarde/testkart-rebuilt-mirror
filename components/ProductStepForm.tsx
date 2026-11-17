@@ -783,7 +783,18 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, vis
       // restores them instead of leaving 0 behind.
       if (form.values.price > 0) lastPriceRef.current = form.values.price;
       lastDiscountRef.current = form.values.discountPrice ?? null;
-      form.setValues(prev => ({ ...prev, price: 0, discountPrice: null }));
+      // A free product hides the preview settings, so a preview left half-set
+      // is switched off rather than blocking the save from a hidden field.
+      form.setValues(prev => ({
+        ...prev,
+        price: 0,
+        discountPrice: null,
+        files: (prev.files || []).map(f =>
+          f.previewEnabled && filePreviewError(f.title, true, f.previewPages, f.pageCount)
+            ? { ...f, previewEnabled: false }
+            : f
+        ),
+      }));
     } else {
       form.setValues(prev => ({
         ...prev,
@@ -1253,6 +1264,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, vis
                               </Button>
                             </div>
                           </div>
+                          {!isFreeChecked && (
                           <div className={styles.filePreview}>
                             <label className={styles.filePreviewToggle}>
                               <Switch
@@ -1292,6 +1304,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, vis
                               </FormItem>
                             )}
                           </div>
+                          )}
                           </>
                         ) : (
                           <div className={styles.fileEntryEmpty}>
@@ -1378,15 +1391,17 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, vis
                   <FormMessage />
                 </FormItem>
 
-                <div className={styles.previewSummary}>
-                  <span className={styles.previewSummaryLabel}>Free preview</span>
-                  <div className={styles.pageCountDisplay}>
-                    {previewSummary}
+                {!isFreeChecked && (
+                  <div className={styles.previewSummary}>
+                    <span className={styles.previewSummaryLabel}>Free preview</span>
+                    <div className={styles.pageCountDisplay}>
+                      {previewSummary}
+                    </div>
+                    <p className={styles.previewSummaryHint}>
+                      Set it on each PDF above. Students see only those pages, and only for files with the preview on.
+                    </p>
                   </div>
-                  <p className={styles.previewSummaryHint}>
-                    Set it on each PDF above. Students see only those pages, and only for files with the preview on.
-                  </p>
-                </div>
+                )}
               </div>
 
               <FormItem name="allowDownload" className={styles.downloadToggle}>

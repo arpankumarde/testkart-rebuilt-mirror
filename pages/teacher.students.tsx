@@ -88,12 +88,14 @@ const HiddenValue = () => (
   </span>
 );
 
-const renderEmail = (student: TeacherStudent) => (student.studentEmail ? student.studentEmail : <HiddenValue />);
-
-const renderMobile = (student: TeacherStudent) => {
-  if (student.studentMobile) return student.studentMobile;
-  return student.studentEmail === null ? <HiddenValue /> : '-';
+const renderContact = (value: string | null, hidden: boolean) => {
+  if (value) return value;
+  return hidden ? <HiddenValue /> : '-';
 };
+
+const renderEmail = (student: TeacherStudent) => renderContact(student.studentEmail, student.contactsHidden);
+
+const renderMobile = (student: TeacherStudent) => renderContact(student.studentMobile, student.contactsHidden);
 
 const formatEnrolledDate = (student: TeacherStudent) =>
   student.enrolledAt ? new Date(student.enrolledAt).toLocaleDateString() : 'N/A';
@@ -155,7 +157,7 @@ const TeacherStudentsPage: React.FC = () => {
 
   const isDataMasked = useMemo(() => {
     if (!students || students.length === 0) return false;
-    return (students as unknown as TeacherStudent[]).some(s => s.studentEmail === null);
+    return (students as unknown as TeacherStudent[]).some(s => s.contactsHidden);
   }, [students]);
 
   const handleTabChange = (value: string) => {

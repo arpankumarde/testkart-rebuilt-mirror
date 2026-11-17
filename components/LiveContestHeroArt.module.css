@@ -1,0 +1,428 @@
+/*
+ * One contest window on a sage backdrop, with a small results note over the
+ * lower edge. 1em is 16px at a 520px column, so everything scales with the
+ * column. Reads the --sl-* tokens from SellLandingTheme and the themed
+ * --fc-sage-* pair from base.css.
+ */
+.art {
+  container-type: inline-size;
+  width: 100%;
+  max-width: 560px;
+  margin: 0 0 0 auto;
+}
+
+.stage {
+  position: relative;
+  padding: 1.5em 2em 3em 0;
+  font-size: calc(100cqw / 32.5);
+}
+
+.stage svg {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0 0 1.25em 3em;
+  border-radius: 2em;
+  background-color: var(--fc-sage-tint);
+  border: 1px solid var(--fc-sage-line);
+}
+
+.window {
+  position: relative;
+  border-radius: 1.1em;
+  background-color: var(--sl-surface);
+  border: 1px solid var(--sl-line-strong);
+  box-shadow: var(--sl-shadow-hover);
+  overflow: hidden;
+  color: var(--sl-ink);
+}
+
+/* Contest header */
+.head {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  padding: 0.9em 1em;
+  border-bottom: 1px solid var(--sl-line);
+}
+
+.livePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  flex-shrink: 0;
+  padding: 0.35em 0.7em;
+  border-radius: 999px;
+  background-color: hsl(354 70% 94%);
+  color: hsl(354 58% 34%);
+  border: 1px solid hsl(354 48% 82%);
+  font-size: 0.68em;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.liveDot {
+  width: 0.55em;
+  height: 0.55em;
+  border-radius: 50%;
+  background-color: hsl(354 62% 48%);
+  animation: livePulse 1.8s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 hsl(354 62% 48% / 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 0.35em hsl(354 62% 48% / 0);
+  }
+}
+
+.headText {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  gap: 0.1em;
+}
+
+.title {
+  overflow: hidden;
+  font-family: var(--font-family-heading);
+  font-size: 0.95em;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  font-size: 0.72em;
+  font-weight: 500;
+  color: var(--sl-muted);
+  white-space: nowrap;
+}
+
+.prize {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  flex-shrink: 0;
+  padding: 0.35em 0.7em;
+  border-radius: 999px;
+  background-color: var(--sl-butter);
+  color: var(--sl-butter-ink);
+  border: 1px solid var(--sl-butter-deep);
+  font-size: 0.72em;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* Countdown */
+.timerRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  padding: 0.8em 1em;
+  background-color: var(--sl-bg);
+  border-bottom: 1px solid var(--sl-line);
+}
+
+.timerLabel {
+  font-size: 0.72em;
+  font-weight: 700;
+  color: var(--sl-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.digits {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2em;
+}
+
+.digit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2em;
+  padding: 0.3em 0.35em;
+  border-radius: 0.45em;
+  background-color: var(--sl-ink);
+  color: var(--sl-bg);
+  font-family: var(--font-family-heading);
+  font-size: 0.95em;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.colon {
+  font-weight: 800;
+  color: var(--sl-muted);
+}
+
+.joined {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  margin-left: auto;
+  font-size: 0.72em;
+  font-weight: 700;
+  color: var(--sl-blue-ink);
+  white-space: nowrap;
+}
+
+/* Leaderboard */
+/* Same columns, gap and inset as a row, so the labels sit over their columns. */
+.boardHead {
+  display: grid;
+  grid-template-columns: 1.7em minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.75em 1.25em 0.35em;
+}
+
+.boardHead span {
+  font-size: 0.62em;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sl-muted);
+}
+
+.boardHead span:first-child {
+  text-align: center;
+}
+
+.scoreHead {
+  text-align: right;
+}
+
+.board {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+  margin: 0;
+  padding: 0 0.75em 0.9em;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1.7em minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.45em 0.5em;
+  border-radius: 0.6em;
+  border: 1px solid transparent;
+}
+
+.you {
+  background-color: var(--fc-sage-tint);
+  border-color: var(--fc-sage-line);
+}
+
+.rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.7em;
+  height: 1.7em;
+  border-radius: 50%;
+  background-color: var(--sl-alt);
+  color: var(--sl-text);
+  font-size: 0.78em;
+  font-weight: 800;
+}
+
+.medal1 {
+  background-color: var(--sl-butter-deep);
+  color: var(--sl-butter-ink);
+}
+
+.medal2 {
+  background-color: var(--sl-blue-deep);
+  color: var(--sl-blue-ink);
+}
+
+.medal3 {
+  background-color: var(--sl-peach-deep);
+  color: var(--sl-peach-ink);
+}
+
+.student {
+  display: flex;
+  align-items: center;
+  gap: 0.55em;
+  min-width: 0;
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.9em;
+  height: 1.9em;
+  border-radius: 50%;
+  font-size: 0.66em;
+  font-weight: 800;
+}
+
+.sage {
+  background-color: var(--sl-surface);
+  color: var(--fc-sage-ink);
+  border: 1px solid var(--fc-sage-line);
+}
+
+.blue {
+  background-color: var(--sl-blue);
+  color: var(--sl-blue-ink);
+}
+
+.butter {
+  background-color: var(--sl-butter);
+  color: var(--sl-butter-ink);
+}
+
+.lavender {
+  background-color: var(--sl-lavender);
+  color: var(--sl-lavender-ink);
+}
+
+.mint {
+  background-color: var(--sl-mint);
+  color: var(--sl-mint-ink);
+}
+
+.name {
+  overflow: hidden;
+  font-size: 0.78em;
+  font-weight: 700;
+  color: var(--sl-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.you .name {
+  color: var(--fc-sage-ink);
+  font-weight: 800;
+}
+
+.rise {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15em;
+  flex-shrink: 0;
+  padding: 0.15em 0.45em;
+  border-radius: 999px;
+  background-color: var(--sl-surface);
+  color: var(--fc-sage-ink);
+  border: 1px solid var(--fc-sage-line);
+  font-size: 0.6em;
+  font-weight: 800;
+}
+
+.rise svg {
+  width: 0.9em;
+  height: 0.9em;
+}
+
+.score {
+  font-family: var(--font-family-heading);
+  font-size: 0.85em;
+  font-weight: 800;
+  color: var(--sl-ink);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.outOf {
+  font-size: 0.75em;
+  font-weight: 600;
+  color: var(--sl-muted);
+}
+
+/* Results note over the lower edge */
+.note {
+  position: absolute;
+  left: 4em;
+  bottom: 0.25em;
+  display: flex;
+  align-items: center;
+  gap: 0.65em;
+  padding: 0.65em 1em 0.65em 0.65em;
+  border-radius: 1em;
+  background-color: var(--sl-surface);
+  border: 1px solid var(--sl-line-strong);
+  box-shadow: var(--sl-shadow-hover);
+}
+
+.noteIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2em;
+  height: 2.2em;
+  border-radius: 0.65em;
+  background-color: var(--sl-mint);
+  color: var(--sl-mint-ink);
+}
+
+.noteText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05em;
+}
+
+.noteTitle {
+  font-family: var(--font-family-heading);
+  font-size: 0.8em;
+  font-weight: 800;
+  color: var(--sl-ink);
+}
+
+.noteMeta {
+  font-size: 0.66em;
+  font-weight: 500;
+  color: var(--sl-muted);
+}
+
+@media (max-width: 860px) {
+  .art {
+    margin: 0 auto;
+  }
+}
+
+/* Narrow column: larger type, the joined count drops out. */
+@container (max-width: 420px) {
+  .stage {
+    font-size: calc(100cqw / 23);
+    padding: 1em 1em 2.75em 0;
+  }
+
+  .backdrop {
+    left: 1.5em;
+  }
+
+  .joined,
+  .meta {
+    display: none;
+  }
+
+  .note {
+    left: 2em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liveDot {
+    animation: none;
+  }
+}

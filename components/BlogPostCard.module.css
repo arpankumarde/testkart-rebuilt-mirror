@@ -56,10 +56,14 @@
   flex-grow: 1;
 }
 
+/* Each item stays on one line; when author and meta cannot share a row, the
+   meta drops to its own row instead of squeezing the name. */
 .footer {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: var(--spacing-2) var(--spacing-3);
   margin-top: auto;
   padding-top: var(--spacing-4);
   border-top: 1px solid var(--border);
@@ -69,23 +73,30 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .avatar {
   width: 24px;
   height: 24px;
+  flex-shrink: 0;
 }
 
 .authorName {
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .meta {
   display: flex;
   align-items: center;
   gap: var(--spacing-3);
+  flex-shrink: 0;
 }
 
 .metaItem {
@@ -94,4 +105,9 @@
   gap: var(--spacing-1);
   font-size: 0.75rem;
   color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+.metaItem svg {
+  flex-shrink: 0;
 }

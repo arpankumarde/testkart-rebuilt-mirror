@@ -109,11 +109,13 @@ const TestItemForm = ({
   item,
   onSuccess,
   guided = false,
+  seriesIsFree = false,
 }: {
   packageId: number;
   item?: TestItemWithQuestionsCount;
   onSuccess: () => void;
   guided?: boolean;
+  seriesIsFree?: boolean;
 }) => {
   const isEditMode = !!item;
   const { useCreateTestItemMutation, useUpdateTestItemMutation } = useTeacherTestMutations();
@@ -297,22 +299,24 @@ const TestItemForm = ({
             <FormMessage />
           </FormItem>
         )}
-        <FormItem name="isFree" className={styles.checkboxFormItem}>
-          <div className={styles.checkboxWrapper}>
-            <FormControl>
-              <Checkbox
-                id="isFree"
-                checked={form.values.isFree}
-                onChange={(e) => form.setValues((p) => ({ ...p, isFree: e.target.checked }))}
-              />
-            </FormControl>
-            <FormLabel htmlFor="isFree">This is a free test</FormLabel>
-          </div>
-          <FormDescription>
-            If checked, students can attempt this test without purchasing the package.
-          </FormDescription>
-          <FormMessage />
-        </FormItem>
+        {!seriesIsFree && (
+          <FormItem name="isFree" className={styles.checkboxFormItem}>
+            <div className={styles.checkboxWrapper}>
+              <FormControl>
+                <Checkbox
+                  id="isFree"
+                  checked={form.values.isFree}
+                  onChange={(e) => form.setValues((p) => ({ ...p, isFree: e.target.checked }))}
+                />
+              </FormControl>
+              <FormLabel htmlFor="isFree">This is a free test</FormLabel>
+            </div>
+            <FormDescription>
+              If checked, students can attempt this test without purchasing the package.
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
         <MoreOptions guided={guided} open={moreOpen} onOpenChange={setMoreOpen}>
         <FormItem name="calculatorEnabled" className={styles.checkboxFormItem}>
           <div className={styles.checkboxWrapper}>
@@ -497,12 +501,14 @@ const SortableItemCard = ({
   onEdit,
   onDelete,
   guided,
+  seriesIsFree,
 }: {
   item: TestItemWithQuestionsCount;
   packageId: number;
   onEdit: (item: TestItemWithQuestionsCount) => void;
   onDelete: (item: TestItemWithQuestionsCount) => void;
   guided: boolean;
+  seriesIsFree: boolean;
 }) => {
   const {
     attributes,
@@ -540,7 +546,7 @@ const SortableItemCard = ({
             <span><FileText size={14} aria-hidden="true" /> {item.questionsCount} question{item.questionsCount === 1 ? "" : "s"}</span>
             <span><Layers size={14} aria-hidden="true" /> {item.subjectsCount} subject{item.subjectsCount === 1 ? "" : "s"}</span>
             <span><Clock size={14} aria-hidden="true" /> {getEffectiveDurationLabel(item)}</span>
-            {item.isFree && <span className={styles.freeBadge}>Free</span>}
+            {item.isFree && !seriesIsFree && <span className={styles.freeBadge}>Free</span>}
             {item.subjectWiseTiming && <span className={styles.subjectTimingBadge}>Subject-wise timing</span>}
             {item.questionWiseTiming && <span className={styles.questionTimingBadge}>Question-wise timing</span>}
             {isScheduledAhead(item.scheduledDate) && (
@@ -602,7 +608,19 @@ const SortableItemCard = ({
   );
 };
 
-export const TestSeriesItemsList = ({ packageId, guided = false }: { packageId: number; guided?: boolean }) => {
+/*
+ * `seriesIsFree` hides the per-test "free test" option and badge: in a free
+ * series every test is already open, so marking one free changes nothing.
+ */
+export const TestSeriesItemsList = ({
+  packageId,
+  guided = false,
+  seriesIsFree = false,
+}: {
+  packageId: number;
+  guided?: boolean;
+  seriesIsFree?: boolean;
+}) => {
   const [editingItem, setEditingItem] = useState<TestItemWithQuestionsCount | null>(null);
   const [deletingItem, setDeletingItem] = useState<TestItemWithQuestionsCount | null>(null);
   const [orderedItems, setOrderedItems] = useState<TestItemWithQuestionsCount[]>([]);
@@ -751,6 +769,7 @@ export const TestSeriesItemsList = ({ packageId, guided = false }: { packageId: 
                 onEdit={setEditingItem}
                 onDelete={setDeletingItem}
                 guided={guided}
+                seriesIsFree={seriesIsFree}
               />
             ))}
           </div>
@@ -768,7 +787,7 @@ export const TestSeriesItemsList = ({ packageId, guided = false }: { packageId: 
                     <span><FileText size={14} /> {activeItem.questionsCount} question{activeItem.questionsCount === 1 ? "" : "s"}</span>
                     <span><Layers size={14} /> {activeItem.subjectsCount} subject{activeItem.subjectsCount === 1 ? "" : "s"}</span>
                     <span><Clock size={14} /> {getEffectiveDurationLabel(activeItem)}</span>
-                    {activeItem.isFree && <span className={styles.freeBadge}>Free</span>}
+                    {activeItem.isFree && !seriesIsFree && <span className={styles.freeBadge}>Free</span>}
                     {activeItem.subjectWiseTiming && <span className={styles.subjectTimingBadge}>Subject-wise timing</span>}
                     {activeItem.questionWiseTiming && <span className={styles.questionTimingBadge}>Question-wise timing</span>}
                     {isScheduledAhead(activeItem.scheduledDate) && (
@@ -810,6 +829,7 @@ export const TestSeriesItemsList = ({ packageId, guided = false }: { packageId: 
               packageId={packageId}
               item={editingItem}
               guided={guided}
+              seriesIsFree={seriesIsFree}
               onSuccess={() => setEditingItem(null)} />
           )}
         </DialogContent>

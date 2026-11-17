@@ -62,6 +62,14 @@ export interface SEOHeadProps {
    * for every page that doesn't pass this prop.
    */
   noIndex?: boolean;
+  /** Extra robots directives appended after index/noindex, e.g. "max-image-preview:large". */
+  robotsExtra?: string;
+  /** The <html lang> value. Defaults to "en". */
+  lang?: string;
+  /** Overrides the og:/twitter: title when it should differ from the <title>. */
+  socialTitle?: string;
+  /** Overrides the og:/twitter: description when it should differ from the meta description. */
+  socialDescription?: string;
 }
 
 export const SEOHead: React.FC<SEOHeadProps> = ({
@@ -74,6 +82,10 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
   url,
   type = 'website',
   noIndex = false,
+  robotsExtra,
+  lang = 'en',
+  socialTitle,
+  socialDescription,
 }) => {
   const location = useLocation();
 
@@ -85,18 +97,21 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
   const canonicalUrl = toCanonicalUrl(url, location.pathname);
 
   const fullTitle = appendSiteName ? `${title} | ${SITE_NAME}` : title;
+  const shareTitle = socialTitle ?? fullTitle;
+  const shareDescription = socialDescription ?? description;
+  const robots = `${noIndex ? 'noindex,follow' : 'index,follow'}${robotsExtra ? `,${robotsExtra}` : ''}`;
 
   return (
-    <Helmet htmlAttributes={{ lang: 'en' }}>
+    <Helmet htmlAttributes={{ lang }}>
       {/* Standard SEO */}
       <title>{fullTitle}</title>
       <meta name="description" content={description} />
-      <meta name="robots" content={noIndex ? 'noindex,follow' : 'index,follow'} />
+      <meta name="robots" content={robots} />
       <link rel="canonical" href={canonicalUrl} />
 
       {/* Open Graph (for Facebook, LinkedIn, etc.) */}
-      <meta property="og:title" content={fullTitle} />
-      <meta property="og:description" content={description} />
+      <meta property="og:title" content={shareTitle} />
+      <meta property="og:description" content={shareDescription} />
       {finalImage && <meta property="og:image" content={finalImage} />}
       {finalImage && finalImageAlt && <meta property="og:image:alt" content={finalImageAlt} />}
       <meta property="og:url" content={canonicalUrl} />
@@ -107,8 +122,8 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
       {/* Twitter Card */}
       <meta name="twitter:card" content={finalImage ? twitterCard : 'summary'} />
       <meta name="twitter:site" content={TWITTER_HANDLE} />
-      <meta name="twitter:title" content={fullTitle} />
-      <meta name="twitter:description" content={description} />
+      <meta name="twitter:title" content={shareTitle} />
+      <meta name="twitter:description" content={shareDescription} />
       {finalImage && <meta name="twitter:image" content={finalImage} />}
       {finalImage && finalImageAlt && <meta name="twitter:image:alt" content={finalImageAlt} />}
     </Helmet>

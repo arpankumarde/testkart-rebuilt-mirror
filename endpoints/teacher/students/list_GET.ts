@@ -190,6 +190,7 @@ AND o.status IN ('completed', 'refunded')
         studentName: row.studentName,
         studentEmail: hasPaidSubscription ? row.studentEmail : null,
         studentMobile: hasPaidSubscription ? row.studentMobile : null,
+        contactsHidden: !hasPaidSubscription,
         itemId: Number(row.itemId),
         itemTitle: row.itemTitle,
         itemType: row.itemType as TeacherStudent["itemType"],

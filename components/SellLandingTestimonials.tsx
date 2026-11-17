@@ -8,17 +8,32 @@ import styles from "./SellLandingTestimonials.module.css";
 
 const TONES = [styles.lavender, styles.mint, styles.peach, styles.blue];
 
-export const SellLandingTestimonials = () => {
+type SellLandingTestimonialsProps = {
+  eyebrow?: string;
+  title?: React.ReactNode;
+  lead?: React.ReactNode;
+  className?: string;
+};
+
+export const SellLandingTestimonials = ({
+  eyebrow = "From our educators",
+  title = "Made for People Who Love Teaching.",
+  lead = "In their own words, from the teacher videos on the Testkart YouTube channel.",
+  className,
+}: SellLandingTestimonialsProps = {}) => {
   const [playingId, setPlayingId] = useState<string | null>(null);
 
   return (
-    <section className={styles.section} aria-labelledby="sell-testimonials-title">
+    <section
+      className={`${styles.section} ${className ?? ""}`}
+      aria-labelledby="sell-testimonials-title"
+    >
       <div className={styles.container}>
         <SellLandingHeading
           id="sell-testimonials-title"
-          eyebrow="From our educators"
-          title="Made for People Who Love Teaching."
-          lead="In their own words, from the teacher videos on the Testkart YouTube channel."
+          eyebrow={eyebrow}
+          title={title}
+          lead={lead}
         />
 
         <ul className={styles.grid}>

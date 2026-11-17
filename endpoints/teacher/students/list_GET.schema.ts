@@ -13,6 +13,8 @@ export type TeacherStudent = {
   studentName: string;
   studentEmail: string | null;
   studentMobile: string | null;
+  // True when email/mobile are withheld by the teacher's plan; null contacts with this false are simply not on file.
+  contactsHidden: boolean;
   itemId: number;
   itemTitle: string;
   itemType: ItemType;

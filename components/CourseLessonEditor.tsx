@@ -2,7 +2,7 @@ import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useState } 
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { Eye, FileText, FileType, FolderOpen, HelpCircle, Video } from 'lucide-react';
-import { useTeacherCourseMutations } from '../helpers/useTeacherCoursesQuery';
+import { useTeacherCourseDetailsQuery, useTeacherCourseMutations } from '../helpers/useTeacherCoursesQuery';
 import { schema as createSchema } from '../endpoints/teacher/course-lessons/create_POST.schema';
 import { useUploadLimits } from '../helpers/useUploadLimits';
 import type { TeacherAsset } from '../helpers/teacherAssetFiles';
@@ -95,6 +95,9 @@ export const CourseLessonEditor = forwardRef<CourseLessonEditorHandle, CourseLes
     const isEditMode = !!lesson;
     const limits = useUploadLimits();
     const mutations = useTeacherCourseMutations();
+    // Every lesson of a free course is already open, so a free preview means nothing there.
+    const { data: courseDetails } = useTeacherCourseDetailsQuery(courseId);
+    const isCourseFree = courseDetails?.price === 0;
     const [showPdfPreview, setShowPdfPreview] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [pendingContentType, setPendingContentType] = useState<LessonContentType | null>(null);
@@ -427,19 +430,21 @@ export const CourseLessonEditor = forwardRef<CourseLessonEditorHandle, CourseLes
               <FormMessage />
             </FormItem>
 
-            <FormItem name="isPreview" className={styles.field}>
-              <div className={styles.checkboxGroup}>
-                <FormControl>
-                  <Checkbox
-                    checked={form.values.isPreview}
-                    onChange={(e) => form.setValues((prev) => ({ ...prev, isPreview: e.target.checked }))}
-                  />
-                </FormControl>
-                <FormLabel className={styles.checkboxLabel}>Free preview</FormLabel>
-              </div>
-              <FormDescription>Anyone can open this lesson without enrolling.</FormDescription>
-              <FormMessage />
-            </FormItem>
+            {!isCourseFree && (
+              <FormItem name="isPreview" className={styles.field}>
+                <div className={styles.checkboxGroup}>
+                  <FormControl>
+                    <Checkbox
+                      checked={form.values.isPreview}
+                      onChange={(e) => form.setValues((prev) => ({ ...prev, isPreview: e.target.checked }))}
+                    />
+                  </FormControl>
+                  <FormLabel className={styles.checkboxLabel}>Free preview</FormLabel>
+                </div>
+                <FormDescription>Anyone can open this lesson without enrolling.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
           </div>
 
           <div className={styles.actions}>

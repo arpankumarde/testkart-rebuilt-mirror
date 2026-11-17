@@ -152,6 +152,7 @@ export const CourseSectionBuilder: React.FC<{ courseId: number }> = ({ courseId 
                   section={section}
                   number={index + 1}
                   courseId={courseId}
+                  isCourseFree={courseDetails.price === 0}
                   mutations={mutations}
                   sensors={sensors}
                   isFirst={index === 0}
@@ -208,6 +209,7 @@ const ChapterItem: React.FC<{
   section: Section;
   number: number;
   courseId: number;
+  isCourseFree: boolean;
   mutations: Mutations;
   sensors: Sensors;
   isFirst: boolean;
@@ -221,6 +223,7 @@ const ChapterItem: React.FC<{
   section,
   number,
   courseId,
+  isCourseFree,
   mutations,
   sensors,
   isFirst,
@@ -340,6 +343,7 @@ const ChapterItem: React.FC<{
                   key={lesson.id}
                   lesson={lesson}
                   number={`${number}.${index + 1}`}
+                  showPreviewTag={!isCourseFree}
                   isFirst={index === 0}
                   isLast={index === section.lessons.length - 1}
                   isDeleting={
@@ -454,13 +458,14 @@ const ChapterRename: React.FC<{ section: Section; mutations: Mutations; onDone: 
 const LessonRow: React.FC<{
   lesson: Lesson;
   number: string;
+  showPreviewTag: boolean;
   isFirst: boolean;
   isLast: boolean;
   isDeleting: boolean;
   onOpen: () => void;
   onMove: (offset: -1 | 1) => void;
   onDelete: () => void;
-}> = ({ lesson, number, isFirst, isLast, isDeleting, onOpen, onMove, onDelete }) => {
+}> = ({ lesson, number, showPreviewTag, isFirst, isLast, isDeleting, onOpen, onMove, onDelete }) => {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
     id: lesson.id,
   });
@@ -492,7 +497,7 @@ const LessonRow: React.FC<{
         {Icon ? <Icon size={16} aria-hidden="true" className={styles.lessonIcon} /> : null}
         <span className={styles.lessonTitle}>{lesson.title}</span>
         <span className={styles.lessonMeta}>
-          {lesson.isPreview ? <span className={styles.freeTag}>Free preview</span> : null}
+          {showPreviewTag && lesson.isPreview ? <span className={styles.freeTag}>Free preview</span> : null}
           {hasContent ? (
             <span className={styles.lessonDetail}>{detail}</span>
           ) : (

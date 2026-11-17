@@ -706,8 +706,10 @@ const Page = () => {
                       {orderedItems.map((item, index) => {
                         const duration = effectiveDuration(item);
                         const issues = itemIssues(item);
+                        // Every test in a free series is open, so a per-test Free tag says nothing there.
+                        const showFreeTag = item.isFree && !testPackage?.isFree;
                         const hasNotes =
-                          item.isFree || item.subjectWiseTiming || item.questionWiseTiming || !!item.scheduledDate;
+                          showFreeTag || item.subjectWiseTiming || item.questionWiseTiming || !!item.scheduledDate;
                         return (
                           <li
                             key={item.id}
@@ -718,7 +720,7 @@ const Page = () => {
                               <p className={styles.testTitle}>{item.title}</p>
                               {hasNotes && (
                                 <div className={styles.testNotes}>
-                                  {item.isFree && <span className={styles.freeTag}>Free</span>}
+                                  {showFreeTag && <span className={styles.freeTag}>Free</span>}
                                   {item.subjectWiseTiming && <span>Timed per subject</span>}
                                   {item.questionWiseTiming && <span>Timed per question</span>}
                                   {item.scheduledDate && <span>Scheduled for {formatDateTime(item.scheduledDate)}</span>}

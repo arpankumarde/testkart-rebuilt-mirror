@@ -87,6 +87,7 @@
 
 .name {
   color: var(--tk-brand-text);
+  overflow-wrap: anywhere;
 }
 
 .chips {

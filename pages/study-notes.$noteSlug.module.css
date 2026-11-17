@@ -362,6 +362,15 @@ opacity: 0.5;
   border-color: color-mix(in srgb, var(--tk-brand) 45%, var(--surface));
 }
 
+.ratingChipStatic {
+  cursor: default;
+}
+
+.ratingChipStatic:hover {
+  background-color: var(--surface);
+  border-color: var(--exam-ivory-border);
+}
+
 .ratingChip:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
@@ -813,6 +822,44 @@ opacity: 0.5;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-6);
+  padding: var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.reviewPrompt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4) 1.25rem;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.reviewPromptText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.reviewPromptTitle {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--foreground);
+}
+
+.reviewPromptHint {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.reviewPrompt .writeReviewButton {
+  margin-top: 0;
 }
 
 .reviewCard {
@@ -870,11 +917,6 @@ opacity: 0.5;
   font-size: 1rem;
   line-height: 1.6;
   color: var(--foreground);
-}
-
-.noReviews {
-  color: var(--muted-foreground);
-  font-style: italic;
 }
 
 /* Author Card in Main Content */

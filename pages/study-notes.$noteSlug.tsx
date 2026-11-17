@@ -232,6 +232,7 @@ const ProductDetailsPage: React.FC = () => {
 
   // Determine if user can write a review
   const canReview = authState.type === "authenticated" && hasPurchased && !hasReviewed;
+  const hasReviews = reviews.length > 0;
 
   const isInCart = cartData?.items.some(item => 
     item.type === 'digitalProduct' && item.digitalProductId === product?.id
@@ -475,16 +476,30 @@ const ProductDetailsPage: React.FC = () => {
             </div>
           )}
 
-          {/* Reviews Section */}
-          <div id="reviews" className={styles.section}>
-            <div className={styles.reviewsHeader}>
-              <h2>Student Reviews</h2>
+          {!hasReviews && canReview && (
+            <div className={styles.reviewPrompt}>
+              <div className={styles.reviewPromptText}>
+                <span className={styles.reviewPromptTitle}>Rate these notes</span>
+                <span className={styles.reviewPromptHint}>No reviews yet. Yours will help other students decide.</span>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => setIsReviewDialogOpen(true)}
+                className={styles.writeReviewButton}
+              >
+                Write a Review
+              </Button>
             </div>
-            
+          )}
+
+          {hasReviews && (
+          <div id="reviews" className={styles.section}>
+            <h2>Student Reviews</h2>
+
             <div className={styles.reviewsContainer}>
                <div className={styles.ratingSummary}>
                   <div className={styles.averageRating}>
-                     <span className={styles.bigRating}>{product.rating ? Number(product.rating).toFixed(1) : "0"}</span>
+                     <span className={styles.bigRating}>{Number(product.rating ?? 0).toFixed(1)}</span>
                      <div className={styles.averageStars}>
                         {Array.from({ length: 5 }).map((_, i) => (
                           <Star 
@@ -495,7 +510,9 @@ const ProductDetailsPage: React.FC = () => {
                           />
                         ))}
                      </div>
-                     <span className={styles.totalReviews}>{product.reviewsCount} reviews</span>
+                     <span className={styles.totalReviews}>
+                       {product.reviewsCount} {product.reviewsCount === 1 ? "review" : "reviews"}
+                     </span>
                      {canReview && (
                         <Button
                           size="sm"
@@ -523,8 +540,7 @@ const ProductDetailsPage: React.FC = () => {
                   </div>
                </div>
 
-              {reviews.length > 0 ? (
-                <div className={styles.reviewsList}>
+              <div className={styles.reviewsList}>
                   {reviews.map(review => (
                     <div key={review.id} className={styles.reviewCard}>
                       <div className={styles.reviewHeader}>
@@ -552,12 +568,10 @@ const ProductDetailsPage: React.FC = () => {
                       <ReviewTeacherReply reply={review.teacherReply} repliedAt={review.teacherRepliedAt} />
                     </div>
                   ))}
-                </div>
-              ) : (
-                <p className={styles.noReviews}>No reviews yet.</p>
-              )}
+              </div>
             </div>
           </div>
+          )}
 
           {/* Author Section */}
           <div id="author" className={styles.section}>
@@ -648,15 +662,22 @@ const ProductDetailsPage: React.FC = () => {
                       </>
                     )}
                   </span>
-                  <button type="button" className={styles.ratingChip} onClick={handleScrollToReviews}>
-                    <Star size={14} fill="currentColor" className={styles.starIcon} aria-hidden="true" />
-                    <span className={styles.ratingValue}>
-                      {product.rating ? Number(product.rating).toFixed(1) : "New"}
+                  {hasReviews ? (
+                    <button type="button" className={styles.ratingChip} onClick={handleScrollToReviews}>
+                      <Star size={14} fill="currentColor" className={styles.starIcon} aria-hidden="true" />
+                      <span className={styles.ratingValue}>
+                        {product.rating ? Number(product.rating).toFixed(1) : "New"}
+                      </span>
+                      <span className={styles.reviewCount}>
+                        ({product.reviewsCount} {product.reviewsCount === 1 ? "review" : "reviews"})
+                      </span>
+                    </button>
+                  ) : (
+                    <span className={`${styles.ratingChip} ${styles.ratingChipStatic}`}>
+                      <Star size={14} fill="currentColor" className={styles.starIcon} aria-hidden="true" />
+                      <span className={styles.ratingValue}>New</span>
                     </span>
-                    <span className={styles.reviewCount}>
-                      ({product.reviewsCount} {product.reviewsCount === 1 ? "review" : "reviews"})
-                    </span>
-                  </button>
+                  )}
                 </div>
 
                 {showOffer && priceView.offer && (

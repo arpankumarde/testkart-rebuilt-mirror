@@ -9,13 +9,16 @@ export const TEACHER_SIGNUP_PATH = "/teacher/signup";
 type StartLinkProps = {
   className?: string;
   children?: React.ReactNode;
+  /** Defaults to teacher signup; a page can send signed-in teachers somewhere more direct. */
+  to?: string;
 };
 
 export const SellStartLink = ({
   className,
   children = "Start Selling for Free",
+  to = TEACHER_SIGNUP_PATH,
 }: StartLinkProps) => (
-  <Link to={TEACHER_SIGNUP_PATH} className={`${styles.primary} ${className ?? ""}`}>
+  <Link to={to} className={`${styles.primary} ${className ?? ""}`}>
     {children}
     <ArrowRight size={18} aria-hidden="true" className={styles.arrow} />
   </Link>

@@ -40,7 +40,9 @@ export const TeacherOverviewGreeting: React.FC<{
 }> = ({ name, avatarUrl, profileSlug }) => {
   const { data: live } = useLiveTeachingStatusPeek(true);
   const now = new Date();
-  const first = name.trim().split(/\s+/)[0] || "there";
+  // The whole display name: many teachers sign up as a brand ("The Fun Squad"),
+  // where the first word alone reads as a broken greeting.
+  const displayName = name.trim().replace(/\s+/g, " ") || "there";
   const date = now.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" });
 
   return (
@@ -55,7 +57,7 @@ export const TeacherOverviewGreeting: React.FC<{
         <div className={styles.text}>
           <p className={styles.date}>{date}</p>
           <h1 className={styles.title}>
-            {partOfDay(now.getHours())}, <span className={styles.name}>{first}</span>
+            {partOfDay(now.getHours())}, <span className={styles.name}>{displayName}</span>
           </h1>
         </div>
       </div>
