@@ -48,6 +48,9 @@ interface ProductStepFormProps {
   productId?: number;
   /** Create only: the visibility chosen above the form, sent with the new draft. */
   visibility?: ContentVisibility;
+  /** Create only: shown at the top of the Details step (AI fill, visibility). */
+  detailsIntro?: React.ReactNode;
+  /** Create only: AI values, applied to the form each time a new object arrives. */
   aiInitialValues?: {
     title?: string;
     shortDescription?: string;
@@ -142,7 +145,7 @@ const generateClientKey = () =>
     ? crypto.randomUUID()
     : `f_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 
-export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, visibility, aiInitialValues }) => {
+export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, visibility, detailsIntro, aiInitialValues }) => {
   const navigate = useNavigate();
   const isEditMode = !!productId;
   // Inside the admin panel the form only saves; status changes stay on the admin preview page.
@@ -158,8 +161,9 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, vis
   const [isFormInitialized, setIsFormInitialized] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [extractedPdfText, setExtractedPdfText] = useState<string | null>(null);
-  // Edit mode only. Opens on Files for a product with nothing uploaded yet.
-  const [activeStepTab, setActiveStepTab] = useState<'details' | 'files'>('details');
+  // PDFs come first: creating opens on Files, and editing opens there too
+  // for a product with nothing uploaded yet.
+  const [activeStepTab, setActiveStepTab] = useState<'details' | 'files'>(isEditMode ? 'details' : 'files');
   const [moreDetailsOpen, setMoreDetailsOpen] = useState(false);
   const actionsRef = useRef<HTMLDivElement>(null);
   // The prices typed before "Keep this free" was ticked, restored when unticked.
@@ -219,7 +223,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, vis
       pageCount: 0,
       allowDownload: true,
       tagsString: '',
-      // Create mode has no Files section; edit mode fills this once details load.
+      // Create mode starts empty; edit mode fills this once details load.
       files: [],
     },
   });
@@ -279,32 +283,37 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, vis
       });
       setIsFormInitialized(true);
     } else if (!isEditMode && !isFormInitialized) {
-      if (aiInitialValues) {
-        const suggestedPrice = aiInitialValues.suggestedPrice ?? 0;
-        form.setValues(prev => {
-          const examNames = addSuggestedExam(prev.examNames ?? [], aiInitialValues.examName, officialExams);
-          return {
-          ...prev,
-          title: aiInitialValues.title || prev.title,
-          description: aiInitialValues.description || prev.description,
-          shortDescription: aiInitialValues.shortDescription || prev.shortDescription,
-          price: suggestedPrice > 0 ? suggestedPrice : prev.price,
-          category: aiInitialValues.category || prev.category,
-          languages: aiInitialValues.language ? itemLanguages({ language: aiInitialValues.language }) : prev.languages,
-          examName: examNames[0] ?? prev.examName,
-          examNames,
-          tagsString: aiInitialValues.tags ? aiInitialValues.tags.join(', ') : prev.tagsString,
-          };
-        });
-        // A suggested price means the product is not free; the box must agree
-        // with the price that will be saved.
-        setIsFreeChecked(!(suggestedPrice > 0));
-        if (suggestedPrice > 0) lastPriceRef.current = suggestedPrice;
-        if (aiInitialValues.shortDescription || aiInitialValues.tags?.length) setMoreDetailsOpen(true);
-      }
       setIsFormInitialized(true);
     }
-  }, [isEditMode, productDetails, form.setValues, isFormInitialized, aiInitialValues]);
+  }, [isEditMode, productDetails, form.setValues, isFormInitialized]);
+
+  // Applied in place rather than by remounting, so PDFs uploaded in the first
+  // step survive an AI fill in the Details step.
+  useEffect(() => {
+    if (isEditMode || !aiInitialValues) return;
+    const suggestedPrice = aiInitialValues.suggestedPrice ?? 0;
+    form.setValues(prev => {
+      const examNames = addSuggestedExam(prev.examNames ?? [], aiInitialValues.examName, officialExams);
+      return {
+        ...prev,
+        title: aiInitialValues.title || prev.title,
+        description: aiInitialValues.description || prev.description,
+        shortDescription: aiInitialValues.shortDescription || prev.shortDescription,
+        price: suggestedPrice > 0 ? suggestedPrice : prev.price,
+        category: aiInitialValues.category || prev.category,
+        languages: aiInitialValues.language ? itemLanguages({ language: aiInitialValues.language }) : prev.languages,
+        examName: examNames[0] ?? prev.examName,
+        examNames,
+        tagsString: aiInitialValues.tags ? aiInitialValues.tags.join(', ') : prev.tagsString,
+      };
+    });
+    // A suggested price means the product is not free; the choice must agree
+    // with the price that will be saved.
+    setIsFreeChecked(!(suggestedPrice > 0));
+    if (suggestedPrice > 0) lastPriceRef.current = suggestedPrice;
+    if (aiInitialValues.shortDescription || aiInitialValues.tags?.length) setMoreDetailsOpen(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aiInitialValues]);
 
   useEffect(() => {
     if (isFormInitialized && baselineRef.current === null) {
@@ -568,7 +577,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, vis
       ? 'A PDF is still uploading. If you leave now, it is lost.'
       : isEditMode
       ? 'Your changes on this page are not saved yet, including any PDFs you uploaded here. If you leave now, they are lost.'
-      : undefined
+      : 'This note is not saved yet, including any PDFs you uploaded. If you leave now, they are lost.'
   );
 
   const markSaved = () => {
@@ -585,7 +594,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, vis
       return;
     }
     const [field, index] = issue.path;
-    if (isEditMode) setActiveStepTab(FILES_TAB_FIELDS.has(String(field)) ? 'files' : 'details');
+    setActiveStepTab(FILES_TAB_FIELDS.has(String(field)) ? 'files' : 'details');
     if (MORE_DETAILS_FIELDS.has(String(field))) setMoreDetailsOpen(true);
     const label = field === 'files' && typeof index === 'number'
       ? `File ${index + 1}`
@@ -638,7 +647,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, vis
     }
     const discountError = isFreeChecked ? null : productDiscountError(form.values.price, form.values.discountPrice);
     if (discountError) {
-      if (isEditMode) setActiveStepTab('details');
+      setActiveStepTab('details');
       form.setFieldError('discountPrice', discountError);
       toast.error(`Discounted price: ${discountError}`);
       setErrorFocusTick((n) => n + 1);
@@ -650,7 +659,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, vis
     }
     setIsSubmittingAction(action);
     let rows = form.values.files || [];
-    if (action === 'publish' && isEditMode && !isPublished && !isInReview && !adminEdit) {
+    if (action === 'publish' && !isPublished && !isInReview && !adminEdit) {
       const checked = await countUncheckedFiles(rows);
       if (checked.error) {
         setIsSubmittingAction(null);
@@ -718,13 +727,32 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, vis
         },
       });
     } else {
-      // Creating collects details and the chosen visibility; files are added
-      // on the edit page next.
+      // Creating sends the PDFs from the first step with the details and the
+      // chosen visibility. Publishing then runs on the new draft.
       createProductMutation.mutate(visibility ? { ...payload, visibility } : payload, {
         onSuccess: (data) => {
+          if (action === 'publish') {
+            publishProductMutation.mutate({ id: data.id }, {
+              onSuccess: (result) => {
+                toast.success(
+                  result.published
+                    ? 'Published. Students can find and buy it now.'
+                    : 'Submitted for review. We will email you once it is approved or needs changes.'
+                );
+                leaveAfterSave();
+              },
+              onError: (error) => {
+                markSaved();
+                setIsSubmittingAction(null);
+                toast.error(`Your note is saved as a draft, but it was not ${publishesDirectly ? 'published' : 'submitted for review'}. ${parseErrorMessage(error)}`);
+                navigate(`/teacher/products/${data.id}/edit`);
+              },
+            });
+            return;
+          }
           markSaved();
           setIsSubmittingAction(null);
-          toast.success('Draft saved. Now upload your PDF files.');
+          toast.success('Draft saved.');
           navigate(`/teacher/products/${data.id}/edit`);
         },
         onError: (error) => {
@@ -851,31 +879,44 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, vis
     actionsRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
     actionsRef.current?.querySelector<HTMLButtonElement>('button:last-of-type:not(:disabled)')?.focus({ preventScroll: true });
   };
-  // The create page draws its own track under its title.
+  const goToStep = (step: 'details' | 'files') => {
+    setActiveStepTab(step);
+    formRootRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  };
+
+  // Create only: the PDFs step hands over to Details once a PDF is in.
+  const continueToDetails = () => {
+    if (readiness.fileIssue) {
+      toast.error('Upload at least one PDF first.');
+      return;
+    }
+    goToStep('details');
+  };
+
   const flowSteps: TeacherFlowStep[] = [
-        {
-          key: 'details', label: 'Details', hint: 'Title, exam and price',
-          state: activeStepTab === 'details' ? 'current' : readiness.required.length === 0 ? 'done' : 'todo',
-          onSelect: () => setActiveStepTab('details'),
-        },
-        {
-          key: 'files', label: 'PDFs', hint: 'Upload your files',
-          state: activeStepTab === 'files' ? 'current' : readiness.fileIssue ? 'todo' : 'done',
-          onSelect: () => setActiveStepTab('files'),
-        },
-        {
-          key: 'publish', label: 'Publish', hint: publishesDirectly ? 'Go live' : 'Send for review',
-          state: isPublished || isInReview ? 'done' : 'todo',
-          onSelect: showActions,
-        },
-      ];
+    {
+      key: 'files', label: 'PDFs', hint: 'Upload your files',
+      state: activeStepTab === 'files' ? 'current' : readiness.fileIssue ? 'todo' : 'done',
+      onSelect: () => goToStep('files'),
+    },
+    {
+      key: 'details', label: 'Details', hint: 'Title, exam and price',
+      state: activeStepTab === 'details' ? 'current' : readiness.required.length === 0 ? 'done' : 'todo',
+      onSelect: () => goToStep('details'),
+    },
+    {
+      key: 'publish', label: 'Publish', hint: publishesDirectly ? 'Go live' : 'Send for review',
+      state: isPublished || isInReview ? 'done' : 'todo',
+      onSelect: showActions,
+    },
+  ];
 
   return (
     <div className={styles.container}>
       <Form {...form}>
         <form ref={formRootRef} onSubmit={(e) => e.preventDefault()} className={styles.pageLayout}>
           <div className={styles.mainColumn}>
-            {guided && isEditMode && <TeacherFlowSteps label="Study note steps" steps={flowSteps} />}
+            {guided && <TeacherFlowSteps label="Study note steps" steps={flowSteps} />}
             {isEditMode && !guided && (
               <div className={styles.stepTabs}>
                 <button
@@ -895,7 +936,9 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, vis
               </div>
             )}
 
-            {(!isEditMode || activeStepTab === 'details') && (
+            {!isEditMode && activeStepTab === 'details' && detailsIntro}
+
+            {activeStepTab === 'details' && (
             <div className={styles.section}>
               <FormItem name="title">
                 <div className={styles.labelRow}>
@@ -1115,8 +1158,8 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, vis
             </div>
             )}
 
-            {/* Files are the second step: hidden while creating, their own tab when editing. */}
-            {isEditMode && activeStepTab === 'files' && (
+            {/* Files are the first step, for a new note and an existing one. */}
+            {activeStepTab === 'files' && (
             <div className={styles.section}>
               <div className={styles.fileList}>
                 <div className={styles.fileListHeader}>
@@ -1444,7 +1487,7 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, vis
                 </div>
               )}
 
-              {isEditMode && readiness.fileIssue && (
+              {readiness.fileIssue && (
                 <div className={`${styles.issueBox} ${styles.requiredBox}`}>
                   <h4>{isPublished ? 'Missing on the live product' : 'Required to publish'}</h4>
                   <ul>
@@ -1491,14 +1534,22 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, vis
               <Button type="button" variant="outline" onClick={() => guard.leave(exitTo)} disabled={isSubmitting}>
                 Cancel
               </Button>
-              {!isEditMode || isPublished || isInReview || adminEdit ? (
+              {!isEditMode && activeStepTab === 'files' ? (
+                <Button
+                  type="button"
+                  onClick={continueToDetails}
+                  disabled={isSubmitting || replacing !== null || isUploadingNew}
+                >
+                  Next: Add details
+                </Button>
+              ) : isPublished || isInReview || adminEdit ? (
                 <Button
                   type="button"
                   onClick={() => handleSave('save')}
                   disabled={!readiness.isReadyToSave || isSubmitting || replacing !== null || isUploadingNew}
                 >
                   {isSubmittingAction === 'save' && <Spinner size="sm" />}
-                  {isEditMode ? 'Save changes' : 'Next: Upload PDFs'}
+                  Save changes
                 </Button>
               ) : (
                 <>

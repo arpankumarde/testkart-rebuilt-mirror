@@ -10,7 +10,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const activeTrials = await db
       .selectFrom("teacherSubscriptions as ts")
-      .innerJoin("users as u", "u.id", "ts.teacherId")
+      .innerJoin("teachers as u", "u.id", "ts.teacherId")
       .innerJoin("subscriptionPlans as sp", "sp.id", "ts.planId")
       .where("ts.paymentMethod", "=", "admin_trial")
       .where("ts.status", "=", "active")

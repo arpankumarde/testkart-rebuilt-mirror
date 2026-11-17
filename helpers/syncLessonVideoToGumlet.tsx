@@ -187,7 +187,7 @@ export async function syncLessonVideoToGumlet(lessonId: number): Promise<void> {
       .selectFrom("courseLessons")
       .innerJoin("courseSections", "courseSections.id", "courseLessons.sectionId")
       .innerJoin("courses", "courses.id", "courseSections.courseId")
-      .innerJoin("users", "users.id", "courses.teacherId")
+      .innerJoin("teachers", "teachers.id", "courses.teacherId")
       .select([
         "courseLessons.id",
         "courseLessons.title",
@@ -198,8 +198,8 @@ export async function syncLessonVideoToGumlet(lessonId: number): Promise<void> {
         "courseLessons.gumletStatus",
         "courses.id as courseId",
         "courses.title as courseTitle",
-        "users.id as teacherId",
-        "users.drmEnabled",
+        "teachers.id as teacherId",
+        "teachers.drmEnabled",
       ])
       .where("courseLessons.id", "=", lessonId)
       .executeTakeFirst();

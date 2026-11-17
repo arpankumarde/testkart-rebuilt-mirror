@@ -70,7 +70,7 @@ export async function handle(request: Request) {
 
       // 4. Remove teacher's verified badge
       await trx
-        .updateTable("users")
+        .updateTable("teachers")
         .set({ isVerified: false, updatedAt: new Date() })
         .where("id", "=", sub.teacherId)
         .execute();

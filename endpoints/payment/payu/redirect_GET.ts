@@ -1,5 +1,6 @@
 import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
+import { isStudentAccount, STUDENT_ACCOUNT_REQUIRED } from "../../../helpers/studentAccountRequired";
 import { PAYU_MODE } from "../../../helpers/_publicConfigs";
 import { createHash } from "crypto";
 import { nanoid } from "nanoid";
@@ -124,6 +125,10 @@ export async function handle(request: Request) {
   const baseUrl = "https://testkart.in";
   try {
     const { user } = await getServerUserSession(request);
+    if (!isStudentAccount(user)) {
+      const errorHtml = generateErrorHtml(STUDENT_ACCOUNT_REQUIRED, "/cart");
+      return new Response(errorHtml, { status: 403, headers: { "Content-Type": "text/html" } });
+    }
 
     // Parse query parameters
     const url = new URL(request.url);

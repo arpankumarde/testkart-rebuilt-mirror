@@ -111,8 +111,8 @@ export async function handle(request: Request) {
 
     try {
       const [student, teacher] = await Promise.all([
-        db.selectFrom("users").select(["email", "displayName"]).where("id", "=", user.id).executeTakeFirst(),
-        db.selectFrom("users").select(["displayName"]).where("id", "=", result.lesson.teacherId).executeTakeFirst(),
+        db.selectFrom("students").select(["email", "displayName"]).where("id", "=", user.id).executeTakeFirst(),
+        db.selectFrom("teachers").select(["displayName"]).where("id", "=", result.lesson.teacherId).executeTakeFirst(),
       ]);
       if (student?.email) {
         const tmpl = emailTemplatesExtra.groupLessonEnrolled(

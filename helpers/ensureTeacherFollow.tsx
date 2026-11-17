@@ -17,11 +17,11 @@ async function addFollows(
   if (candidates.length === 0) return;
 
   const student = await trx
-    .selectFrom("users")
-    .select(["role"])
+    .selectFrom("students")
+    .select(["id"])
     .where("id", "=", studentId)
     .executeTakeFirst();
-  if (student?.role !== "student") return;
+  if (!student) return;
 
   const unfollowed = await trx
     .selectFrom("teacherUnfollows")

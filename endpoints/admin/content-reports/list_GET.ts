@@ -1,6 +1,7 @@
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { db } from "../../../helpers/db";
+import { allAccounts } from "../../../helpers/allAccounts";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import type { ContentReportStatus } from "../../../helpers/schema";
 import { CONTENT_REPORT_STATUS_VALUES } from "../../../helpers/contentReportTypes";
@@ -45,7 +46,7 @@ export async function handle(request: Request) {
 
     const [rows, totalRow, countRows] = await Promise.all([
       filtered
-        .leftJoin("users", "users.id", "contentReports.reporterUserId")
+        .leftJoin(allAccounts(db).as("users"), "users.id", "contentReports.reporterUserId")
         .leftJoin("admins", "admins.id", "contentReports.reviewedByAdminId")
         .select([
           "contentReports.id",

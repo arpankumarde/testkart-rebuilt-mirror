@@ -12,7 +12,7 @@ export async function handle(request: Request) {
 
     const reviews = await db
       .selectFrom("reviews")
-      .innerJoin("users", "reviews.userId", "users.id")
+      .innerJoin("students as reviewer", "reviews.userId", "reviewer.id")
       .leftJoin("mockTestItems", "reviews.testItemId", "mockTestItems.id")
       .select([
         "reviews.id",
@@ -22,8 +22,8 @@ export async function handle(request: Request) {
         "reviews.teacherRepliedAt",
         "reviews.createdAt",
         "reviews.testItemId",
-        "users.displayName as reviewerName",
-        "users.avatarUrl as reviewerAvatarUrl",
+        "reviewer.displayName as reviewerName",
+        "reviewer.avatarUrl as reviewerAvatarUrl",
         "mockTestItems.title as testItemTitle",
       ])
       .where("reviews.mockTestId", "=", validatedInput.mockTestId)

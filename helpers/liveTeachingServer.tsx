@@ -37,7 +37,7 @@ export type LiveTeachingState = {
 /** The teacher's live teaching status, apply checklist and latest application. */
 export async function getLiveTeachingState(teacherId: number): Promise<LiveTeachingState | null> {
   const user = await db
-    .selectFrom("users")
+    .selectFrom("teachers")
     .select([
       "email",
       "mobileNumber",

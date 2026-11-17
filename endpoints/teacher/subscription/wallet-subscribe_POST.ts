@@ -166,7 +166,7 @@ export async function handle(request: Request) {
           .execute();
 
         await trx
-          .updateTable("users")
+          .updateTable("teachers")
           .set({ isVerified: true })
           .where("id", "=", effectiveTeacherId)
           .execute();

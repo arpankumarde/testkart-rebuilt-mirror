@@ -22,7 +22,7 @@ export async function settlePendingRenewalCharges(now: Date = new Date()) {
   const pendingCharges = await db
     .selectFrom("subscriptionTransactions")
     .innerJoin("subscriptionPlans", "subscriptionPlans.id", "subscriptionTransactions.planId")
-    .innerJoin("users", "users.id", "subscriptionTransactions.teacherId")
+    .innerJoin("teachers", "teachers.id", "subscriptionTransactions.teacherId")
     .select([
       "subscriptionTransactions.id",
       "subscriptionTransactions.transactionId",
@@ -31,8 +31,8 @@ export async function settlePendingRenewalCharges(now: Date = new Date()) {
       "subscriptionTransactions.amount",
       "subscriptionTransactions.createdAt",
       "subscriptionPlans.name as planName",
-      "users.email",
-      "users.displayName",
+      "teachers.email",
+      "teachers.displayName",
     ])
     .where("subscriptionTransactions.status", "=", "pending")
     .where("subscriptionTransactions.paymentMethod", "=", "payu_recurring")

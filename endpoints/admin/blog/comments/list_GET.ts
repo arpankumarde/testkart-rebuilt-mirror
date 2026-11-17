@@ -1,6 +1,7 @@
 import { schema, OutputType } from "./list_GET.schema";
 import superjson from "superjson";
 import { db } from "../../../../helpers/db";
+import { allAccounts } from "../../../../helpers/allAccounts";
 import { getAdminServerSessionOrThrow } from "../../../../helpers/getAdminSession";
 
 export async function handle(request: Request) {
@@ -20,7 +21,7 @@ export async function handle(request: Request) {
     const input = schema.parse(parsedInput);
     
     let query = db.selectFrom("blogComments")
-      .innerJoin("users", "blogComments.userId", "users.id")
+      .innerJoin(allAccounts(db).as("users"), "blogComments.userId", "users.id")
       .innerJoin("blogPosts", "blogComments.postId", "blogPosts.id");
 
     if (input.status) {

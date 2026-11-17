@@ -129,7 +129,7 @@ export async function activatePaidSubscription(
     .execute();
 
   await trx
-    .updateTable("users")
+    .updateTable("teachers")
     .set({ isVerified: true })
     .where("id", "=", params.teacherId)
     .execute();

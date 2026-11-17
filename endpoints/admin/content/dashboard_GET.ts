@@ -234,11 +234,11 @@ export async function handle(request: Request): Promise<Response> {
 
         sql<Row>`
           SELECT bp.id, bp.type::text AS surface, bp.title::text AS title,
-                 coalesce(u.display_name, u.email) AS author, bp.view_count,
+                 coalesce(u.full_name, u.email) AS author, bp.view_count,
                  (SELECT count(*) FROM blog_post_reactions r WHERE r.post_id = bp.id AND r.reaction = 'like') AS likes,
                  (SELECT count(*) FROM blog_post_reactions r WHERE r.post_id = bp.id AND r.reaction = 'dislike') AS dislikes
           FROM blog_posts bp
-          LEFT JOIN users u ON u.id = bp.author_id
+          LEFT JOIN admins u ON u.id = bp.author_id
           WHERE bp.status = 'published'
           ORDER BY bp.view_count DESC NULLS LAST, bp.published_at DESC
           LIMIT 8

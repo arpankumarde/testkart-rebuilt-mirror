@@ -22,12 +22,10 @@ export const ADMIN_SUPPORT_THREADS_KEY = ["admin", "support", "threads"];
 export const ADMIN_SUPPORT_MESSAGES_KEY = (threadId: number) => ["admin", "support", "messages", threadId];
 
 /*
- * The app-wide cache never refetches on mount or focus and holds data for 30
- * minutes, which kept the inbox on whatever it showed when first opened. These
- * queries opt back in, and poll while the tab is visible.
+ * The app-wide cache never refetches on mount and holds data for 30 minutes,
+ * which kept the inbox on whatever it showed when first opened. These queries
+ * reload when the inbox or a thread opens; the Refresh buttons cover the rest.
  */
-const LIST_POLL_MS = 60_000;
-const THREAD_POLL_MS = 30_000;
 const LIST_STALE_MS = 15_000;
 
 const STATUS_TOASTS: Record<string, string> = {
@@ -65,8 +63,6 @@ export function useAdminThreadsQuery(
     queryFn: () => getAdminSupportThreads({ page, limit, status, search, unread }),
     staleTime: LIST_STALE_MS,
     refetchOnMount: true,
-    refetchOnWindowFocus: true,
-    refetchInterval: LIST_POLL_MS,
     // Keeps the rows on screen while another page or filter loads, instead of flashing skeletons.
     placeholderData: (previous) => previous,
   });
@@ -104,8 +100,6 @@ export function useAdminThreadMessagesQuery(threadId: number | null) {
     enabled: !!threadId,
     staleTime: 0,
     refetchOnMount: "always",
-    refetchOnWindowFocus: true,
-    refetchInterval: THREAD_POLL_MS,
   });
 }
 

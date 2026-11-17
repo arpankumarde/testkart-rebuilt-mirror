@@ -35,7 +35,7 @@ type SessionUser = Pick<Selectable<Users>, "id" | "role">;
 export async function assertApprovedLiveTeacher(user: SessionUser, teacherId: number): Promise<void> {
   if (user.role === "admin") return;
   if (user.role !== "teacher") throw new LiveCourseError("Only teachers can manage live courses.", 403);
-  const row = await db.selectFrom("users").select("liveTeachingStatus").where("id", "=", teacherId).executeTakeFirst();
+  const row = await db.selectFrom("teachers").select("liveTeachingStatus").where("id", "=", teacherId).executeTakeFirst();
   if (row?.liveTeachingStatus !== "approved") {
     throw new LiveCourseError("Live courses open once your live teaching application is approved.", 403);
   }
@@ -322,12 +322,12 @@ export type CourseStudent = {
 export async function enrolledStudents(courseId: string, exec: Exec = db): Promise<CourseStudent[]> {
   return exec
     .selectFrom("liveCourseEnrollments")
-    .innerJoin("users", "users.id", "liveCourseEnrollments.studentId")
+    .innerJoin("students", "students.id", "liveCourseEnrollments.studentId")
     .select([
-      "users.id as studentId",
-      "users.displayName as name",
-      "users.email as email",
-      "users.mobileNumber as mobileNumber",
+      "students.id as studentId",
+      "students.displayName as name",
+      "students.email as email",
+      "students.mobileNumber as mobileNumber",
     ])
     .where("liveCourseEnrollments.liveCourseId", "=", courseId)
     .where("liveCourseEnrollments.status", "=", "enrolled")

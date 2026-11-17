@@ -1,6 +1,7 @@
 import { schema } from "./sync-contacts-to-resend_POST.schema";
 import { getAdminServerSessionOrThrow } from "../../helpers/getAdminSession";
 import { db } from "../../helpers/db";
+import { allAccounts } from "../../helpers/allAccounts";
 import { addContactToAudience } from "../../helpers/resendContacts";
 
 export async function handle(request: Request) {
@@ -35,11 +36,10 @@ export async function handle(request: Request) {
         try {
           // Query all active users with emails (students and teachers only)
           const users = await db
-            .selectFrom("users")
+            .selectFrom(allAccounts(db).as("account"))
             .select(["id", "email", "displayName", "role"])
             .where("isActive", "=", true)
             .where("email", "is not", null)
-            .where("role", "in", ["student", "teacher"])
             .execute();
 
           const total = users.length;

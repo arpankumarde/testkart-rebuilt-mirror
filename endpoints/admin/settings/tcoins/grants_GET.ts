@@ -11,7 +11,7 @@ export async function handle(request: Request) {
     await getAdminServerSessionOrThrow(request);
     const rows = await db
       .selectFrom("tcoinGrants")
-      .leftJoin("users", "users.id", "tcoinGrants.userId")
+      .leftJoin("students", "students.id", "tcoinGrants.userId")
       .select([
         "tcoinGrants.id",
         "tcoinGrants.createdAt",
@@ -19,8 +19,8 @@ export async function handle(request: Request) {
         "tcoinGrants.reason",
         "tcoinGrants.grantedBy",
         "tcoinGrants.expiresAt",
-        "users.displayName as studentName",
-        "users.email as studentEmail",
+        "students.displayName as studentName",
+        "students.email as studentEmail",
       ])
       .orderBy("tcoinGrants.id", "desc")
       .limit(LIMIT)

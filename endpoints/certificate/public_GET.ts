@@ -19,12 +19,12 @@ export async function handle(request: Request) {
 
     const certificate = await db
       .selectFrom("certificates")
-      .innerJoin("users as student", "student.id", "certificates.studentId")
+      .innerJoin("students as student", "student.id", "certificates.studentId")
       .leftJoin("courses", "courses.id", "certificates.courseId")
       .leftJoin("mockTestItems", "mockTestItems.id", "certificates.testItemId")
-      .leftJoin("users as courseTeacher", "courseTeacher.id", "courses.teacherId")
+      .leftJoin("teachers as courseTeacher", "courseTeacher.id", "courses.teacherId")
       .leftJoin("mockTests", "mockTests.id", "mockTestItems.packageId")
-      .leftJoin("users as testTeacher", "testTeacher.id", "mockTests.teacherId")
+      .leftJoin("teachers as testTeacher", "testTeacher.id", "mockTests.teacherId")
       .select([
         "certificates.id",
         "certificates.certificateNumber",

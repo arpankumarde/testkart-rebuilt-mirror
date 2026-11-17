@@ -13,16 +13,15 @@ export async function handle(request: Request): Promise<Response> {
     const json = text ? superjson.parse(text) : {};
     schema.parse(json);
 
-    // 2 & 3. Insert users with role='teacher' who don't have a matching row into sales_contacts
+    // 2 & 3. Insert teachers who don't have a matching row into sales_contacts
     const result = await db
       .insertInto("salesContacts")
       .columns(["userId", "stage"])
       .expression((eb) =>
         eb
-          .selectFrom("users")
-          .leftJoin("salesContacts", "users.id", "salesContacts.userId")
-          .select(["users.id as userId", sql<"new">`'new'`.as("stage")])
-          .where("users.role", "=", "teacher")
+          .selectFrom("teachers")
+          .leftJoin("salesContacts", "teachers.id", "salesContacts.userId")
+          .select(["teachers.id as userId", sql<"new">`'new'`.as("stage")])
           .where("salesContacts.id", "is", null)
       )
       .executeTakeFirst();

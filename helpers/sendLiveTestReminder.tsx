@@ -16,8 +16,8 @@ export async function sendLiveTestReminder(payload: { liveTestId: number }) {
 
     const enrollments = await db
       .selectFrom("liveTestEnrollments")
-      .innerJoin("users", "users.id", "liveTestEnrollments.studentId")
-      .select(["users.email", "users.displayName"])
+      .innerJoin("students", "students.id", "liveTestEnrollments.studentId")
+      .select(["students.email", "students.displayName"])
       .where("liveTestEnrollments.liveTestId", "=", payload.liveTestId)
       .execute();
 

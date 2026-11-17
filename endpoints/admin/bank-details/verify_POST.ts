@@ -27,7 +27,7 @@ export async function handle(request: Request) {
     // Send email notification
     if (updatedRecord) {
       try {
-        const teacher = await db.selectFrom("users")
+        const teacher = await db.selectFrom("teachers")
           .select(["email", "displayName"])
           .where("id", "=", teacherId)
           .executeTakeFirst();

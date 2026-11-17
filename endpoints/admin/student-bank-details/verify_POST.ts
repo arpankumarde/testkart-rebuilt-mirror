@@ -29,7 +29,7 @@ export async function handle(request: Request) {
     if (updatedRecord) {
       try {
         const student = await db
-          .selectFrom("users")
+          .selectFrom("students")
           .select(["email", "displayName"])
           .where("id", "=", updatedRecord.studentId)
           .executeTakeFirst();

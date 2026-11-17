@@ -24,6 +24,7 @@ import { getOrderAttribution } from "../../../helpers/getOrderAttribution";
 import { recordFunnelEvent } from "../../../helpers/recordFunnelEvent";
 import { SITE_ORIGIN } from "../../../helpers/shareLinks";
 import { liveBookingPath } from "../../../helpers/liveBookingRoutes";
+import { liveBookingContactProblem } from "../../../helpers/liveBookingContact";
 
 const fail = (error: string, status = 400) => new Response(superjson.stringify({ error }), { status });
 
@@ -31,6 +32,8 @@ export async function handle(request: Request) {
   try {
     const { user } = await getServerUserSession(request);
     if (user.role !== "student") throw new NotAuthenticatedError("Only students can buy a package.");
+    const contactProblem = await liveBookingContactProblem(user.id);
+    if (contactProblem) return fail(contactProblem);
 
     const input = schema.parse(superjson.parse(await request.text()));
     const { teacherId, classesPerWeek, classMinutes } = input;
@@ -39,11 +42,10 @@ export async function handle(request: Request) {
     getCashfreeConfig();
 
     const teacher = await db
-      .selectFrom("users")
+      .selectFrom("teachers")
       .select([
         "id",
         "slug",
-        "role",
         "timezone",
         "displayName",
         "mentorshipEnabled",
@@ -55,7 +57,7 @@ export async function handle(request: Request) {
       .where("id", "=", teacherId)
       .executeTakeFirst();
     const prices = teacher ? resolveLivePrices(teacher) : null;
-    if (!teacher || teacher.role !== "teacher" || !teacher.mentorshipEnabled || teacher.liveTeachingStatus !== "approved" || !prices || !pricesMeetFloors(prices)) {
+    if (!teacher || !teacher.mentorshipEnabled || teacher.liveTeachingStatus !== "approved" || !prices || !pricesMeetFloors(prices)) {
       return fail("This teacher does not currently offer 1:1 classes.");
     }
     if ((await getTrialState(user.id, teacherId)) !== "done") {

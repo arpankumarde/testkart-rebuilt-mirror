@@ -66,7 +66,7 @@ export async function handle(request: Request): Promise<Response> {
     // Send enrollment emails
     try {
       const student = await db
-        .selectFrom("users")
+        .selectFrom("students")
         .select(["email", "displayName"])
         .where("id", "=", user.id)
         .executeTakeFirst();
@@ -75,7 +75,7 @@ export async function handle(request: Request): Promise<Response> {
         // Fetch course and teacher details
         const courseWithTeacher = await db
           .selectFrom("courses")
-          .innerJoin("users as teacher", "courses.teacherId", "teacher.id")
+          .innerJoin("teachers as teacher", "courses.teacherId", "teacher.id")
           .select([
             "courses.title as courseTitle",
             "teacher.displayName as teacherName",

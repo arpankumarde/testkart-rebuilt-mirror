@@ -198,10 +198,12 @@ export const TestSeriesDetailsEditor = ({ testId }: { testId: number }) => {
   const exitPath = adminEdit ? adminEdit.exitTo : `/teacher/create-test/${testId}/review`;
   const listPath = adminEdit ? adminEdit.exitTo : "/teacher/test-series";
 
-  const leave = () => {
+  const leave = (to: string = exitPath) => {
     if (isDirty && !window.confirm("Discard your unsaved changes to this series?")) return;
-    navigate(exitPath);
+    navigate(to);
   };
+  // Details comes after the tests and questions, so Go back returns to them.
+  const goBack = () => leave(adminEdit ? exitPath : `/teacher/create-test/${testId}/test-items`);
 
   // Scrolls a field to the middle of the view and focuses its first control. An
   // empty list has no input yet, so its Add item button takes focus instead.
@@ -344,7 +346,7 @@ export const TestSeriesDetailsEditor = ({ testId }: { testId: number }) => {
 
     return (
       <div className={rootClass} aria-busy="true">
-        {!adminEdit && <TestSeriesSteps current="details" packageId={testId} back={leave} />}
+        {!adminEdit && <TestSeriesSteps current="details" packageId={testId} back={goBack} />}
         <div className={styles.workspace}>
           <div className={styles.grid}>
             <div className={styles.sheetSkeleton}>
@@ -426,7 +428,7 @@ export const TestSeriesDetailsEditor = ({ testId }: { testId: number }) => {
         </Helmet>
       )}
       <div className={rootClass}>
-        {!adminEdit && <TestSeriesSteps current="details" packageId={testId} back={leave} />}
+        {!adminEdit && <TestSeriesSteps current="details" packageId={testId} back={goBack} />}
 
         <Form {...form}>
           <form ref={formRef} onSubmit={handleSubmit} className={styles.workspace} noValidate>
@@ -714,7 +716,7 @@ export const TestSeriesDetailsEditor = ({ testId }: { testId: number }) => {
                           ? "Saving does not publish the series."
                           : "Nothing goes live until you publish the series."}
                   </p>
-                  <Button type="button" variant="outline" onClick={leave} disabled={isSaving}>
+                  <Button type="button" variant="outline" onClick={() => leave()} disabled={isSaving}>
                     Cancel
                   </Button>
                   <Button type="submit" disabled={isSaving || isThumbnailUploading}>

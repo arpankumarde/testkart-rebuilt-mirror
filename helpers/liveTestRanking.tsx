@@ -27,7 +27,7 @@ export async function getRankedLiveTestAttempts(
   const rows = await executor
     .selectFrom("testAttempts")
     .innerJoin("mockTestItems", "mockTestItems.id", "testAttempts.testId")
-    .innerJoin("users", "users.id", "testAttempts.studentId")
+    .innerJoin("students", "students.id", "testAttempts.studentId")
     .innerJoin("liveTestEnrollments", (join) =>
       join
         .onRef("liveTestEnrollments.studentId", "=", "testAttempts.studentId")
@@ -37,7 +37,7 @@ export async function getRankedLiveTestAttempts(
       "testAttempts.id as attemptId",
       "testAttempts.testId",
       "testAttempts.studentId",
-      "users.displayName as studentName",
+      "students.displayName as studentName",
       "testAttempts.score",
       "testAttempts.startedAt",
       "testAttempts.completedAt",

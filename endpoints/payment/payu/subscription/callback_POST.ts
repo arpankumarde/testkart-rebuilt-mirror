@@ -102,7 +102,7 @@ export async function handle(request: Request): Promise<Response> {
     if (status === "success") {
       // Fetch teacher info for email notifications
       const teacher = await db
-        .selectFrom("users")
+        .selectFrom("teachers")
         .select(["displayName", "email as userEmail"])
         .where("id", "=", transaction.teacherId)
         .executeTakeFirst();
@@ -197,7 +197,7 @@ export async function handle(request: Request): Promise<Response> {
 
         // Auto-verify teacher on paid subscription
         await trx
-          .updateTable("users")
+          .updateTable("teachers")
           .set({ isVerified: true })
           .where("id", "=", transaction.teacherId)
           .execute();
@@ -288,7 +288,7 @@ export async function handle(request: Request): Promise<Response> {
         // Payment failure email
         try {
           const teacher = await db
-            .selectFrom("users")
+            .selectFrom("teachers")
             .select(["displayName", "email as userEmail"])
             .where("id", "=", transaction.teacherId)
             .executeTakeFirst();

@@ -9,7 +9,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const courses = await db
       .selectFrom("courses")
-      .innerJoin("users", "users.id", "courses.teacherId")
+      .innerJoin("teachers", "teachers.id", "courses.teacherId")
       .leftJoin("courseEnrollments", "courseEnrollments.courseId", "courses.id")
       .select([
         "courses.id",
@@ -18,8 +18,8 @@ export async function handle(request: Request): Promise<Response> {
         "courses.status",
         "courses.createdAt",
         "courses.price",
-        "users.displayName as teacherName",
-        "users.id as teacherId",
+        "teachers.displayName as teacherName",
+        "teachers.id as teacherId",
       ])
       .select((eb) => [
         eb.fn.count("courseEnrollments.id").as("studentsEnrolled"),
@@ -39,8 +39,8 @@ export async function handle(request: Request): Promise<Response> {
         "courses.status",
         "courses.createdAt",
         "courses.price",
-        "users.displayName",
-        "users.id",
+        "teachers.displayName",
+        "teachers.id",
       ])
       .orderBy("courses.createdAt", "desc")
       .execute();

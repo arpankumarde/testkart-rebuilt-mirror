@@ -1,4 +1,5 @@
 import { db } from "./db";
+import { allAccounts } from "./allAccounts";
 import { sendEmail } from "./sendEmail";
 import { escapeEmailHtml, getBrandedEmailHtml, type EmailTableRow } from "./emailBaseTemplate";
 import { SITE_ORIGIN } from "./shareLinks";
@@ -36,7 +37,7 @@ export const formatIst = (d: Date) =>
 
 async function people(studentId: number, teacherId: number) {
   const rows = await db
-    .selectFrom("users")
+    .selectFrom(allAccounts(db).as("account"))
     .select(["id", "slug", "email", "displayName"])
     .where("id", "in", [studentId, teacherId])
     .execute();
@@ -315,8 +316,8 @@ export async function sendCompletionOverdueEmail(kind: "booking" | "group", id: 
   }
   const g = await db
     .selectFrom("groupLessons")
-    .innerJoin("users", "users.id", "groupLessons.teacherId")
-    .select(["groupLessons.title", "groupLessons.startTime", "users.email", "users.displayName"])
+    .innerJoin("teachers", "teachers.id", "groupLessons.teacherId")
+    .select(["groupLessons.title", "groupLessons.startTime", "teachers.email", "teachers.displayName"])
     .where("groupLessons.id", "=", id)
     .executeTakeFirst();
   if (!g) return;

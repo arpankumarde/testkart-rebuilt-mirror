@@ -1,5 +1,6 @@
 import { db } from "../../helpers/db";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
+import { isStudentAccount, STUDENT_ACCOUNT_REQUIRED } from "../../helpers/studentAccountRequired";
 import { schema, OutputType } from "./purchase_POST.schema";
 import superjson from "superjson";
 import { createHash } from "crypto";
@@ -28,6 +29,9 @@ export async function handle(request: Request): Promise<Response> {
 
   try {
     const { user } = await getServerUserSession(request);
+    if (!isStudentAccount(user)) {
+      return new Response(superjson.stringify({ error: STUDENT_ACCOUNT_REQUIRED }), { status: 403 });
+    }
     const json = superjson.parse(await request.text());
     const { bundleId, useTcoins } = schema.parse(json);
 
@@ -104,7 +108,7 @@ export async function handle(request: Request): Promise<Response> {
       try {
         // Look up student email
         const student = await db
-          .selectFrom("users")
+          .selectFrom("students")
           .select(["email", "displayName"])
           .where("id", "=", user.id)
           .executeTakeFirst();
@@ -112,7 +116,7 @@ export async function handle(request: Request): Promise<Response> {
         // Look up teacher info
         const bundleWithTeacher = await db
           .selectFrom("courseBundles")
-          .innerJoin("users as teacher", "courseBundles.teacherId", "teacher.id")
+          .innerJoin("teachers as teacher", "courseBundles.teacherId", "teacher.id")
           .select([
             "courseBundles.teacherId",
             "teacher.displayName as teacherName",

@@ -21,7 +21,7 @@ const TeacherEditProductPage: React.FC = () => {
           backTo="/teacher/products"
           backLabel="Notes and PDFs"
           title="Edit note or PDF"
-          subtitle="Update the details or PDFs, then save or publish."
+          subtitle="Update the PDFs or details, then save or publish."
         />
 
         <TeacherRejectionBanner contentType="digital_product" contentId={parsedId} />

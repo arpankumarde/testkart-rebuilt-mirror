@@ -2,6 +2,7 @@ import { randomBytes } from "crypto";
 import { sql } from "kysely";
 import superjson from "superjson";
 import { db } from "../../../helpers/db";
+import { allAccounts } from "../../../helpers/allAccounts";
 import { setServerSession, SessionExpirationSeconds } from "../../../helpers/getSetServerSession";
 import { getAccountBlockMessage } from "../../../helpers/accountSuspension";
 import { hashLoginLinkToken, LOGIN_LINK_TOKEN_PATTERN } from "../../../helpers/loginLinkToken";
@@ -40,7 +41,7 @@ export async function handle(request: Request): Promise<Response> {
         .where("revokedAt", "is", null)
         .where("expiresAt", ">", now)
         .where((eb) => eb.or([eb("singleUse", "=", false), eb("useCount", "=", 0)]))
-        .where("userId", "in", (eb) => eb.selectFrom("users").select("id").where("role", "!=", "admin"))
+        .where("userId", "in", (eb) => eb.selectFrom(allAccounts(trx).as("account")).select("account.id"))
         .returning(["id", "userId"])
         .executeTakeFirst();
       if (!claimed) return null;

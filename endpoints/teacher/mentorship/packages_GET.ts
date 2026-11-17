@@ -14,7 +14,7 @@ export async function handle(request: Request) {
 
     const rows = await db
       .selectFrom("livePackages")
-      .innerJoin("users as student", "student.id", "livePackages.studentId")
+      .innerJoin("students as student", "student.id", "livePackages.studentId")
       .select([
         "livePackages.id",
         "livePackages.status",

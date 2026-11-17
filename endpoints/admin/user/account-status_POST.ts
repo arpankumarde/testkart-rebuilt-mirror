@@ -1,6 +1,8 @@
 import { z } from "zod";
 import superjson from "superjson";
 import { db } from "../../../helpers/db";
+import { allAccounts } from "../../../helpers/allAccounts";
+import { updateAccount } from "../../../helpers/accountRows";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { sendTemplateEmail } from "../../../helpers/sendTemplateEmail";
 import { formatIstDateTime, getAccountStatus, type SuspensionKind } from "../../../helpers/accountStatus";
@@ -34,7 +36,7 @@ export async function handle(request: Request): Promise<Response> {
     const input = schema.parse(superjson.parse(await request.text()));
 
     const target = await db
-      .selectFrom("users")
+      .selectFrom(allAccounts(db).as("account"))
       .select(["id", "email", "displayName", "role", "isActive", "suspensionKind", "suspendedUntil"])
       .where("id", "=", input.userId)
       .executeTakeFirst();
@@ -44,6 +46,7 @@ export async function handle(request: Request): Promise<Response> {
       return json({ error: "Admin accounts are managed under Admins and access." }, 400);
     }
 
+    const side = target.role === "teacher" ? "teacher" : "student";
     const previousStatus = getAccountStatus(target);
     const now = new Date();
     let kind: SuspensionKind | null = null;
@@ -51,19 +54,15 @@ export async function handle(request: Request): Promise<Response> {
 
     await db.transaction().execute(async (trx) => {
       if (input.action === "reactivate") {
-        await trx
-          .updateTable("users")
-          .set({
-            isActive: true,
-            suspensionKind: null,
-            suspendedUntil: null,
-            suspensionReason: null,
-            suspendedAt: null,
-            suspendedBy: null,
-            updatedAt: now,
-          })
-          .where("id", "=", target.id)
-          .execute();
+        await updateAccount(trx, side, target.id, {
+          isActive: true,
+          suspensionKind: null,
+          suspendedUntil: null,
+          suspensionReason: null,
+          suspendedAt: null,
+          suspendedBy: null,
+          updatedAt: now,
+        });
         await trx
           .insertInto("userAccountActions")
           .values({ userId: target.id, action: "reactivated", reason: input.note || null, adminName: admin.fullName })
@@ -75,19 +74,15 @@ export async function handle(request: Request): Promise<Response> {
       suspendedUntil =
         input.action === "suspend" && input.durationDays ? new Date(now.getTime() + input.durationDays * DAY_MS) : null;
 
-      await trx
-        .updateTable("users")
-        .set({
-          isActive: false,
-          suspensionKind: kind,
-          suspendedUntil,
-          suspensionReason: input.reason,
-          suspendedAt: now,
-          suspendedBy: admin.fullName,
-          updatedAt: now,
-        })
-        .where("id", "=", target.id)
-        .execute();
+      await updateAccount(trx, side, target.id, {
+        isActive: false,
+        suspensionKind: kind,
+        suspendedUntil,
+        suspensionReason: input.reason,
+        suspendedAt: now,
+        suspendedBy: admin.fullName,
+        updatedAt: now,
+      });
       await trx
         .insertInto("userAccountActions")
         .values({

@@ -84,7 +84,7 @@ export async function handle(request: Request): Promise<Response> {
     const teacher =
       teacherId === null
         ? undefined
-        : await db.selectFrom("users").select(["displayName", "email"]).where("id", "=", teacherId).executeTakeFirst();
+        : await db.selectFrom("teachers").select(["displayName", "email"]).where("id", "=", teacherId).executeTakeFirst();
 
     const output: OutputType = {
       product: {

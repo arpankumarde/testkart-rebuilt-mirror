@@ -6,7 +6,7 @@ import {
 import {
   postVerifyMobileOtp,
   InputType as VerifyOtpInput,
-  OutputType as VerifyOtpOutput,
+  VerifyResult as VerifyOtpOutput,
 } from "../endpoints/auth/mobile-login/verify-otp_POST.schema";
 
 export const useSendMobileOtpMutation = () => {

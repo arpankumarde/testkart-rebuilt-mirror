@@ -1,8 +1,7 @@
 import React from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Badge } from "./Badge";
 import { Button } from "./Button";
-import { Clock, ShoppingCart, TrendingUp, IndianRupee, Star, Users, Plus, FileText } from "lucide-react";
+import { Clock, ShoppingCart, TrendingUp, IndianRupee, Star, Users, Plus, FileText, Globe, GraduationCap } from "lucide-react";
 import type { TestListItem } from "../endpoints/tests/list_GET.schema";
 import { useAddToCartMutation } from "../helpers/useCartQuery";
 import { useAuth } from "../helpers/useAuth";
@@ -13,9 +12,6 @@ import { itemLanguages } from "../helpers/itemLanguages";
 import { trackFunnelEvent } from "../helpers/trackFunnelEvent";
 import { keepForCheckout } from "../helpers/guestCart";
 import styles from "./TestCard.module.css";
-
-/* Two language badges fit beside the exam; the rest collapse into a +N badge. */
-const MAX_LANGUAGE_BADGES = 2;
 
 interface TestCardProps {
   test: TestListItem;
@@ -96,27 +92,11 @@ export const TestCard: React.FC<TestCardProps> = ({ test, className }) => {
 
   const hasStudentsEnrolled = test.studentsEnrolled > 0;
 
-  const languages = itemLanguages(test);
-  const hiddenLanguages = languages.slice(MAX_LANGUAGE_BADGES);
+  const languageText = itemLanguages(test).join(", ");
 
   return (
             <Link to={detailsUrl} className={`${styles.cardLink} ${className || ""}`}>
       <div className={styles.card}>
-        {/* Top Badges */}
-        {(test.examName || languages.length > 0) && (
-          <div className={styles.badgeContainer}>
-            {test.examName && (
-              <Badge variant="default">{test.examName}</Badge>
-            )}
-            {languages.slice(0, MAX_LANGUAGE_BADGES).map((language) => (
-              <Badge key={language} variant="secondary">{language}</Badge>
-            ))}
-            {hiddenLanguages.length > 0 && (
-              <Badge variant="secondary" title={hiddenLanguages.join(", ")}>+{hiddenLanguages.length}</Badge>
-            )}
-          </div>
-        )}
-
         {/* Thumbnail Image */}
         <div className={styles.thumbnail}>
           {test.introVideoUrl ? (
@@ -195,6 +175,30 @@ export const TestCard: React.FC<TestCardProps> = ({ test, className }) => {
 
           {/* Info Grid */}
           <div className={styles.infoGrid}>
+            {test.examName && (
+              <div className={styles.infoRow}>
+                <div className={styles.infoIcon}>
+                  <GraduationCap size={16} />
+                </div>
+                <div className={`${styles.infoText} ${styles.infoTextSingle}`}>
+                  <span className={styles.infoLabel}>Exam:</span>
+                  <span className={`${styles.infoValue} ${styles.truncate}`} title={test.examName}>{test.examName}</span>
+                </div>
+              </div>
+            )}
+
+            {languageText && (
+              <div className={styles.infoRow}>
+                <div className={styles.infoIcon}>
+                  <Globe size={16} />
+                </div>
+                <div className={`${styles.infoText} ${styles.infoTextSingle}`}>
+                  <span className={styles.infoLabel}>Language:</span>
+                  <span className={`${styles.infoValue} ${styles.truncate}`} title={languageText}>{languageText}</span>
+                </div>
+              </div>
+            )}
+
             {/* Total Questions */}
             <div className={styles.infoRow}>
               <div className={styles.infoIcon}>

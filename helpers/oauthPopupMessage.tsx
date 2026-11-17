@@ -1,6 +1,7 @@
 import { User } from "./User";
 import { OAuthProviderType } from "./OAuthProvider";
 import { serializeForInlineScript } from "./serializeForInlineScript";
+import type { AccountChoiceOutput } from "./loginAccount";
 
 export type OAuthSuccessMessage = {
   type: "OAUTH_SUCCESS";
@@ -26,10 +27,18 @@ export type OAuthErrorMessage = {
   };
 };
 
+/** Only an account on the other side matched; the page shows the account choice (helpers/loginAccount). */
+export type OAuthAccountChoiceMessage = {
+  type: "OAUTH_ACCOUNT_CHOICE";
+  provider: OAuthProviderType;
+  choice: AccountChoiceOutput;
+};
+
 export type OAuthPopupMessage =
   | OAuthSuccessMessage
   | OAuthTokenSuccessMessage
-  | OAuthErrorMessage;
+  | OAuthErrorMessage
+  | OAuthAccountChoiceMessage;
 
 /**
  * Creates HTML for OAuth popup response that posts a message to the parent window
@@ -40,7 +49,9 @@ export function createOAuthPopupResponseHtml(
 ): string {
   const messageJson = serializeForInlineScript(message);
   const isSuccess =
-    message.type === "OAUTH_SUCCESS" || message.type === "OAUTH_TOKEN_SUCCESS";
+    message.type === "OAUTH_SUCCESS" ||
+    message.type === "OAUTH_TOKEN_SUCCESS" ||
+    message.type === "OAUTH_ACCOUNT_CHOICE";
 
   return `
     <!DOCTYPE html>

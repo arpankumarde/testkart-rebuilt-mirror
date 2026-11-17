@@ -113,8 +113,8 @@ export async function sendClassReminderWhatsApp(bookingId: string): Promise<void
     if (approved.size === 0) return;
     const b = await db
       .selectFrom("mentorshipBookings")
-      .innerJoin("users as student", "student.id", "mentorshipBookings.studentId")
-      .innerJoin("users as teacher", "teacher.id", "mentorshipBookings.teacherId")
+      .innerJoin("students as student", "student.id", "mentorshipBookings.studentId")
+      .innerJoin("teachers as teacher", "teacher.id", "mentorshipBookings.teacherId")
       .select([
         "mentorshipBookings.scheduledAt",
         "student.displayName as studentName",

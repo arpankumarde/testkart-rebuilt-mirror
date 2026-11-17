@@ -1,5 +1,6 @@
 // adapt this to your database schema
 import { db } from "../../helpers/db";
+import { allAccounts } from "../../helpers/allAccounts";
 import { sql } from "kysely";
 import { schema } from "./login_with_password_POST.schema";
 import { compare } from "bcryptjs";
@@ -11,6 +12,7 @@ import {
 import { User } from "../../helpers/User";
 import { getAccountBlockMessage } from "../../helpers/accountSuspension";
 import { recordSignIn } from "../../helpers/recordSignIn";
+import { createAccountChoiceResponse, sideFromRoleParam } from "../../helpers/loginAccount";
 
 // Configuration constants
 const RATE_LIMIT_CONFIG = {
@@ -39,7 +41,8 @@ function safeToDate(
 export async function handle(request: Request) {
   try {
     const json = await request.json();
-    const { email, password } = schema.parse(json);
+    const { email, password, role, supportsAccountChoice } = schema.parse(json);
+    const side = sideFromRoleParam(role);
 
     // Normalize email to lowercase for consistent handling
     const normalizedEmail = email.toLowerCase();
@@ -96,9 +99,9 @@ export async function handle(request: Request) {
         }
       }
 
-      // Find user by email (normalized)
+      // Find the account by email (normalized), preferring this side's (helpers/loginAccount)
       const userResults = await trx
-        .selectFrom("users")
+        .selectFrom(allAccounts(trx).as("users"))
         .innerJoin("userPasswords", "users.id", "userPasswords.userId")
         .select([
           "users.id",
@@ -106,11 +109,15 @@ export async function handle(request: Request) {
           "users.displayName",
           "users.avatarUrl",
           "users.role",
+          "users.emailVerified",
+          "users.mobileNumber",
+          "users.mobileVerified",
           "userPasswords.passwordHash",
         ])
         .where(sql`LOWER(users.email)`, "=", normalizedEmail)
-        .limit(1)
+        .orderBy("users.id", "asc")
         .execute();
+      const sameSideUser = userResults.find((u) => u.role === side);
 
       if (userResults.length === 0) {
         // Log failed attempt for non-existent user
@@ -128,7 +135,7 @@ export async function handle(request: Request) {
         };
       }
 
-      const user = userResults[0];
+      const user = sameSideUser ?? userResults[0];
 
       // Verify password
       const passwordValid = await compare(password, user.passwordHash);
@@ -151,6 +158,17 @@ export async function handle(request: Request) {
       const blockedMessage = await getAccountBlockMessage(user.id, trx);
       if (blockedMessage) {
         return { type: "blocked" as const, message: blockedMessage };
+      }
+
+      // Only the other side has an account: offer the choice instead of signing in. A password proves
+      // the account, not its email, so this needs a verified email.
+      if (!sameSideUser && supportsAccountChoice && user.emailVerified && user.email && user.role !== "admin") {
+        await trx
+          .deleteFrom("loginAttempts")
+          .where("email", "=", normalizedEmail)
+          .where("success", "=", false)
+          .execute();
+        return { type: "choice" as const, user };
       }
 
       // Password is valid - log successful attempt
@@ -232,6 +250,24 @@ export async function handle(request: Request) {
 
     if (result.type === "blocked") {
       return Response.json({ message: result.message }, { status: 403 });
+    }
+
+    if (result.type === "choice") {
+      const choiceOutput = await createAccountChoiceResponse({
+        side,
+        otherAccount: {
+          id: result.user.id,
+          email: result.user.email,
+          displayName: result.user.displayName,
+          role: result.user.role,
+          avatarUrl: result.user.avatarUrl,
+          mobileNumber: result.user.mobileNumber,
+          mobileVerified: result.user.mobileVerified,
+        },
+        identifier: { email: normalizedEmail },
+        method: "password",
+      });
+      return Response.json(choiceOutput);
     }
 
     // Success case - session was already created in transaction

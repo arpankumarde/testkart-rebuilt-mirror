@@ -49,7 +49,7 @@ export async function handle(request: Request) {
     }
 
     const [teacher, closesAt] = await Promise.all([
-      db.selectFrom("users").select(["bio", "tagline"]).where("id", "=", course.teacher.id).executeTakeFirst(),
+      db.selectFrom("teachers").select(["bio", "tagline"]).where("id", "=", course.teacher.id).executeTakeFirst(),
       refundClosesAt(course.id),
     ]);
     if (viewer.enrollment?.status === "enrolled" && course.status === "published") {

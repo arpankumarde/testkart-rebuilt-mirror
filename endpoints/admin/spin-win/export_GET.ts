@@ -85,7 +85,7 @@ export async function handle(request: Request) {
         JOIN promo_code_usages pu ON pu.promo_code_id = sc.promo_code_id
         JOIN orders o ON o.id = pu.order_id AND o.status = 'completed'
         JOIN order_items oi ON oi.order_id = o.id
-        LEFT JOIN users u ON u.id = o.user_id
+        LEFT JOIN accounts u ON u.id = o.user_id
         WHERE true
           ${input.campaignId ? sql`AND sc.campaign_id = ${input.campaignId}` : sql``}
           ${input.from ? sql`AND o.created_at >= ${dayStart(input.from)}` : sql``}

@@ -1,4 +1,5 @@
 import { db } from "../../../helpers/db";
+import { allAccounts } from "../../../helpers/allAccounts";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { schema, OutputType } from "./list_GET.schema";
 import { cancelledByLabel } from "../../../helpers/withdrawalCancelLabel";
@@ -24,9 +25,9 @@ export async function handle(request: Request): Promise<Response> {
 
     let query = db
       .selectFrom("teacherWithdrawals")
-      .innerJoin("users", "teacherWithdrawals.teacherId", "users.id")
-      .leftJoin("teacherBankDetails", "teacherBankDetails.teacherId", "users.id")
-      .leftJoin("users as canceller", "canceller.id", "teacherWithdrawals.cancelledByUserId")
+      .innerJoin("teachers", "teacherWithdrawals.teacherId", "teachers.id")
+      .leftJoin("teacherBankDetails", "teacherBankDetails.teacherId", "teachers.id")
+      .leftJoin(allAccounts(db).as("canceller"), "canceller.id", "teacherWithdrawals.cancelledByUserId")
       .leftJoin("admins as cancellerAdmin", "cancellerAdmin.id", "teacherWithdrawals.cancelledByAdminId")
       .select([
         "teacherWithdrawals.id",
@@ -43,8 +44,8 @@ export async function handle(request: Request): Promise<Response> {
         "teacherWithdrawals.cancelledByAdminId",
         "canceller.displayName as cancellerName",
         "cancellerAdmin.fullName as cancellerAdminName",
-        "users.displayName as teacherName",
-        "users.email as teacherEmail",
+        "teachers.displayName as teacherName",
+        "teachers.email as teacherEmail",
         "teacherBankDetails.verificationStatus as bankVerificationStatus",
         "teacherBankDetails.bankName as bankName",
         "teacherBankDetails.bankAccountHolderName as bankAccountHolderName",
@@ -61,8 +62,8 @@ export async function handle(request: Request): Promise<Response> {
       const searchLower = `%${input.search.toLowerCase()}%`;
       query = query.where((eb) =>
         eb.or([
-          eb(sql`lower(users.display_name)`, "like", searchLower),
-          eb(sql`lower(users.email)`, "like", searchLower),
+          eb(sql`lower(teachers.display_name)`, "like", searchLower),
+          eb(sql`lower(teachers.email)`, "like", searchLower),
         ])
       );
     }
@@ -80,7 +81,7 @@ export async function handle(request: Request): Promise<Response> {
     const direction = input.sortOrder === "desc" ? sql`desc nulls last` : sql`asc nulls last`;
     let ordered = query;
     if (input.sortBy === "name") {
-      ordered = ordered.orderBy(sql`lower(${sql.ref("users.displayName")})`, direction);
+      ordered = ordered.orderBy(sql`lower(${sql.ref("teachers.displayName")})`, direction);
     } else if (input.sortBy === "amount") {
       ordered = ordered.orderBy("teacherWithdrawals.amount", direction);
     } else if (input.sortBy === "balance") {

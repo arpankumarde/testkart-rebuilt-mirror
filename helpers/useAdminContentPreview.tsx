@@ -34,14 +34,13 @@ export const PREVIEW_STATUS_LABELS: Record<PreviewStatus, string> = {
   trashed: "In trash",
 };
 
-/* Refetch on focus: edits made in another tab (the review queue opens the editor in one) show when the admin comes back. */
+/* Reloads each time the preview opens, so edits made in another tab (the review queue opens the editor in one) show on the next visit. */
 export const useAdminContentPreview = (type: PreviewContentType | null, id: number | null) =>
   useQuery({
     queryKey: ["admin", "contentPreview", type, id],
     queryFn: () => getAdminContentPreview({ type: type!, id: id! }),
     enabled: !!type && !!id,
     refetchOnMount: true,
-    refetchOnWindowFocus: true,
     staleTime: 30 * 1000,
     retry: false,
   });
@@ -52,7 +51,6 @@ export const useAdminPreviewQuestions = (testItemId: number, enabled: boolean) =
     queryFn: () => getAdminContentPreviewQuestions({ testItemId }),
     enabled,
     refetchOnMount: true,
-    refetchOnWindowFocus: true,
     staleTime: 30 * 1000,
   });
 

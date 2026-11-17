@@ -108,7 +108,7 @@ export async function handle(request: Request): Promise<Response> {
     // Send test completion email notification
     try {
       const student = await db
-        .selectFrom("users")
+        .selectFrom("students")
         .select(["email", "displayName"])
         .where("id", "=", user.id)
         .executeTakeFirst();

@@ -19,9 +19,6 @@ export const useClassroomDetailsQuery = (kind: ClassroomKind, id: string | null)
     queryKey: ["mentorship", "classroom", "details", kind, id],
     queryFn: () => getMentorshipClassroomDetails({ kind, id: id as string }),
     enabled: !!id,
-    // Re-checks the join window / roster each time the tab regains focus,
-    // rather than on a timer - the pre-join screen is read once, not watched.
-    refetchOnWindowFocus: true,
   });
 
 export const useClassroomJoinMutation = () => useMutation({ mutationFn: postMentorshipClassroomJoin });

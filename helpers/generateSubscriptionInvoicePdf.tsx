@@ -45,7 +45,7 @@ export async function generateSubscriptionInvoicePdf(
 
   const txn = await db
     .selectFrom("subscriptionTransactions")
-    .innerJoin("users", "users.id", "subscriptionTransactions.teacherId")
+    .innerJoin("teachers", "teachers.id", "subscriptionTransactions.teacherId")
     .innerJoin("subscriptionPlans", "subscriptionPlans.id", "subscriptionTransactions.planId")
     .where("subscriptionTransactions.id", "=", transactionId)
     .select([
@@ -58,11 +58,11 @@ export async function generateSubscriptionInvoicePdf(
       "subscriptionTransactions.invoiceNumber",
       "subscriptionPlans.name as planName",
       "subscriptionPlans.durationDays",
-      "users.displayName as teacherName",
-      "users.email as teacherEmail",
-      "users.mobileNumber as teacherPhone",
-      "users.academyName",
-      "users.billingDetails as teacherBillingDetails",
+      "teachers.displayName as teacherName",
+      "teachers.email as teacherEmail",
+      "teachers.mobileNumber as teacherPhone",
+      "teachers.academyName",
+      "teachers.billingDetails as teacherBillingDetails",
     ])
     .executeTakeFirst();
 

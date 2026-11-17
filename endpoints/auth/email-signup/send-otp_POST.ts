@@ -2,6 +2,7 @@ import { z } from "zod";
 import superjson from "superjson";
 import { schema, OutputType } from "./send-otp_POST.schema";
 import { db } from "../../../helpers/db";
+import { allAccounts } from "../../../helpers/allAccounts";
 import { sendEmail } from "../../../helpers/sendEmail";
 import { getBrandedEmailHtml } from "../../../helpers/emailBaseTemplate";
 import { getClientIp } from "../../../helpers/getClientIp";
@@ -32,7 +33,7 @@ export async function handle(request: Request): Promise<Response> {
 
     // 1. Check if user already exists
     const existingUser = await db
-      .selectFrom("users")
+      .selectFrom(allAccounts(db).as("users"))
       .select("id")
       .where("email", "=", email)
       .executeTakeFirst();

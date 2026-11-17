@@ -70,9 +70,9 @@ export async function handle(request: Request) {
       .executeTakeFirst();
 
     const topScorers = await attemptsQuery
-      .innerJoin("users", "users.id", "testAttempts.studentId")
+      .innerJoin("students", "students.id", "testAttempts.studentId")
       .select([
-        "users.displayName as studentName",
+        "students.displayName as studentName",
         "testAttempts.score",
         sql<number>`EXTRACT(EPOCH FROM (completed_at - started_at)) / 60`.as("timeTakenMinutes"),
       ])

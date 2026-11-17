@@ -36,7 +36,7 @@ export async function handle(request: Request) {
 
     const liveTest = await db
       .selectFrom("liveTests")
-      .innerJoin("users", "users.id", "liveTests.teacherId")
+      .innerJoin("teachers", "teachers.id", "liveTests.teacherId")
       .innerJoin("mockTests", "mockTests.id", "liveTests.mockTestId")
       .leftJoin("exams", "exams.examName", "mockTests.examName")
       .where((eb) =>
@@ -45,17 +45,17 @@ export async function handle(request: Request) {
       .where("liveTests.isActive", "=", true)
       .selectAll("liveTests")
       .select([
-        "users.displayName as teacherName",
-        "users.avatarUrl as teacherAvatarUrl",
-        "users.bio as teacherBio",
-        "users.websiteUrl as teacherWebsiteUrl",
-        "users.socialLinks as teacherSocialLinks",
-        "users.awardsCertificates as teacherAwardsCertificates",
-        "users.publicPhone as teacherPublicPhone",
-        "users.publicEmail as teacherPublicEmail",
-        "users.academyName as teacherAcademyName",
-        "users.isVerified as teacherIsVerified",
-        "users.slug as teacherSlugCol",
+        "teachers.displayName as teacherName",
+        "teachers.avatarUrl as teacherAvatarUrl",
+        "teachers.bio as teacherBio",
+        "teachers.websiteUrl as teacherWebsiteUrl",
+        "teachers.socialLinks as teacherSocialLinks",
+        "teachers.awardsCertificates as teacherAwardsCertificates",
+        "teachers.publicPhone as teacherPublicPhone",
+        "teachers.publicEmail as teacherPublicEmail",
+        "teachers.academyName as teacherAcademyName",
+        "teachers.isVerified as teacherIsVerified",
+        "teachers.slug as teacherSlugCol",
         "mockTests.title as mockTestTitle",
         "mockTests.description as mockTestDescription",
         "mockTests.durationMinutes as mockTestDurationMinutes",

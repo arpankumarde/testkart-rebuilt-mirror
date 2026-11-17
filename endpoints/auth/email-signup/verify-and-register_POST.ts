@@ -2,7 +2,9 @@ import { z } from "zod";
 import superjson from "superjson";
 import { schema, OutputType } from "./verify-and-register_POST.schema";
 import { db } from "../../../helpers/db";
+import { allAccounts } from "../../../helpers/allAccounts";
 import { assignUserSlug } from "../../../helpers/assignUserSlug";
+import { insertAccount, updateAccount } from "../../../helpers/accountRows";
 import {
   setServerSession,
   Session,
@@ -77,7 +79,7 @@ export async function handle(request: Request): Promise<Response> {
 
     // 4. Race condition check: ensure user doesn't exist
     const existingUser = await db
-      .selectFrom("users")
+      .selectFrom(allAccounts(db).as("users"))
       .select("id")
       .where("email", "=", email)
       .executeTakeFirst();
@@ -97,20 +99,15 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     // 5. Create the user with the provided displayName
-    const newUser = await db
-      .insertInto("users")
-      .values({
-        displayName,
-        email,
-        mobileNumber: role === "teacher" && mobileNumber ? mobileNumber : null,
-        role: role,
-        emailVerified: true,
-        mobileVerified: false,
-        isActive: true,
-        avatarUrl: null,
-      })
-      .returningAll()
-      .executeTakeFirstOrThrow();
+    const newUser = await insertAccount(db, role, {
+      displayName,
+      email,
+      mobileNumber: role === "teacher" && mobileNumber ? mobileNumber : null,
+      emailVerified: true,
+      mobileVerified: false,
+      isActive: true,
+      avatarUrl: null,
+    });
 
     // For students, generate avatar URL using DiceBear with user ID as seed
     const finalAvatarUrl = role === "student"
@@ -120,15 +117,11 @@ export async function handle(request: Request): Promise<Response> {
     // Persist avatar first, then safely generate+assign a unique slug
     // (assignUserSlug retries on a unique-constraint race instead of
     // leaving the account with slug = NULL if a collision throws).
-    await db
-      .updateTable("users")
-      .set({ avatarUrl: finalAvatarUrl })
-      .where("id", "=", newUser.id)
-      .execute();
+    await updateAccount(db, role, newUser.id, { avatarUrl: finalAvatarUrl });
     await assignUserSlug(newUser.id, displayName);
 
     const updatedUser = await db
-      .selectFrom("users")
+      .selectFrom(allAccounts(db).as("users"))
       .selectAll()
       .where("id", "=", newUser.id)
       .executeTakeFirstOrThrow();

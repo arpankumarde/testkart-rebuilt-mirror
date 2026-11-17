@@ -17,15 +17,15 @@ export async function fetchExpertSubjectsServer(): Promise<OutputType> {
   const { rows } = await sql<{ label: string; count: string }>`
     SELECT MIN(label) AS label, COUNT(DISTINCT tutor_id) AS count
     FROM (
-      SELECT users.id AS tutor_id, btrim(subject.value) AS label
-      FROM users
+      SELECT teachers.id AS tutor_id, btrim(subject.value) AS label
+      FROM teachers
       CROSS JOIN LATERAL (
         SELECT jsonb_array_elements_text(
-          CASE WHEN jsonb_typeof(users.expertise_areas) = 'array' THEN users.expertise_areas ELSE '[]'::jsonb END
+          CASE WHEN jsonb_typeof(teachers.expertise_areas) = 'array' THEN teachers.expertise_areas ELSE '[]'::jsonb END
         ) AS value
         UNION ALL
         SELECT jsonb_array_elements_text(
-          CASE WHEN jsonb_typeof(users.teaching_categories) = 'array' THEN users.teaching_categories ELSE '[]'::jsonb END
+          CASE WHEN jsonb_typeof(teachers.teaching_categories) = 'array' THEN teachers.teaching_categories ELSE '[]'::jsonb END
         )
       ) AS subject
       WHERE ${bookableTutorCondition}

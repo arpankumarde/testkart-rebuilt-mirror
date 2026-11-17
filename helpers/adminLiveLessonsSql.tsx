@@ -57,7 +57,7 @@ const mbLearnerJoined = sql`EXISTS (
 
 /*
  * The calendar shows a session only when its teacher's live teaching application is approved
- * (users.live_teaching_status). Sessions have no approval of their own. Bookings do not use this.
+ * (teachers.live_teaching_status). Sessions have no approval of their own. Bookings do not use this.
  */
 export const approvedTeacherOnly = sql`s.teacher_live_status = 'approved'`;
 
@@ -87,8 +87,8 @@ export const sessionsSource = sql`
     (mb.cancelled_at AT TIME ZONE 'UTC') AS cancelled_at,
     mb.cancelled_by
   FROM mentorship_bookings mb
-  JOIN users t ON t.id = mb.teacher_id
-  LEFT JOIN users st ON st.id = mb.student_id
+  JOIN teachers t ON t.id = mb.teacher_id
+  LEFT JOIN students st ON st.id = mb.student_id
 `;
 
 export type SessionSqlRow = {
@@ -178,7 +178,7 @@ export const attendeesSource = sql`
     (mb.status = 'cancelled' AND NOT ${mbTeacherMissed}) AS place_cancelled,
     ${mbStart} <= now() AS started
   FROM mentorship_bookings mb
-  LEFT JOIN users st ON st.id = mb.student_id
+  LEFT JOIN students st ON st.id = mb.student_id
   LEFT JOIN orders o ON o.id = mb.order_id
   LEFT JOIN live_class_credits lc ON lc.id = mb.credit_id
 `;

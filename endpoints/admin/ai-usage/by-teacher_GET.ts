@@ -24,7 +24,7 @@ export async function handle(request: Request): Promise<Response> {
 
     let baseQuery = db
       .selectFrom("aiGenerationLogs")
-      .innerJoin("users", "users.id", "aiGenerationLogs.teacherId");
+      .innerJoin("teachers", "teachers.id", "aiGenerationLogs.teacherId");
 
     if (parsedInput.dateFrom) {
       baseQuery = baseQuery.where("aiGenerationLogs.createdAt", ">=", parsedInput.dateFrom);
@@ -38,9 +38,9 @@ export async function handle(request: Request): Promise<Response> {
       const q = parsedInput.searchQuery;
       baseQuery = baseQuery.where(eb =>
         eb.or([
-          eb("users.displayName", "ilike", `%${q}%`),
-          eb("users.email", "ilike", `%${q}%`),
-          eb("users.academyName", "ilike", `%${q}%`),
+          eb("teachers.displayName", "ilike", `%${q}%`),
+          eb("teachers.email", "ilike", `%${q}%`),
+          eb("teachers.academyName", "ilike", `%${q}%`),
         ])
       );
     }
@@ -50,13 +50,13 @@ export async function handle(request: Request): Promise<Response> {
       .executeTakeFirstOrThrow();
 
     const rowsPromise = baseQuery
-      .groupBy(["users.id", "users.displayName", "users.academyName", "users.email", "users.isVerified"])
+      .groupBy(["teachers.id", "teachers.displayName", "teachers.academyName", "teachers.email", "teachers.isVerified"])
       .select([
-        "users.id as teacherId",
-        "users.displayName as teacherName",
-        "users.academyName",
-        "users.email",
-        "users.isVerified",
+        "teachers.id as teacherId",
+        "teachers.displayName as teacherName",
+        "teachers.academyName",
+        "teachers.email",
+        "teachers.isVerified",
         db.fn.countAll<string>().as("totalAttempts"),
         sql<string>`count(*) filter (where "ai_generation_logs"."status" = 'done')`.as("doneCount"),
         sql<string>`count(*) filter (where "ai_generation_logs"."status" = 'pending')`.as("pendingCount"),
@@ -64,7 +64,7 @@ export async function handle(request: Request): Promise<Response> {
         sql<Date>`max("ai_generation_logs"."created_at")`.as("lastUsedAt"),
       ])
       .orderBy(sql`count(*)`, "desc")
-      .orderBy("users.id", "desc")
+      .orderBy("teachers.id", "desc")
       .limit(pageSize)
       .offset(offset)
       .execute();

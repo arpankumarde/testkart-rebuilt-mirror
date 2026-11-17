@@ -14,6 +14,7 @@ import { ScriptInjector } from "./ScriptInjector";
 import { BookDemoPopup } from "./BookDemoPopup";
 import { BookDemoDialogProvider } from "../helpers/useBookDemoDialog";
 import { PurchaseDetailsGateProvider } from "./PurchaseDetailsGate";
+import { LiveBookingVerificationGateProvider } from "./LiveBookingVerificationGate";
 import { restoreThemeMode } from "../helpers/themeMode";
 import { installLanguageVideoTabs } from "../helpers/languageVideo";
 import { chunkLoadRecovery } from "../helpers/chunkLoadRecovery";
@@ -67,7 +68,10 @@ export const GlobalContextProviders = ({
           <BookDemoDialogProvider>
             {/* Asks a student for a missing name or billing state before any paid checkout. */}
             <PurchaseDetailsGateProvider>
-              <RouteErrorBoundary>{children}</RouteErrorBoundary>
+              {/* Verifies a student's email and mobile before any live class booking. */}
+              <LiveBookingVerificationGateProvider>
+                <RouteErrorBoundary>{children}</RouteErrorBoundary>
+              </LiveBookingVerificationGateProvider>
             </PurchaseDetailsGateProvider>
             <BookDemoPopup />
           </BookDemoDialogProvider>

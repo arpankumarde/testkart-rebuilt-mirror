@@ -16,7 +16,7 @@ export async function handle(request: Request) {
 
     const packages = await db
       .selectFrom("livePackages")
-      .innerJoin("users as teacher", "teacher.id", "livePackages.teacherId")
+      .innerJoin("teachers as teacher", "teacher.id", "livePackages.teacherId")
       .select([
         "livePackages.id",
         "livePackages.status",
@@ -104,7 +104,7 @@ export async function handle(request: Request) {
     const trials = await db
       .selectFrom("liveClassCredits")
       .innerJoin("mentorshipBookings", "mentorshipBookings.id", "liveClassCredits.bookingId")
-      .innerJoin("users as teacher", "teacher.id", "liveClassCredits.teacherId")
+      .innerJoin("teachers as teacher", "teacher.id", "liveClassCredits.teacherId")
       .select((eb) => [
         "mentorshipBookings.id as bookingId",
         "mentorshipBookings.scheduledAt",
@@ -119,11 +119,10 @@ export async function handle(request: Request) {
           .exists(
             eb
               .selectFrom("liveLessonAttendance")
-              .innerJoin("users", "users.id", "liveLessonAttendance.userId")
+              .innerJoin("teachers", "teachers.id", "liveLessonAttendance.userId")
               .select("liveLessonAttendance.id")
               .whereRef("liveLessonAttendance.mentorshipBookingId", "=", "mentorshipBookings.id")
               .where("liveLessonAttendance.role", "=", "teacher")
-              .where("users.role", "=", "teacher")
           )
           .as("teacherJoined"),
       ])

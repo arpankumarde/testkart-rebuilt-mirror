@@ -16,7 +16,7 @@ export async function handle(request: Request) {
         .where("liveCourses.teacherId", "=", effectiveTeacherId)
         .orderBy("liveCourses.createdAt", "desc")
         .execute(),
-      db.selectFrom("users").select("liveTeachingStatus").where("id", "=", effectiveTeacherId).executeTakeFirst(),
+      db.selectFrom("teachers").select("liveTeachingStatus").where("id", "=", effectiveTeacherId).executeTakeFirst(),
       db
         .selectFrom("groupLessons")
         .select(["liveCourseId", db.fn.min("startTime").as("nextAt")])

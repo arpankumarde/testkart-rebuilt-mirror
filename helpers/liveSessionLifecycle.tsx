@@ -239,7 +239,7 @@ export async function markGroupLessonMissed(args: { id: string; actor: LiveActor
 
 async function learnerName(trx: Exec, studentId: number | null): Promise<string> {
   if (!studentId) return "Learner";
-  const u = await trx.selectFrom("users").select("displayName").where("id", "=", studentId).executeTakeFirst();
+  const u = await trx.selectFrom("students").select("displayName").where("id", "=", studentId).executeTakeFirst();
   return u?.displayName ?? "Learner";
 }
 

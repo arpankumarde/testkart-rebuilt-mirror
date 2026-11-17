@@ -30,11 +30,11 @@ export async function handle(request: Request): Promise<Response> {
 
     const baseQuery = db
       .selectFrom("teacherBankDetails")
-      .innerJoin("users", "teacherBankDetails.teacherId", "users.id");
+      .innerJoin("teachers", "teacherBankDetails.teacherId", "teachers.id");
 
     let detailsQuery = baseQuery
       .selectAll("teacherBankDetails")
-      .select(["users.displayName as teacherName", "users.email as teacherEmail"])
+      .select(["teachers.displayName as teacherName", "teachers.email as teacherEmail"])
       .limit(limit)
       .offset(offset);
 
@@ -45,11 +45,11 @@ export async function handle(request: Request): Promise<Response> {
     if (search) {
       const searchQuery = `%${search}%`;
       const searchFilter = (
-        eb: ExpressionBuilder<DB, "teacherBankDetails" | "users">
+        eb: ExpressionBuilder<DB, "teacherBankDetails" | "teachers">
       ) =>
         eb.or([
-          eb("users.displayName", "ilike", searchQuery),
-          eb("users.email", "ilike", searchQuery),
+          eb("teachers.displayName", "ilike", searchQuery),
+          eb("teachers.email", "ilike", searchQuery),
         ]);
       detailsQuery = detailsQuery.where(searchFilter);
       countQuery = countQuery.where(searchFilter);
@@ -62,7 +62,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const direction = sortOrder === "desc" ? sql`desc nulls last` : sql`asc nulls last`;
     if (sortBy === "name") {
-      detailsQuery = detailsQuery.orderBy(sql`lower(${sql.ref("users.displayName")})`, direction);
+      detailsQuery = detailsQuery.orderBy(sql`lower(${sql.ref("teachers.displayName")})`, direction);
     } else if (sortBy === "bank") {
       detailsQuery = detailsQuery.orderBy(sql`lower(${sql.ref("teacherBankDetails.bankName")})`, direction);
     } else if (sortBy === "status") {

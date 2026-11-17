@@ -12,8 +12,8 @@ export async function handle(request: Request): Promise<Response> {
     let q = db
       .selectFrom("mentorshipBookings")
       .innerJoin("liveClassCredits", "liveClassCredits.id", "mentorshipBookings.creditId")
-      .innerJoin("users as student", "student.id", "mentorshipBookings.studentId")
-      .innerJoin("users as teacher", "teacher.id", "mentorshipBookings.teacherId")
+      .innerJoin("students as student", "student.id", "mentorshipBookings.studentId")
+      .innerJoin("teachers as teacher", "teacher.id", "mentorshipBookings.teacherId")
       .select([
         "mentorshipBookings.id",
         "mentorshipBookings.scheduledAt",

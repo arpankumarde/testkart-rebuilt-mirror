@@ -1,4 +1,5 @@
 import { db } from "../../helpers/db";
+import { updateAccount } from "../../helpers/accountRows";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { schema, OutputType } from "./billing-state_POST.schema";
 import { BillingDetails } from "./billing-details_GET.schema";
@@ -33,11 +34,10 @@ export async function handle(request: Request): Promise<Response> {
       gstin: existing?.gstin ?? null,
     };
 
-    await db
-      .updateTable("users")
-      .set({ billingDetails, updatedAt: new Date() })
-      .where("id", "=", targetUserId)
-      .execute();
+    await updateAccount(db, user.role === "teacher" ? "teacher" : "student", targetUserId, {
+      billingDetails,
+      updatedAt: new Date(),
+    });
 
     const output: OutputType = { billingDetails };
     return new Response(superjson.stringify(output));

@@ -1,4 +1,5 @@
 import { db } from "../../../helpers/db";
+import { allAccounts } from "../../../helpers/allAccounts";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { schema, OutputType } from "./list_GET.schema";
 import { cancelledByLabel } from "../../../helpers/withdrawalCancelLabel";
@@ -25,9 +26,9 @@ export async function handle(request: Request): Promise<Response> {
 
     let query = db
       .selectFrom("studentWithdrawals")
-      .innerJoin("users", "studentWithdrawals.studentId", "users.id")
-      .leftJoin("studentBankDetails", "studentBankDetails.studentId", "users.id")
-      .leftJoin("users as canceller", "canceller.id", "studentWithdrawals.cancelledByUserId")
+      .innerJoin("students", "studentWithdrawals.studentId", "students.id")
+      .leftJoin("studentBankDetails", "studentBankDetails.studentId", "students.id")
+      .leftJoin(allAccounts(db).as("canceller"), "canceller.id", "studentWithdrawals.cancelledByUserId")
       .leftJoin("admins as cancellerAdmin", "cancellerAdmin.id", "studentWithdrawals.cancelledByAdminId")
       .select([
         "studentWithdrawals.id",
@@ -43,9 +44,9 @@ export async function handle(request: Request): Promise<Response> {
         "studentWithdrawals.cancelledByAdminId",
         "canceller.displayName as cancellerName",
         "cancellerAdmin.fullName as cancellerAdminName",
-        "users.displayName as studentName",
-        "users.email as studentEmail",
-        "users.mobileNumber as studentMobile",
+        "students.displayName as studentName",
+        "students.email as studentEmail",
+        "students.mobileNumber as studentMobile",
         "studentBankDetails.verificationStatus as bankVerificationStatus",
         "studentBankDetails.bankName as bankName",
         "studentBankDetails.bankAccountHolderName as bankAccountHolderName",
@@ -62,9 +63,9 @@ export async function handle(request: Request): Promise<Response> {
       const searchLower = `%${input.search.toLowerCase()}%`;
       query = query.where((eb) =>
         eb.or([
-          eb(sql`lower(users.display_name)`, "like", searchLower),
-          eb(sql`lower(users.email)`, "like", searchLower),
-          eb(sql`lower(users.mobile_number)`, "like", searchLower),
+          eb(sql`lower(students.display_name)`, "like", searchLower),
+          eb(sql`lower(students.email)`, "like", searchLower),
+          eb(sql`lower(students.mobile_number)`, "like", searchLower),
         ])
       );
     }
@@ -82,7 +83,7 @@ export async function handle(request: Request): Promise<Response> {
     const direction = input.sortOrder === "desc" ? sql`desc nulls last` : sql`asc nulls last`;
     let ordered = query;
     if (input.sortBy === "name") {
-      ordered = ordered.orderBy(sql`lower(${sql.ref("users.displayName")})`, direction);
+      ordered = ordered.orderBy(sql`lower(${sql.ref("students.displayName")})`, direction);
     } else if (input.sortBy === "amount") {
       ordered = ordered.orderBy("studentWithdrawals.amount", direction);
     } else if (input.sortBy === "status") {

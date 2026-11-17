@@ -15,7 +15,7 @@ export async function handle(request: Request) {
 
     const ctx = await getLessonAccessContext(input.kind, input.id, user, effectiveTeacherId);
 
-    const teacher = await db.selectFrom("users").select(["avatarUrl"]).where("id", "=", ctx.teacherId).executeTakeFirst();
+    const teacher = await db.selectFrom("teachers").select(["avatarUrl"]).where("id", "=", ctx.teacherId).executeTakeFirst();
 
     let roster: ClassroomRosterMember[] = [
       { id: ctx.teacherId, name: ctx.teacherName, avatarUrl: teacher?.avatarUrl ?? null, role: "teacher" },
@@ -25,7 +25,7 @@ export async function handle(request: Request) {
     if (ctx.kind === "booking") {
       const booking = await db
         .selectFrom("mentorshipBookings")
-        .innerJoin("users as student", "student.id", "mentorshipBookings.studentId")
+        .innerJoin("students as student", "student.id", "mentorshipBookings.studentId")
         .select(["student.id as id", "student.displayName as name", "student.avatarUrl as avatarUrl"])
         .where("mentorshipBookings.id", "=", ctx.id)
         .executeTakeFirst();
@@ -43,7 +43,7 @@ export async function handle(request: Request) {
     } else {
       const learners = await db
         .selectFrom("groupLessonEnrollments")
-        .innerJoin("users as student", "student.id", "groupLessonEnrollments.studentId")
+        .innerJoin("students as student", "student.id", "groupLessonEnrollments.studentId")
         .select(["student.id as id", "student.displayName as name", "student.avatarUrl as avatarUrl"])
         .where("groupLessonEnrollments.groupLessonId", "=", ctx.id)
         .where("groupLessonEnrollments.status", "=", "enrolled")
@@ -66,7 +66,7 @@ export async function handle(request: Request) {
       const trial = await db
         .selectFrom("mentorshipBookings")
         .innerJoin("liveClassCredits", "liveClassCredits.id", "mentorshipBookings.creditId")
-        .innerJoin("users as teacher", "teacher.id", "mentorshipBookings.teacherId")
+        .innerJoin("teachers as teacher", "teacher.id", "mentorshipBookings.teacherId")
         .select(["mentorshipBookings.studentId", "teacher.slug as teacherSlug"])
         .where("mentorshipBookings.id", "=", ctx.id)
         .where("liveClassCredits.kind", "=", "trial")

@@ -19,6 +19,7 @@ const Page = () => {
   const { data: testItems } = useTeacherTestItemsQuery(packageId);
   const { data: tests } = useTeacherTestsQuery();
   const seriesIsFree = !!tests?.find((t) => t.id === packageId)?.isFree;
+  const firstToFill = testItems?.find((item) => item.questionsCount === 0) ?? testItems?.[0];
 
   // The two series-wide rules the review page enforces, shown while building.
   const totalQuestions = (testItems ?? []).reduce((sum, item) => sum + item.questionsCount, 0);
@@ -63,8 +64,13 @@ const Page = () => {
         <TestSeriesItemsList packageId={packageId} guided seriesIsFree={seriesIsFree} />
 
         <div className={styles.navigation}>
-          <Button onClick={() => navigate(`/teacher/create-test/${packageId}/review`)} disabled={!testItems?.length}>
-            Next: Review and publish <ChevronRight size={16} />
+          <Button
+            onClick={() =>
+              firstToFill && navigate(`/teacher/create-test/${packageId}/test-items/${firstToFill.id}/questions`)
+            }
+            disabled={!firstToFill}
+          >
+            Next: Add questions <ChevronRight size={16} />
           </Button>
         </div>
       </div>

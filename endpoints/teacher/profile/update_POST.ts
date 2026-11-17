@@ -5,6 +5,7 @@ import superjson from "superjson";
 import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
 import { ZodError } from "zod";
 import { syncWaplifyContact } from "../../../helpers/syncWaplifyContact";
+import { isSlugTaken } from "../../../helpers/assignUserSlug";
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -37,14 +38,7 @@ export async function handle(request: Request): Promise<Response> {
 
     // If slug is provided and non-empty, check uniqueness
     if (validatedInput.slug && validatedInput.slug !== "") {
-      const existingUser = await db
-        .selectFrom("users")
-        .select("id")
-        .where("slug", "=", validatedInput.slug)
-        .where("id", "!=", effectiveTeacherId)
-        .executeTakeFirst();
-
-      if (existingUser) {
+      if (await isSlugTaken(db, validatedInput.slug, effectiveTeacherId)) {
         return new Response(
           superjson.stringify({ error: "This URL slug is already taken" }),
           { status: 400 }
@@ -80,7 +74,7 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     const [updatedUser] = await db
-      .updateTable("users")
+      .updateTable("teachers")
       .set(updateData)
       .where("id", "=", effectiveTeacherId)
       .returningAll()
@@ -106,7 +100,7 @@ export async function handle(request: Request): Promise<Response> {
       academyName: updatedUser.academyName,
       email: updatedUser.email,
       avatarUrl: updatedUser.avatarUrl,
-      role: updatedUser.role,
+      role: "teacher",
             bio: updatedUser.bio,
       websiteUrl: updatedUser.websiteUrl,
       mobileNumber: updatedUser.mobileNumber,

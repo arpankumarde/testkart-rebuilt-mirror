@@ -31,14 +31,14 @@ export async function handle(request: Request): Promise<Response> {
 
     let filtered = db
       .selectFrom("digitalProducts")
-      .innerJoin("users", "users.id", "digitalProducts.teacherId");
+      .innerJoin("teachers", "teachers.id", "digitalProducts.teacherId");
     if (input.status) filtered = filtered.where("digitalProducts.status", "=", input.status);
     if (input.filter === "no-file") filtered = filtered.where(sql<boolean>`NOT (${hasRealFile})`);
     if (input.id) filtered = filtered.where("digitalProducts.id", "=", input.id);
     if (input.search) {
       const pattern = containsPattern(input.search);
       filtered = filtered.where((eb) =>
-        eb.or([eb("digitalProducts.title", "ilike", pattern), eb("users.displayName", "ilike", pattern)])
+        eb.or([eb("digitalProducts.title", "ilike", pattern), eb("teachers.displayName", "ilike", pattern)])
       );
     }
 
@@ -61,7 +61,7 @@ export async function handle(request: Request): Promise<Response> {
         "digitalProducts.price",
         "digitalProducts.totalPurchases",
         "digitalProducts.category",
-        "users.displayName as teacherName",
+        "teachers.displayName as teacherName",
       ])
       .select((eb) =>
         eb
@@ -85,7 +85,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const statusRows = await db
       .selectFrom("digitalProducts")
-      .innerJoin("users", "users.id", "digitalProducts.teacherId")
+      .innerJoin("teachers", "teachers.id", "digitalProducts.teacherId")
       .select(["digitalProducts.status"])
       .select((eb) => eb.fn.countAll<string>().as("cnt"))
       .groupBy("digitalProducts.status")

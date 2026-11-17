@@ -5,6 +5,13 @@ import { getAdminServerSessionOrThrow } from "../../../../helpers/getAdminSessio
 import { asStringList } from "../../../../helpers/liveTeachingRules";
 import { schema, OutputType, LiveTeachingApplicationRow } from "./list_GET.schema";
 
+const IS_LATEST = sql<boolean>`NOT EXISTS (SELECT 1 FROM live_teaching_applications later WHERE later.teacher_id = a.teacher_id AND later.kind = a.kind AND later.created_at > a.created_at)`;
+
+/*
+ * Status tabs and their counts show each teacher's current state: only the latest row per teacher
+ * and kind, so a teacher revoked earlier and approved later is not listed under both. "all" keeps
+ * the full history, with isLatest marking the current row.
+ */
 export async function handle(request: Request): Promise<Response> {
   try {
     await getAdminServerSessionOrThrow(request);
@@ -13,7 +20,7 @@ export async function handle(request: Request): Promise<Response> {
 
     let query = db
       .selectFrom("liveTeachingApplications as a")
-      .innerJoin("users as u", "u.id", "a.teacherId")
+      .innerJoin("teachers as u", "u.id", "a.teacherId")
       .select([
         "a.id",
         "a.kind",
@@ -39,21 +46,20 @@ export async function handle(request: Request): Promise<Response> {
         sql<string>`(SELECT count(*) FROM mentorship_availability m WHERE m.teacher_id = u.id AND m.is_active)`.as(
           "hourWindows"
         ),
-        sql<boolean>`NOT EXISTS (SELECT 1 FROM live_teaching_applications later WHERE later.teacher_id = a.teacher_id AND later.kind = a.kind AND later.created_at > a.created_at)`.as(
-          "isLatest"
-        ),
+        IS_LATEST.as("isLatest"),
         "u.introVideoUrl as currentVideoUrl",
       ])
       .orderBy("a.createdAt", status === "pending" ? "asc" : "desc")
       .limit(200);
-    if (status !== "all") query = query.where("a.status", "=", status);
+    if (status !== "all") query = query.where("a.status", "=", status).where(IS_LATEST);
 
     const [rows, countRows] = await Promise.all([
       query.execute(),
       db
-        .selectFrom("liveTeachingApplications")
-        .select(["status", db.fn.countAll<string>().as("n")])
-        .groupBy("status")
+        .selectFrom("liveTeachingApplications as a")
+        .select(["a.status", db.fn.countAll<string>().as("n")])
+        .where(IS_LATEST)
+        .groupBy("a.status")
         .execute(),
     ]);
 

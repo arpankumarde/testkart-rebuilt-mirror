@@ -13,7 +13,8 @@ import { getTeacherMentorshipPackages } from "../endpoints/teacher/mentorship/pa
 import { getAdminLiveLessonIssues, InputType as IssuesInput } from "../endpoints/admin/live-lessons/issues_GET.schema";
 import { postAdminResolveLiveIssue } from "../endpoints/admin/live-lessons/resolve-issue_POST.schema";
 import { MENTORSHIP_BOOKINGS_QUERY_KEY } from "./useMentorship";
-import { gatePurchase, usePurchaseDetailsGate } from "./usePurchaseDetailsGate";
+import { gatePurchase } from "./usePurchaseDetailsGate";
+import { useLiveBookingGate } from "./useLiveBookingGate";
 
 export const LIVE_PACKAGES_QUERY_KEY = ["mentorship", "packages"] as const;
 
@@ -39,8 +40,8 @@ export const useLivePackagesQuery = (enabled = true) =>
   });
 
 export const usePackageCheckoutMutation = () => {
-  const ensurePurchaseDetails = usePurchaseDetailsGate();
-  return useMutation({ mutationFn: gatePurchase(ensurePurchaseDetails, postMentorshipPackageCheckout) });
+  const ensureLiveBooking = useLiveBookingGate();
+  return useMutation({ mutationFn: gatePurchase(ensureLiveBooking, postMentorshipPackageCheckout) });
 };
 export const usePackageVerifyMutation = () => useMutation({ mutationFn: postMentorshipPackageVerify });
 export const usePackagePayNowMutation = () => useMutation({ mutationFn: postMentorshipPackagePayNow });

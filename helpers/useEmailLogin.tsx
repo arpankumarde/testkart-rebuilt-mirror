@@ -6,7 +6,7 @@ import {
 import {
   postVerifyEmailLoginOtp,
   InputType as VerifyOtpInput,
-  OutputType as VerifyOtpOutput,
+  VerifyResult as VerifyOtpOutput,
 } from "../endpoints/auth/email-login/verify-otp_POST.schema";
 
 export const useSendEmailLoginOtpMutation = () => {

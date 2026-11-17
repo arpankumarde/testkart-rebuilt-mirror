@@ -41,20 +41,20 @@ export async function handle(request: Request) {
 
     const teacherRows = await db
       .selectFrom("organizationTeachers")
-      .innerJoin("users", "users.id", "organizationTeachers.teacherId")
+      .innerJoin("teachers", "teachers.id", "organizationTeachers.teacherId")
       .select([
-        "users.id",
-        "users.slug",
-        "users.displayName",
-        "users.avatarUrl",
-        "users.tagline",
-        "users.isVerified",
-        "users.yearsOfExperience",
-        "users.expertiseAreas",
+        "teachers.id",
+        "teachers.slug",
+        "teachers.displayName",
+        "teachers.avatarUrl",
+        "teachers.tagline",
+        "teachers.isVerified",
+        "teachers.yearsOfExperience",
+        "teachers.expertiseAreas",
       ])
       .where("organizationTeachers.organizationId", "=", org.id)
       .where("organizationTeachers.status", "=", "approved")
-      .orderBy("users.displayName", "asc")
+      .orderBy("teachers.displayName", "asc")
       .execute();
 
     const teacherIds = teacherRows.map((t) => t.id);
@@ -101,7 +101,7 @@ export async function handle(request: Request) {
       const [courses, tests, liveTests, products, bundles] = await Promise.all([
         db
           .selectFrom("courses")
-          .innerJoin("users", "users.id", "courses.teacherId")
+          .innerJoin("teachers", "teachers.id", "courses.teacherId")
           .select([
             "courses.id",
             "courses.slug",
@@ -111,12 +111,12 @@ export async function handle(request: Request) {
             "courses.discountPrice",
             "courses.thumbnailImageUrl",
             "courses.rating",
-            "users.displayName as teacherName",
-            "users.slug as teacherSlug",
-            "users.avatarUrl as teacherAvatarUrl",
-            "users.tagline as teacherTagline",
-            "users.yearsOfExperience as teacherYearsOfExperience",
-            "users.isVerified as teacherIsVerified",
+            "teachers.displayName as teacherName",
+            "teachers.slug as teacherSlug",
+            "teachers.avatarUrl as teacherAvatarUrl",
+            "teachers.tagline as teacherTagline",
+            "teachers.yearsOfExperience as teacherYearsOfExperience",
+            "teachers.isVerified as teacherIsVerified",
           ])
           .where("courses.status", "=", "published")
           .where("courses.visibility", "=", "public")
@@ -126,7 +126,7 @@ export async function handle(request: Request) {
           .execute(),
         db
           .selectFrom("mockTests")
-          .innerJoin("users", "users.id", "mockTests.teacherId")
+          .innerJoin("teachers", "teachers.id", "mockTests.teacherId")
           .select([
             "mockTests.id",
             "mockTests.slug",
@@ -136,12 +136,12 @@ export async function handle(request: Request) {
             "mockTests.discountPrice",
             "mockTests.thumbnailUrl",
             "mockTests.rating",
-            "users.displayName as teacherName",
-            "users.slug as teacherSlug",
-            "users.avatarUrl as teacherAvatarUrl",
-            "users.tagline as teacherTagline",
-            "users.yearsOfExperience as teacherYearsOfExperience",
-            "users.isVerified as teacherIsVerified",
+            "teachers.displayName as teacherName",
+            "teachers.slug as teacherSlug",
+            "teachers.avatarUrl as teacherAvatarUrl",
+            "teachers.tagline as teacherTagline",
+            "teachers.yearsOfExperience as teacherYearsOfExperience",
+            "teachers.isVerified as teacherIsVerified",
           ])
           .where("mockTests.isPublished", "=", true)
           .where("mockTests.deletedAt", "is", null)
@@ -152,7 +152,7 @@ export async function handle(request: Request) {
           .execute(),
         db
           .selectFrom("liveTests")
-          .innerJoin("users", "users.id", "liveTests.teacherId")
+          .innerJoin("teachers", "teachers.id", "liveTests.teacherId")
           .innerJoin("mockTests", "mockTests.id", "liveTests.mockTestId")
           .select([
             "liveTests.id",
@@ -161,12 +161,12 @@ export async function handle(request: Request) {
             "liveTests.price",
             "liveTests.discountPrice",
             "liveTests.thumbnailUrl",
-            "users.displayName as teacherName",
-            "users.slug as teacherSlug",
-            "users.avatarUrl as teacherAvatarUrl",
-            "users.tagline as teacherTagline",
-            "users.yearsOfExperience as teacherYearsOfExperience",
-            "users.isVerified as teacherIsVerified",
+            "teachers.displayName as teacherName",
+            "teachers.slug as teacherSlug",
+            "teachers.avatarUrl as teacherAvatarUrl",
+            "teachers.tagline as teacherTagline",
+            "teachers.yearsOfExperience as teacherYearsOfExperience",
+            "teachers.isVerified as teacherIsVerified",
           ])
           .where("liveTests.isActive", "=", true)
           .where("liveTests.visibility", "=", "public")
@@ -177,7 +177,7 @@ export async function handle(request: Request) {
           .execute(),
         db
           .selectFrom("digitalProducts")
-          .innerJoin("users", "users.id", "digitalProducts.teacherId")
+          .innerJoin("teachers", "teachers.id", "digitalProducts.teacherId")
           .select([
             "digitalProducts.id",
             "digitalProducts.slug",
@@ -187,12 +187,12 @@ export async function handle(request: Request) {
             "digitalProducts.pageCount",
             "digitalProducts.rating",
             "digitalProducts.thumbnailUrl",
-            "users.displayName as teacherName",
-            "users.slug as teacherSlug",
-            "users.avatarUrl as teacherAvatarUrl",
-            "users.tagline as teacherTagline",
-            "users.yearsOfExperience as teacherYearsOfExperience",
-            "users.isVerified as teacherIsVerified",
+            "teachers.displayName as teacherName",
+            "teachers.slug as teacherSlug",
+            "teachers.avatarUrl as teacherAvatarUrl",
+            "teachers.tagline as teacherTagline",
+            "teachers.yearsOfExperience as teacherYearsOfExperience",
+            "teachers.isVerified as teacherIsVerified",
           ])
           .where("digitalProducts.status", "=", "published")
           .where("digitalProducts.visibility", "=", "public")
@@ -202,7 +202,7 @@ export async function handle(request: Request) {
           .execute(),
         db
           .selectFrom("courseBundles")
-          .innerJoin("users", "users.id", "courseBundles.teacherId")
+          .innerJoin("teachers", "teachers.id", "courseBundles.teacherId")
           .select([
             "courseBundles.id",
             "courseBundles.slug",
@@ -210,12 +210,12 @@ export async function handle(request: Request) {
             "courseBundles.price",
             "courseBundles.originalPrice",
             "courseBundles.thumbnailUrl",
-            "users.displayName as teacherName",
-            "users.slug as teacherSlug",
-            "users.avatarUrl as teacherAvatarUrl",
-            "users.tagline as teacherTagline",
-            "users.yearsOfExperience as teacherYearsOfExperience",
-            "users.isVerified as teacherIsVerified",
+            "teachers.displayName as teacherName",
+            "teachers.slug as teacherSlug",
+            "teachers.avatarUrl as teacherAvatarUrl",
+            "teachers.tagline as teacherTagline",
+            "teachers.yearsOfExperience as teacherYearsOfExperience",
+            "teachers.isVerified as teacherIsVerified",
           ])
           .where("courseBundles.isPublished", "=", true)
           .where("courseBundles.visibility", "=", "public")
@@ -333,15 +333,15 @@ export async function handle(request: Request) {
     if (teacherIds.length > 0) {
       const postRows = await db
         .selectFrom("teacherPosts")
-        .innerJoin("users", "users.id", "teacherPosts.teacherId")
+        .innerJoin("teachers", "teachers.id", "teacherPosts.teacherId")
         .select((eb) => [
           "teacherPosts.id",
           "teacherPosts.body",
           "teacherPosts.imageUrl",
           "teacherPosts.createdAt",
-          "users.displayName as teacherName",
-          "users.slug as teacherSlug",
-          "users.avatarUrl as teacherAvatarUrl",
+          "teachers.displayName as teacherName",
+          "teachers.slug as teacherSlug",
+          "teachers.avatarUrl as teacherAvatarUrl",
           eb
             .selectFrom("teacherPostLikes")
             .select((eb2) => eb2.fn.countAll<number>().as("count"))

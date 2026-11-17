@@ -109,7 +109,7 @@ export async function handle(request: Request): Promise<Response> {
 
     if (action !== "unpublish") {
       const teacher = await db
-        .selectFrom("users")
+        .selectFrom("teachers")
         .select(["displayName", "email"])
         .where("id", "=", state.teacherId)
         .executeTakeFirst();

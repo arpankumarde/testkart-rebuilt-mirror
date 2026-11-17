@@ -292,7 +292,7 @@ export async function handle(request: Request): Promise<Response> {
              coalesce(ns.notes, 0) AS notes, coalesce(ns.pages_read, 0) AS note_pages_read, ns.progress AS note_progress,
              GREATEST(ts.last_at, cs.last_at, ns.last_at) AS last_active_at
       FROM roster r
-      JOIN users u ON u.id = r.student_id
+      JOIN students u ON u.id = r.student_id
       LEFT JOIN enrol_stats es ON es.student_id = r.student_id
       LEFT JOIN test_stats ts ON ts.student_id = r.student_id
       LEFT JOIN score_stats ss ON ss.student_id = r.student_id

@@ -58,7 +58,7 @@ export async function handle(request: Request): Promise<Response> {
                WHERE cp.enrollment_id = ce.id) AS done,
              (SELECT max(cp.completed_at) FROM course_progress cp WHERE cp.enrollment_id = ce.id) AS last_at
       FROM course_enrollments ce
-      JOIN users u ON u.id = ce.student_id
+      JOIN students u ON u.id = ce.student_id
       WHERE ce.course_id = ${selected.id}
       ORDER BY done DESC, last_at DESC NULLS LAST, ce.enrolled_at DESC
     `.execute(db);

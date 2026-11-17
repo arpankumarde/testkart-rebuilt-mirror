@@ -5,13 +5,13 @@ import superjson from "superjson";
 import { SalesStage, SalesContactSource } from "../../../helpers/schema";
 import { sql } from "kysely";
 
-// A pipeline row is either a signed-up user (joined from `users`) or a website
+// A pipeline row is either a signed-up teacher (joined from `teachers`) or a website
 // lead captured before signup (source = 'demo_request', details on the row
 // itself). Everything below reads through these so both kinds render the same.
-const displayNameExpr = sql<string>`coalesce(users.display_name, sales_contacts.lead_name)`;
-const emailExpr = sql<string | null>`coalesce(users.email, sales_contacts.lead_email)`;
-const phoneExpr = sql<string | null>`coalesce(users.mobile_number, sales_contacts.lead_phone)`;
-const createdAtExpr = sql<Date>`coalesce(users.created_at, sales_contacts.created_at)`;
+const displayNameExpr = sql<string>`coalesce(teachers.display_name, sales_contacts.lead_name)`;
+const emailExpr = sql<string | null>`coalesce(teachers.email, sales_contacts.lead_email)`;
+const phoneExpr = sql<string | null>`coalesce(teachers.mobile_number, sales_contacts.lead_phone)`;
+const createdAtExpr = sql<Date>`coalesce(teachers.created_at, sales_contacts.created_at)`;
 // As text, not a Date: the column is a bare DATE, and reading it as a Date would
 // make it midnight in the server's zone and render as the day before for anyone
 // west of it. The demo form sends the same "YYYY-MM-DD" shape.
@@ -78,7 +78,7 @@ export async function handle(request: Request): Promise<Response> {
     // Build main query. LEFT join: demo-request leads have no user row yet.
     let baseQuery = db
       .selectFrom("salesContacts")
-      .leftJoin("users", "salesContacts.userId", "users.id")
+      .leftJoin("teachers", "salesContacts.userId", "teachers.id")
       .leftJoin("admins", "salesContacts.assignedToAdminId", "admins.id");
 
     if (search) {
@@ -197,8 +197,8 @@ export async function handle(request: Request): Promise<Response> {
         displayNameExpr.as("displayName"),
         emailExpr.as("email"),
         phoneExpr.as("mobileNumber"),
-        "users.academyName",
-        "users.location",
+        "teachers.academyName",
+        "teachers.location",
         "salesContacts.stage",
         createdAtExpr.as("signedUpAt"),
         "salesContacts.createdAt as importedAt",
@@ -207,20 +207,20 @@ export async function handle(request: Request): Promise<Response> {
         "admins.fullName as assignedToAdminName",
         "salesContacts.followUpDate",
         "salesContacts.lastContactedAt",
-        sql<boolean>`coalesce(users.onboarding_completed, false)`.as("onboardingCompleted"),
-        "users.teachingCategories",
-        "users.targetExams",
-        "users.teachingExperienceLevel",
-        "users.currentOccupation",
-        "users.goals",
-        "users.discoverySource",
-        "users.schoolCollegeName",
-        "users.signupSource",
-        "users.productInterest",
-        "users.expertiseAreas",
-        "users.languages",
-        "users.bio",
-        "users.tagline",
+        sql<boolean>`coalesce(teachers.onboarding_completed, false)`.as("onboardingCompleted"),
+        "teachers.teachingCategories",
+        "teachers.targetExams",
+        "teachers.teachingExperienceLevel",
+        "teachers.currentOccupation",
+        "teachers.goals",
+        "teachers.discoverySource",
+        "teachers.schoolCollegeName",
+        "teachers.signupSource",
+        "teachers.productInterest",
+        "teachers.expertiseAreas",
+        "teachers.languages",
+        "teachers.bio",
+        "teachers.tagline",
       ])
       .orderBy(orderExpr)
       .orderBy("salesContacts.id", "desc")

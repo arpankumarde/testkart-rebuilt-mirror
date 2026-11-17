@@ -22,14 +22,14 @@ export async function handle(request: Request): Promise<Response> {
 
     const bundle = await db
       .selectFrom("courseBundles")
-      .innerJoin("users", "users.id", "courseBundles.teacherId")
+      .innerJoin("teachers", "teachers.id", "courseBundles.teacherId")
       .selectAll("courseBundles")
       .select([
-        "users.id as teacherId",
-        "users.displayName as teacherDisplayName",
-        "users.avatarUrl as teacherProfilePicture",
-        "users.isVerified as teacherIsVerified",
-        "users.slug as teacherSlug",
+        "teachers.id as teacherId",
+        "teachers.displayName as teacherDisplayName",
+        "teachers.avatarUrl as teacherProfilePicture",
+        "teachers.isVerified as teacherIsVerified",
+        "teachers.slug as teacherSlug",
       ])
       .where("courseBundles.slug", "=", validation.data.slug)
       .where("courseBundles.isPublished", "=", true)

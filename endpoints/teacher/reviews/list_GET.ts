@@ -79,7 +79,7 @@ export async function handle(request: Request): Promise<Response> {
                ${kindExpr} AS kind, ${itemIdExpr} AS item_id,
                coalesce(mt.title, c.title, dp.title) AS item_title,
                (SELECT ti.title FROM mock_test_items ti WHERE ti.id = r.test_item_id) AS test_item_title,
-               (SELECT u.avatar_url FROM users u WHERE u.id = r.user_id) AS avatar_url
+               (SELECT u.avatar_url FROM students u WHERE u.id = r.user_id) AS avatar_url
         ${base}
           AND ${filters}
         ORDER BY ${order}

@@ -1,5 +1,6 @@
 import { sql } from "kysely";
 import { db } from "./db";
+import { allAccounts } from "./allAccounts";
 import { spinCouponStatusSql } from "./spinWinServer";
 import { addDays, dayStart } from "./spinWinAnalytics";
 import type { SpinCouponStatus } from "./spinWinRules";
@@ -21,7 +22,7 @@ export function spinsQuery(filters: SpinListFilters & { claimStatus?: string; sp
   let query = db
     .selectFrom("spinRecords as s")
     .innerJoin("spinCampaigns as c", "c.id", "s.campaignId")
-    .leftJoin("users as u", "u.id", "s.userId")
+    .leftJoin(allAccounts(db).as("u"), "u.id", "s.userId")
     .leftJoin("spinCoupons as sc", "sc.spinRecordId", "s.id")
     .leftJoin("promoCodes as pc", "pc.id", "sc.promoCodeId");
   if (filters.campaignId) query = query.where("s.campaignId", "=", filters.campaignId);
@@ -71,7 +72,7 @@ export function couponsQuery(filters: SpinListFilters & { status?: SpinCouponSta
     .innerJoin("promoCodes as pc", "pc.id", "sc.promoCodeId")
     .innerJoin("spinCampaigns as c", "c.id", "sc.campaignId")
     .innerJoin("spinCampaignRewards as r", "r.id", "sc.rewardId")
-    .leftJoin("users as u", "u.id", "sc.userId");
+    .leftJoin(allAccounts(db).as("u"), "u.id", "sc.userId");
   if (filters.campaignId) query = query.where("sc.campaignId", "=", filters.campaignId);
   if (filters.status) query = query.where(spinCouponStatusSql, "=", filters.status);
   if (filters.from) query = query.where("sc.issuedAt", ">=", dayStart(filters.from));

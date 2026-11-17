@@ -193,7 +193,7 @@ export async function subscriptionRenew(): Promise<void> {
       const subscriptionsToCharge = await db
         .selectFrom("teacherSubscriptions")
         .innerJoin("subscriptionPlans", "subscriptionPlans.id", "teacherSubscriptions.planId")
-        .innerJoin("users", "users.id", "teacherSubscriptions.teacherId")
+        .innerJoin("teachers", "teachers.id", "teacherSubscriptions.teacherId")
         .select([
           "teacherSubscriptions.id",
           "teacherSubscriptions.mandateId",
@@ -206,9 +206,9 @@ export async function subscriptionRenew(): Promise<void> {
           "subscriptionPlans.name as planName",
           "subscriptionPlans.price",
           "subscriptionPlans.durationDays",
-          "users.email",
-          "users.displayName",
-          "users.mobileNumber",
+          "teachers.email",
+          "teachers.displayName",
+          "teachers.mobileNumber",
         ])
         .where("teacherSubscriptions.status", "=", "active")
         .where("teacherSubscriptions.autoRenew", "=", true)
@@ -310,7 +310,7 @@ export async function subscriptionRenew(): Promise<void> {
                 .execute();
 
               await trx
-                .updateTable("users")
+                .updateTable("teachers")
                 .set({ isVerified: true })
                 .where("id", "=", sub.teacherId)
                 .execute();
@@ -415,7 +415,7 @@ export async function subscriptionRenew(): Promise<void> {
                 }
 
                 await trx
-                  .updateTable("users")
+                  .updateTable("teachers")
                   .set({
                     isVerified: false,
                     updatedAt: now,
@@ -462,7 +462,7 @@ export async function subscriptionRenew(): Promise<void> {
       const subscriptionsForWalletRenewal = await db
         .selectFrom("teacherSubscriptions")
         .innerJoin("subscriptionPlans", "subscriptionPlans.id", "teacherSubscriptions.planId")
-        .innerJoin("users", "users.id", "teacherSubscriptions.teacherId")
+        .innerJoin("teachers", "teachers.id", "teacherSubscriptions.teacherId")
         .select([
           "teacherSubscriptions.id",
           "teacherSubscriptions.teacherId",
@@ -473,8 +473,8 @@ export async function subscriptionRenew(): Promise<void> {
           "subscriptionPlans.name as planName",
           "subscriptionPlans.price",
           "subscriptionPlans.durationDays",
-          "users.email",
-          "users.displayName",
+          "teachers.email",
+          "teachers.displayName",
         ])
         .where("teacherSubscriptions.status", "=", "active")
         .where("teacherSubscriptions.autoRenew", "=", true)
@@ -534,7 +534,7 @@ export async function subscriptionRenew(): Promise<void> {
                 .execute();
                 
               await trx
-                .updateTable("users")
+                .updateTable("teachers")
                 .set({ isVerified: true })
                 .where("id", "=", sub.teacherId)
                 .execute();
@@ -578,14 +578,14 @@ export async function subscriptionRenew(): Promise<void> {
     let query = db
       .selectFrom("teacherSubscriptions")
       .innerJoin("subscriptionPlans", "subscriptionPlans.id", "teacherSubscriptions.planId")
-      .innerJoin("users", "users.id", "teacherSubscriptions.teacherId")
+      .innerJoin("teachers", "teachers.id", "teacherSubscriptions.teacherId")
       .select([
         "teacherSubscriptions.id",
         "teacherSubscriptions.teacherId",
         "teacherSubscriptions.endDate",
         "subscriptionPlans.name as planName",
-        "users.email",
-        "users.displayName",
+        "teachers.email",
+        "teachers.displayName",
       ])
       .where("teacherSubscriptions.status", "=", "active")
       .where("teacherSubscriptions.endDate", "is not", null)
@@ -639,7 +639,7 @@ export async function subscriptionRenew(): Promise<void> {
           }
 
           await trx
-            .updateTable("users")
+            .updateTable("teachers")
             .set({ isVerified: false, updatedAt: now })
             .where("id", "=", sub.teacherId)
             .execute();
@@ -689,15 +689,15 @@ export async function subscriptionRenew(): Promise<void> {
       const expiringSoon = await db
         .selectFrom("teacherSubscriptions")
         .innerJoin("subscriptionPlans", "subscriptionPlans.id", "teacherSubscriptions.planId")
-        .innerJoin("users", "users.id", "teacherSubscriptions.teacherId")
+        .innerJoin("teachers", "teachers.id", "teacherSubscriptions.teacherId")
         .select([
           "teacherSubscriptions.id",
           "teacherSubscriptions.teacherId",
           "teacherSubscriptions.endDate",
           "subscriptionPlans.name as planName",
           "subscriptionPlans.price",
-          "users.email",
-          "users.displayName",
+          "teachers.email",
+          "teachers.displayName",
         ])
         .where("teacherSubscriptions.status", "=", "active")
         .where("subscriptionPlans.price", ">", "0")

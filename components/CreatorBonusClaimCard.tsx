@@ -20,7 +20,7 @@ interface CreatorBonusClaimCardProps {
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   disabled?: boolean;
-  /** Sitting on a coral brand block: the claim card turns white so it does not melt into it. */
+  /** Sitting on a brand or panel block: the claim card turns white so it does not melt into it, and the plain notes take the panel's ink. */
   onBrand?: boolean;
   className?: string;
   /** Test series: the Exam Bonus picked in place of the Creator Bonus, if any. */
@@ -134,7 +134,7 @@ export const CreatorBonusClaimCard: React.FC<CreatorBonusClaimCardProps> = ({
         />
       ))}
       {closed.map((option) => (
-        <p key={option.campaignId} className={styles.quiet}>
+        <p key={option.campaignId} className={`${styles.quiet} ${onBrand ? styles.quietOnBrand : ""}`}>
           <Newspaper size={14} aria-hidden="true" />
           <span>
             {option.title}: {option.reason}
@@ -243,7 +243,7 @@ const CreatorOffer: React.FC<CreatorOfferProps> = ({
   }
 
   return (
-    <p className={`${styles.quiet} ${className ?? ""}`}>
+    <p className={`${styles.quiet} ${onBrand ? styles.quietOnBrand : ""} ${className ?? ""}`}>
       <Gift size={14} aria-hidden="true" />
       <span>
         {data.reason}{" "}

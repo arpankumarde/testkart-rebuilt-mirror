@@ -39,8 +39,8 @@ export const useLiveTeachingStatusQuery = () =>
 
 /*
  * The same status cache for the sidebar and dashboard, which mount on every
- * page: it reloads on focus and after a minute rather than on each mount, so an
- * approval reaches the sidebar without a request per navigation.
+ * page: it reloads on a page change once it is a minute old rather than on each
+ * mount, so an approval reaches the sidebar without a request per navigation.
  */
 export const useLiveTeachingStatusPeek = (enabled: boolean) =>
   useQuery({
@@ -48,7 +48,7 @@ export const useLiveTeachingStatusPeek = (enabled: boolean) =>
     queryFn: () => getTeacherLiveTeachingStatus(),
     enabled,
     staleTime: 60_000,
-    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
 export const useSaveLiveTeachingVideoMutation = () => {

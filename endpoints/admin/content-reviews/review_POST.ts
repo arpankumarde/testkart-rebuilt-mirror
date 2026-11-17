@@ -91,7 +91,7 @@ export async function handle(request: Request): Promise<Response> {
 
     // Fetch teacher info for email
     const teacher = await db
-      .selectFrom("users")
+      .selectFrom("teachers")
       .select(["id", "displayName", "email"])
       .where("id", "=", review.teacherId)
       .executeTakeFirst();

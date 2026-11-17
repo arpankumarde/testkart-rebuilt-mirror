@@ -75,7 +75,7 @@ export async function handle(request: Request): Promise<Response> {
     // (createdByTeacherId is null) and must still show up in this list.
     let filtered = db
       .selectFrom("organizations")
-      .leftJoin("users as owner", "owner.id", "organizations.createdByTeacherId");
+      .leftJoin("teachers as owner", "owner.id", "organizations.createdByTeacherId");
 
     if (status === "active") filtered = filtered.where("organizations.isActive", "=", true);
     if (status === "hidden") filtered = filtered.where("organizations.isActive", "=", false);

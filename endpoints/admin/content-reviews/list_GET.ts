@@ -343,7 +343,7 @@ export async function handle(request: Request): Promise<Response> {
 
     let query = db
       .selectFrom("contentReviews as cr")
-      .innerJoin("users as u", "u.id", "cr.teacherId")
+      .innerJoin("teachers as u", "u.id", "cr.teacherId")
       .leftJoin("admins as reviewer", "reviewer.id", "cr.reviewedBy")
       .select([
         "cr.id",
@@ -389,7 +389,7 @@ export async function handle(request: Request): Promise<Response> {
 
     let countQuery = db
       .selectFrom("contentReviews as cr")
-      .innerJoin("users as u", "u.id", "cr.teacherId")
+      .innerJoin("teachers as u", "u.id", "cr.teacherId")
       .select(db.fn.countAll<string>().as("count"));
 
     // A resubmission adds a new review row, so an item rejected and later approved

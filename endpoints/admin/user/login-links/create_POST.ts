@@ -1,6 +1,7 @@
 import { z } from "zod";
 import superjson from "superjson";
 import { db } from "../../../../helpers/db";
+import { allAccounts } from "../../../../helpers/allAccounts";
 import { getAdminServerSessionOrThrow } from "../../../../helpers/getAdminSession";
 import { getAccountStatus } from "../../../../helpers/accountStatus";
 import { LOGIN_LINK_COLUMNS, toLoginLinkView } from "../../../../helpers/loginLinks";
@@ -24,7 +25,7 @@ export async function handle(request: Request): Promise<Response> {
     const input = schema.parse(superjson.parse(await request.text()));
 
     const target = await db
-      .selectFrom("users")
+      .selectFrom(allAccounts(db).as("account"))
       .select(["id", "role", "isActive", "suspensionKind", "suspendedUntil"])
       .where("id", "=", input.userId)
       .executeTakeFirst();

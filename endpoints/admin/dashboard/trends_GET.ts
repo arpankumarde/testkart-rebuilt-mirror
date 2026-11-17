@@ -66,11 +66,11 @@ export async function handle(request: Request): Promise<Response> {
         GROUP BY 1
       ),
       u AS (
-        SELECT date_trunc(${unitLit}, users.created_at AT TIME ZONE ${IST}) AS b,
-               count(*) FILTER (WHERE users.role = 'student') AS students,
-               count(*) FILTER (WHERE users.role = 'teacher') AS teachers
-        FROM users, lo
-        WHERE users.created_at >= lo.since
+        SELECT date_trunc(${unitLit}, accounts.created_at AT TIME ZONE ${IST}) AS b,
+               count(*) FILTER (WHERE accounts.role = 'student') AS students,
+               count(*) FILTER (WHERE accounts.role = 'teacher') AS teachers
+        FROM accounts, lo
+        WHERE accounts.created_at >= lo.since
         GROUP BY 1
       )
       SELECT to_char(series.b, 'YYYY-MM-DD') AS start,

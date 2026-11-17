@@ -1,7 +1,7 @@
 import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
-import { MockTests, Users, Exams } from "../../../helpers/schema";
+import { MockTests, Teachers, Exams } from "../../../helpers/schema";
 
 export const schema = z.object({});
 
@@ -28,8 +28,8 @@ export type AdminTestListItem = Pick<
   price: number;
   discountPrice: number | null;
   rating: number | null;
-  teacherName: Selectable<Users>["displayName"];
-  teacherId: Selectable<Users>["id"];
+  teacherName: Selectable<Teachers>["displayName"];
+  teacherId: Selectable<Teachers>["id"];
   examSlug: Selectable<Exams>["examSlug"] | null;
   examName: Selectable<Exams>["examName"] | null;
   /* Every exam the series is listed under, primary first. examSlug/examName are the primary's. */

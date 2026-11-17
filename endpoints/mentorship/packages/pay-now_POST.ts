@@ -1,6 +1,7 @@
 import superjson from "superjson";
 import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
+import { isStudentAccount, STUDENT_ACCOUNT_REQUIRED } from "../../../helpers/studentAccountRequired";
 import { cashfreeGatewayEnv, fetchCashfreeOrder, getCashfreeConfig, terminateCashfreeOrder } from "../../../helpers/cashfree";
 import { openCashfreeSession, settleCashfreeOrder } from "../../../helpers/cashfreeOrders";
 import {
@@ -34,6 +35,7 @@ const completed = () => new Response(superjson.stringify({ kind: "completed" } s
 export async function handle(request: Request) {
   try {
     const { user } = await getServerUserSession(request);
+    if (!isStudentAccount(user)) return fail(STUDENT_ACCOUNT_REQUIRED, 403);
     const { packageId } = schema.parse(superjson.parse(await request.text()));
     const pkg = await db.selectFrom("livePackages").select(["studentId", "status"]).where("id", "=", packageId).executeTakeFirst();
     if (!pkg || pkg.studentId !== user.id) return fail("Package not found.", 404);

@@ -1,6 +1,7 @@
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { db } from "../../helpers/db";
+import { allAccounts } from "../../helpers/allAccounts";
 import { isUnsubscribeList, recordUnsubscribe, verifyUnsubscribeToken } from "../../helpers/emailUnsubscribe";
 import { schema, OutputType } from "./unsubscribe_POST.schema";
 import { recordFunnelEvent } from "../../helpers/recordFunnelEvent";
@@ -33,7 +34,7 @@ export async function handle(request: Request) {
       return json({ error: "This unsubscribe link is not valid." }, 400);
     }
 
-    const user = await db.selectFrom("users").select("id").where("id", "=", userId).executeTakeFirst();
+    const user = await db.selectFrom(allAccounts(db).as("users")).select("id").where("id", "=", userId).executeTakeFirst();
     if (user) {
       await recordUnsubscribe(db, userId, list);
       await recordFunnelEvent({ event: "unsubscribed", request, userId, props: { list } });

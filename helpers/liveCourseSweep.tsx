@@ -63,11 +63,10 @@ async function closeFinishedClasses() {
 
   const joined = await db
     .selectFrom("liveLessonAttendance")
-    .innerJoin("users", "users.id", "liveLessonAttendance.userId")
+    .innerJoin("teachers", "teachers.id", "liveLessonAttendance.userId")
     .select("liveLessonAttendance.groupLessonId")
     .where("liveLessonAttendance.groupLessonId", "in", due.map((c) => c.id))
     .where("liveLessonAttendance.role", "=", "teacher")
-    .where("users.role", "=", "teacher")
     .execute();
   const held = new Set(joined.map((j) => j.groupLessonId));
 

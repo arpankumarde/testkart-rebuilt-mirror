@@ -31,6 +31,7 @@ import { TeacherListingBadges } from "./TeacherListingBadges";
 import { ConsoleConfirmDialog } from "./ConsoleConfirmDialog";
 import { WithdrawReviewButton } from "./WithdrawReviewButton";
 import { TeacherRejectionNote } from "./TeacherRejectionNote";
+import { TeacherFlowSteps, type TeacherFlowStep } from "./TeacherFlowSteps";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./Tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./DropdownMenu";
 import { Skeleton } from "./Skeleton";
@@ -52,9 +53,12 @@ const FIX_LABELS: Record<CourseReadinessKey, string> = {
 
 /*
  * The course editor: Content (chapters and lessons) and Details sit in tabs that
- * both stay mounted, so switching never loses typing. The side column shows the
- * card students will see and what is still needed before Submit for review.
- * Inside the admin panel it only edits: no submit, withdraw or unpublish.
+ * both stay mounted, so switching never loses typing. For the teacher the tabs
+ * are driven by the course step track (Lessons, Details, Publish), the same one
+ * the create page starts; Publish opens the submit flow. The side column shows
+ * the card students will see and what is still needed before Submit for review.
+ * Inside the admin panel it keeps plain tabs and only edits: no submit, withdraw
+ * or unpublish.
  */
 export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
   const adminEdit = useAdminContentEdit();
@@ -89,8 +93,8 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
   const unsavedGuard = useUnsavedChangesGuard(
     detailsDirty || detailsUploading,
     detailsUploading
-      ? "A file on the Details tab is still uploading. If you leave now, it is lost."
-      : "Your changes on the Details tab are not saved yet. If you leave now, they are lost."
+      ? "A file in the Details step is still uploading. If you leave now, it is lost."
+      : "Your changes in the Details step are not saved yet. If you leave now, they are lost."
   );
 
   const setTab = (next: EditorTab) => {
@@ -229,6 +233,37 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
 
   const shownTitle = live.title.trim() || "Untitled course";
 
+  const isSubmitted = isPublished || isInReview;
+  const readinessDone = (...keys: CourseReadinessKey[]) =>
+    readiness.filter((item) => keys.includes(item.key)).every((item) => item.done);
+  const canStartSubmit = !isSubmitted && !publishCourseMutation.isPending && !detailsUploading;
+  const flowSteps: TeacherFlowStep[] = [
+    {
+      key: "lessons",
+      label: "Lessons",
+      hint: lessonsCount > 0 ? pluralize(lessonsCount, "lesson") : "Chapters and videos",
+      tone: "lavender",
+      state: tab === "content" ? "current" : isSubmitted || readinessDone("lessons", "video") ? "done" : "todo",
+      onSelect: () => setTab("content"),
+    },
+    {
+      key: "details",
+      label: "Details",
+      hint: detailsDirty ? "Unsaved changes" : "Exams, price and cover",
+      tone: "mint",
+      state: tab === "details" ? "current" : isSubmitted || readinessDone("cover", "description") ? "done" : "todo",
+      onSelect: () => setTab("details"),
+    },
+    {
+      key: "publish",
+      label: "Publish",
+      hint: isPublished ? "Live" : isInReview ? "In review" : publishesDirectly ? "Go live" : "Send for review",
+      tone: "peach",
+      state: isSubmitted ? "done" : "todo",
+      onSelect: canStartSubmit ? startSubmit : undefined,
+    },
+  ];
+
   const viewCourse = (
     <Button asChild variant="outline">
       <a href={`/course/${course.slug}`} target="_blank" rel="noopener noreferrer">
@@ -308,22 +343,26 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
           </div>
         </header>
 
+        {!adminEdit && <TeacherFlowSteps label="Course steps" steps={flowSteps} />}
+
         {rejection && !isPublished && !isInReview && <TeacherRejectionNote rejection={rejection} size="large" />}
 
         <div className={styles.workspace}>
           <Tabs value={tab} onValueChange={(value) => setTab(value as EditorTab)} className={styles.main}>
-            <TabsList className={styles.tabs} aria-label="Course editor sections">
-              <TabsTrigger value="content" className={styles.tab}>
-                Content
-                <span className={styles.tabCount}>{lessonsCount}</span>
-              </TabsTrigger>
-              <TabsTrigger value="details" className={styles.tab}>
-                Details
-                {detailsDirty ? (
-                  <span className={styles.unsavedDot} role="img" aria-label="unsaved changes" />
-                ) : null}
-              </TabsTrigger>
-            </TabsList>
+            {adminEdit ? (
+              <TabsList className={styles.tabs} aria-label="Course editor sections">
+                <TabsTrigger value="content" className={styles.tab}>
+                  Content
+                  <span className={styles.tabCount}>{lessonsCount}</span>
+                </TabsTrigger>
+                <TabsTrigger value="details" className={styles.tab}>
+                  Details
+                  {detailsDirty ? (
+                    <span className={styles.unsavedDot} role="img" aria-label="unsaved changes" />
+                  ) : null}
+                </TabsTrigger>
+              </TabsList>
+            ) : null}
 
             <TabsContent value="content" forceMount className={styles.panel}>
               <CourseSectionBuilder courseId={courseId} />
@@ -339,7 +378,7 @@ export const CourseEditorWorkspace = ({ courseId }: { courseId: number }) => {
                   filledByAi && !adminEdit ? (
                     <>
                       <strong>Filled in from your description.</strong> Check the wording and price, add a cover, then
-                      add your chapters in Content.
+                      add your chapters in Lessons.
                     </>
                   ) : null
                 }

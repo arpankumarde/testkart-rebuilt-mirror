@@ -20,6 +20,9 @@ import {
   useSendEmailLoginOtpMutation,
   useVerifyEmailLoginOtpMutation,
 } from "../helpers/useEmailLogin";
+import { AccountChoiceDialog } from "./AccountChoiceDialog";
+import type { AccountChoiceOutput } from "../helpers/loginAccount";
+import type { User } from "../helpers/User";
 import styles from "./EmailOTPLoginForm.module.css";
 
 const emailFormat = z.string().email();
@@ -56,6 +59,8 @@ export const EmailOTPLoginForm: React.FC<EmailOTPLoginFormProps> = ({
   const [touched, setTouched] = useState(false);
   const [sentTo, setSentTo] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
+  const [accountChoice, setAccountChoice] = useState<AccountChoiceOutput | null>(null);
+  const side = role === "teacher" ? "teacher" : "student";
 
   const { onLogin } = useAuth();
   const navigate = useNavigate();
@@ -115,9 +120,13 @@ export const EmailOTPLoginForm: React.FC<EmailOTPLoginFormProps> = ({
     sender.setError(null);
     setNotice(null);
     verifyOtpMutation.mutate(
-      { email: sentTo, otpCode: data.otpCode, role },
+      { email: sentTo, otpCode: data.otpCode, role, supportsAccountChoice: true },
       {
         onSuccess: (result) => {
+          if ("accountChoice" in result) {
+            setAccountChoice(result);
+            return;
+          }
           onLogin(result.user);
           setTimeout(() => navigate(redirectPath), 200);
         },
@@ -131,6 +140,14 @@ export const EmailOTPLoginForm: React.FC<EmailOTPLoginFormProps> = ({
         },
       }
     );
+  };
+
+  const finishAccountChoice = (user: User) => {
+    setAccountChoice(null);
+    onLogin(user);
+    const destination =
+      user.role === side ? redirectPath : user.role === "teacher" ? "/teacher/dashboard" : "/student/dashboard";
+    setTimeout(() => navigate(destination), 200);
   };
 
   const errorBox = sender.error ? (
@@ -279,6 +296,12 @@ export const EmailOTPLoginForm: React.FC<EmailOTPLoginFormProps> = ({
           Cloudflare flags will look for the checkbox. It mints one token on
           load; a retry or resend asks getToken() for another. The Send OTP
           button never waits on it: the token is awaited only after a press. */}
+      <AccountChoiceDialog
+        choice={accountChoice}
+        side={side}
+        onClose={() => setAccountChoice(null)}
+        onSignedIn={finishAccountChoice}
+      />
       <TurnstileWidget ref={turnstileRef} className={sender.challengeVisible ? styles.challengeShown : styles.challenge}
         {...sender.turnstileProps} />
     </div>

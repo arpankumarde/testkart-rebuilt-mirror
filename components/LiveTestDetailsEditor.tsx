@@ -33,7 +33,7 @@ export const LiveTestDetailsEditor = ({ liveTestId, exitTo, exitLabel, guided = 
   const loadFailed = !hasValidId || (!isFresh && !isFetching);
 
   if (guided && isFresh && data) {
-    return <LiveTestGuidedForm liveTest={data} intro={intro} exitTo={exitTo} />;
+    return <LiveTestGuidedForm liveTest={data} intro={intro} />;
   }
 
   return (

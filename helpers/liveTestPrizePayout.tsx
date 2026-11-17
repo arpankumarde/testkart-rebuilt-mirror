@@ -178,8 +178,8 @@ export async function distributeLiveTestPrizes(liveTestId: number): Promise<Priz
     try {
       const distributions = await db
         .selectFrom("liveTestPrizeDistributions")
-        .innerJoin("users", "liveTestPrizeDistributions.studentId", "users.id")
-        .select(["users.email", "users.displayName", "liveTestPrizeDistributions.actualAmount", "liveTestPrizeDistributions.rank"])
+        .innerJoin("students", "liveTestPrizeDistributions.studentId", "students.id")
+        .select(["students.email", "students.displayName", "liveTestPrizeDistributions.actualAmount", "liveTestPrizeDistributions.rank"])
         .where("liveTestPrizeDistributions.liveTestId", "=", liveTestId)
         .execute();
 
@@ -198,8 +198,8 @@ export async function distributeLiveTestPrizes(liveTestId: number): Promise<Priz
       if (Date.now() - outcome.endTime.getTime() <= RESULTS_EMAIL_MAX_AGE_MS) {
         const enrolledStudents = await db
           .selectFrom("liveTestEnrollments")
-          .innerJoin("users", "liveTestEnrollments.studentId", "users.id")
-          .select(["users.email", "users.displayName"])
+          .innerJoin("students", "liveTestEnrollments.studentId", "students.id")
+          .select(["students.email", "students.displayName"])
           .where("liveTestEnrollments.liveTestId", "=", liveTestId)
           .execute();
 

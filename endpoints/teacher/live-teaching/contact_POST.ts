@@ -22,7 +22,7 @@ export async function handle(request: Request) {
 
     const input = schema.parse(superjson.parse(await request.text()));
     const existing = await db
-      .selectFrom("users")
+      .selectFrom("teachers")
       .select(["email", "mobileNumber"])
       .where("id", "=", effectiveTeacherId)
       .executeTakeFirst();
@@ -50,7 +50,7 @@ export async function handle(request: Request) {
     }
 
     const updated = await db
-      .updateTable("users")
+      .updateTable("teachers")
       .set({ ...updates, updatedAt: new Date() })
       .where("id", "=", effectiveTeacherId)
       .returning(["email", "mobileNumber"])

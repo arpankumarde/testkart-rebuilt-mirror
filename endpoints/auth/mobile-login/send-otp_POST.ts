@@ -2,6 +2,7 @@ import { z } from "zod";
 import superjson from "superjson";
 import { schema } from "./send-otp_POST.schema";
 import { db } from "../../../helpers/db";
+import { allAccounts } from "../../../helpers/allAccounts";
 import { sendSMS } from "../../../helpers/sendSMS";
 import { getClientIp } from "../../../helpers/getClientIp";
 import { checkOtpRateLimit } from "../../../helpers/otpRateLimit";
@@ -35,7 +36,7 @@ export async function handle(request: Request) {
 
     // 1. Check if a user exists with this mobile number (optional - not required for signup)
     const user = await db
-      .selectFrom("users")
+      .selectFrom(allAccounts(db).as("users"))
       .select("id")
       .where("mobileNumber", "=", mobileNumber)
       .where("mobileVerified", "=", true)

@@ -81,7 +81,7 @@ export async function fetchLiveTestsListServer(
 
   let query = db
     .selectFrom("liveTests")
-    .innerJoin("users", "users.id", "liveTests.teacherId")
+    .innerJoin("teachers", "teachers.id", "liveTests.teacherId")
     .innerJoin("mockTests", "mockTests.id", "liveTests.mockTestId")
     .leftJoin("exams", "exams.examName", "mockTests.examName")
     .select([
@@ -106,8 +106,8 @@ export async function fetchLiveTestsListServer(
       "liveTests.viewCount",
       "mockTests.examName",
       "mockTests.slug",
-      "users.displayName as teacherName",
-      "users.isVerified as teacherIsVerified",
+      "teachers.displayName as teacherName",
+      "teachers.isVerified as teacherIsVerified",
       (eb) =>
         eb
           .selectFrom("mockTestItems")
@@ -170,7 +170,7 @@ export async function fetchLiveTestsListServer(
       eb.or([
         eb("liveTests.title", "ilike", searchPattern),
         eb("liveTests.description", "ilike", searchPattern),
-        eb("users.displayName", "ilike", searchPattern),
+        eb("teachers.displayName", "ilike", searchPattern),
       ])
     );
   }

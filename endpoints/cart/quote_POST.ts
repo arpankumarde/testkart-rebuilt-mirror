@@ -54,7 +54,7 @@ export async function handle(request: Request) {
 
     const teacherIds = [...new Set(preview.autoOffers.map((o) => o.teacherId))];
     const teachers = teacherIds.length
-      ? await db.selectFrom("users").select(["id", "displayName"]).where("id", "in", teacherIds).execute()
+      ? await db.selectFrom("teachers").select(["id", "displayName"]).where("id", "in", teacherIds).execute()
       : [];
     const teacherName = new Map(teachers.map((t) => [t.id, t.displayName]));
 

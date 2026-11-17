@@ -1,6 +1,8 @@
 import { schema, OutputType } from "./verify-email-otp_POST.schema";
 import superjson from 'superjson';
 import { db } from "../../helpers/db";
+import { allAccounts } from "../../helpers/allAccounts";
+import { updateAccountById } from "../../helpers/accountRows";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { NotAuthenticatedError } from "../../helpers/getSetServerSession";
 import { getClientIp } from "../../helpers/getClientIp";
@@ -54,7 +56,7 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     // Re-check for duplicate email just in case another user verified it concurrently
-    const existingUser = await db.selectFrom('users')
+    const existingUser = await db.selectFrom(allAccounts(db).as('users'))
       .select('id')
       .where('email', '=', normalizedEmail)
       .where('id', '!=', user.id)
@@ -67,14 +69,11 @@ export async function handle(request: Request): Promise<Response> {
 
     // OTP is correct, update user and OTP entry in a transaction
     await db.transaction().execute(async (trx) => {
-      await trx.updateTable('users')
-        .set({
-          email: normalizedEmail,
-          emailVerified: true,
-          updatedAt: new Date(),
-        })
-        .where('id', '=', user.id)
-        .execute();
+      await updateAccountById(trx, user.id, {
+        email: normalizedEmail,
+        emailVerified: true,
+        updatedAt: new Date(),
+      });
 
       await trx.updateTable('emailOtps')
         .set({ verifiedAt: new Date() })

@@ -18,7 +18,7 @@ export async function handle(request: Request) {
     }
 
     const row = await db
-      .selectFrom("users")
+      .selectFrom("teachers")
       .select(["mentorshipEnabled", "mentorshipRatePerUnit", "mentorshipClassPrice60", "mentorshipTrialDiscount"])
       .where("id", "=", effectiveTeacherId)
       .executeTakeFirst();

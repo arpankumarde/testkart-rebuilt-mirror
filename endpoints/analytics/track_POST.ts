@@ -40,8 +40,8 @@ async function resolveEntity(
         WHERE ${byKey("course_bundles.id", "course_bundles.slug")} AND is_published = true LIMIT 1`;
       break;
     case "teacher_profile":
-      query = sql<Row>`SELECT id, id AS teacher_id FROM users
-        WHERE ${byKey("users.id", "users.slug")} AND role = 'teacher' AND is_active = true LIMIT 1`;
+      query = sql<Row>`SELECT id, id AS teacher_id FROM teachers
+        WHERE ${byKey("teachers.id", "teachers.slug")} AND is_active = true LIMIT 1`;
       break;
   }
   const result = await query.execute(db);

@@ -379,14 +379,16 @@ const TestDetailsPage: React.FC = () => {
             </Link>
           </section>
 
-          <section id="reviews" className={styles.section}>
-            <SectionHeading tone="butter" icon={<Star />}>Student reviews</SectionHeading>
-            <TestReviews
-              mockTestId={testPackage.id}
-              rating={testPackage.rating}
-              reviewsCount={testPackage.reviewsCount}
-            />
-          </section>
+          {testPackage.reviewsCount > 0 && (
+            <section id="reviews" className={styles.section}>
+              <SectionHeading tone="butter" icon={<Star />}>Student reviews</SectionHeading>
+              <TestReviews
+                mockTestId={testPackage.id}
+                rating={testPackage.rating}
+                reviewsCount={testPackage.reviewsCount}
+              />
+            </section>
+          )}
 
           {relatedTests.length > 0 && (
             <section className={styles.section}>

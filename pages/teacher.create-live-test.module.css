@@ -2,7 +2,8 @@
  * The console's form-page shell, as on teacher.create-test: no padding of its
  * own (TeacherDashboardLayout's .pageBody owns the gutter) and a form measure
  * rather than the list pages' 1440, so labels and inputs keep a comfortable
- * line length. Shared by Create live test and Edit live test.
+ * line length. .page and .form are shared by Create live test and Edit live
+ * test; the rest is the create page's start form.
  */
 .page {
   display: flex;
@@ -18,8 +19,196 @@
   width: 100%;
 }
 
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.start {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4) var(--spacing-6) var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.sectionHead {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: var(--spacing-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.sectionHint {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.labelRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.choiceGroup {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-3);
+}
+
+.choice {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--spacing-3) var(--spacing-4);
+  text-align: left;
+  font-family: var(--font-family-base);
+  background-color: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color var(--animation-duration-fast) ease;
+}
+
+.choice:hover {
+  border-color: var(--tc-line-strong, var(--border));
+}
+
+.choice[aria-checked="true"] {
+  border-color: var(--sp-lavender-edge);
+  background-color: var(--sp-lavender-tint);
+}
+
+.choice[aria-checked="true"] .choiceTitle {
+  color: var(--sp-lavender-ink);
+}
+
+.choice:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
+.choiceTitle {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.choiceHint {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--muted-foreground);
+}
+
+.nextList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  margin: 0;
+  padding: var(--spacing-4) var(--spacing-6);
+  list-style: none;
+  background-color: var(--sp-lavender-tint);
+  border: 1px solid var(--sp-lavender-line);
+  border-radius: var(--radius-md);
+  color: var(--sp-lavender-ink);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.nextList li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+}
+
+.nextNum {
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background-color: var(--sp-lavender-ink);
+  color: var(--sp-lavender-tint);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.error {
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid var(--error-text);
+  border-radius: var(--radius);
+  background-color: var(--sp-card);
+  color: var(--error-text);
+  font-size: 0.875rem;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+}
+
+.actionsNote {
+  margin: 0;
+  margin-right: auto;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
 @media (max-width: 640px) {
   .page {
     gap: var(--spacing-4);
+  }
+
+  .section,
+  .nextList {
+    padding: var(--spacing-4);
+  }
+
+  .choiceGroup {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .actions {
+    justify-content: stretch;
+  }
+
+  .actionsNote {
+    margin-right: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .choice {
+    transition: none;
   }
 }

@@ -40,7 +40,6 @@ export const useAutopilotOperations = (enabled: boolean) =>
     queryFn: () => getAdminAutopilotOperations(),
     enabled,
     refetchOnMount: true,
-    refetchOnWindowFocus: true,
     staleTime: 60 * 1000,
     placeholderData: (previous) => previous,
   });

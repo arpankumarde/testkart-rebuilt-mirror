@@ -6,18 +6,19 @@ import { TeacherFlowSteps, type TeacherFlowStepTone } from "./TeacherFlowSteps";
 import { useTeacherTestItemsQuery } from "../helpers/useTeacherTestsQuery";
 import styles from "./TestSeriesSteps.module.css";
 
-export type TestSeriesStep = "details" | "tests" | "questions" | "publish";
+export type TestSeriesStep = "tests" | "questions" | "details" | "publish";
 
 const STEPS: { key: TestSeriesStep; label: string; hint: string; tone: TeacherFlowStepTone }[] = [
-  { key: "details", label: "Details", hint: "Name, exam and price", tone: "lavender" },
   { key: "tests", label: "Tests", hint: "Papers in the series", tone: "mint" },
   { key: "questions", label: "Questions", hint: "Fill each test", tone: "butter" },
+  { key: "details", label: "Details", hint: "Exam, price and bio", tone: "lavender" },
   { key: "publish", label: "Publish", hint: "Check and go live", tone: "peach" },
 ];
 
 /*
  * The top of every test series step page: a Go back button and the track, the
- * same on each step so moving between steps does not shift the page. Each step
+ * same on each step so moving between steps does not shift the page. Content
+ * comes first (tests, then questions), then Details, then Publish. Each step
  * has its own /app palette tone. Pages that render this also put the global
  * tk-flow class on their root, which restyles their Buttons (Button.module.css). Before
  * the series exists (the create page) no step links anywhere; after that every

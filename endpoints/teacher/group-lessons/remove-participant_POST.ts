@@ -49,7 +49,7 @@ export async function handle(request: Request) {
         .execute();
 
       const student = await trx
-        .selectFrom("users")
+        .selectFrom("students")
         .select(["email", "displayName"])
         .where("id", "=", input.studentId)
         .executeTakeFirst();

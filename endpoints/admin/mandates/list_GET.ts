@@ -11,7 +11,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const rows = await db
       .selectFrom("teacherSubscriptions as ts")
-      .innerJoin("users as u", "u.id", "ts.teacherId")
+      .innerJoin("teachers as u", "u.id", "ts.teacherId")
       .innerJoin("subscriptionPlans as sp", "sp.id", "ts.planId")
       .leftJoin("promoCodes as pc", "pc.id", "ts.promoCodeId")
       .where("ts.mandateId", "is not", null)

@@ -76,8 +76,7 @@ export type TeacherOnboardingRunSummary = {
 };
 
 const eligibleTeacher = (now: Date, withinDays: number) => sql<boolean>`
-  u.role = 'teacher'
-  AND u.is_active
+  u.is_active
   AND u.email LIKE '%@%'
   AND u.created_at >= ${new Date(now.getTime() - withinDays * DAY_MS)}
   AND NOT EXISTS (
@@ -90,7 +89,7 @@ const eligibleTeacher = (now: Date, withinDays: number) => sql<boolean>`
 async function enrolTeachers(now: Date): Promise<number> {
   const result = await sql`
     INSERT INTO teacher_onboarding (teacher_id, enrolled_at)
-    SELECT u.id, ${now}::timestamptz FROM users u
+    SELECT u.id, ${now}::timestamptz FROM teachers u
     WHERE ${eligibleTeacher(now, ENROL_WITHIN_DAYS)}
     ON CONFLICT (teacher_id) DO NOTHING
     RETURNING teacher_id`.execute(db);
@@ -134,7 +133,7 @@ async function loadCandidates(now: Date, includeUnenrolled: boolean): Promise<Ca
       u.website_url AS "websiteUrl",
       u.social_links AS "socialLinks",
       u.awards_certificates AS "awardsCertificates"
-    FROM users u
+    FROM teachers u
     LEFT JOIN teacher_onboarding o ON o.teacher_id = u.id
     WHERE ${eligibleTeacher(now, ACTIVE_FOR_DAYS)}
       AND (o.teacher_id IS NOT NULL OR (${includeUnenrolled}::boolean AND u.created_at >= ${enrolWindow}))

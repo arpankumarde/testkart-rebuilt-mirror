@@ -67,7 +67,7 @@ export async function handle(request: Request): Promise<Response> {
       }[input.outcome];
       const where = sql`WHERE true ${outcome} ${playbookFilter("m")} ${input.channel ? sql`AND m.channel::text = ${input.channel}` : sql``} ${userFilter("m")}`;
 
-      const count = await sql<Row>`SELECT count(*)::int AS n FROM rev_messages m LEFT JOIN users u ON u.id = m.user_id ${where}`.execute(db);
+      const count = await sql<Row>`SELECT count(*)::int AS n FROM rev_messages m LEFT JOIN students u ON u.id = m.user_id ${where}`.execute(db);
       total = num(count.rows[0] ?? {}, "n");
 
       const rows = await sql<Row>`
@@ -77,7 +77,7 @@ export async function handle(request: Request): Promise<Response> {
                (SELECT ro.coins FROM rev_offers ro WHERE ro.message_id = m.id ORDER BY ro.id LIMIT 1) AS offer_coins,
                ord.id AS order_id, ord.total_amount AS order_amount
         FROM rev_messages m
-        LEFT JOIN users u ON u.id = m.user_id
+        LEFT JOIN students u ON u.id = m.user_id
         LEFT JOIN LATERAL (
           SELECT o.id, o.total_amount FROM orders o
           WHERE o.attributed_message_id = m.id AND o.status = 'completed' ORDER BY o.id LIMIT 1
@@ -119,7 +119,7 @@ export async function handle(request: Request): Promise<Response> {
       }[input.state];
       const where = sql`WHERE true ${state} ${playbookFilter("e")} ${userFilter("e")}`;
 
-      const count = await sql<Row>`SELECT count(*)::int AS n FROM rev_enrolments e LEFT JOIN users u ON u.id = e.user_id ${where}`.execute(db);
+      const count = await sql<Row>`SELECT count(*)::int AS n FROM rev_enrolments e LEFT JOIN students u ON u.id = e.user_id ${where}`.execute(db);
       total = num(count.rows[0] ?? {}, "n");
 
       const rows = await sql<Row>`
@@ -130,7 +130,7 @@ export async function handle(request: Request): Promise<Response> {
                (SELECT max(m.sent_at) FROM rev_messages m WHERE m.user_id = e.user_id AND m.playbook_key = e.playbook_key
                   AND m.shadow = false AND m.created_at >= e.created_at) AS last_message_at
         FROM rev_enrolments e
-        LEFT JOIN users u ON u.id = e.user_id
+        LEFT JOIN students u ON u.id = e.user_id
         ${where}
         ORDER BY ${input.state === "active" ? sql`e.next_due_at ASC NULLS LAST, e.id DESC` : sql`e.updated_at DESC NULLS LAST, e.id DESC`}
         LIMIT ${PAGE_SIZE} OFFSET ${offset}

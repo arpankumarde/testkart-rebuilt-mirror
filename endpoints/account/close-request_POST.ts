@@ -34,12 +34,12 @@ export async function handle(request: Request) {
     // Every step runs on trx: the db pool has a single connection and the
     // transaction holds it until commit, so a query on db here would hang.
     const { closedUser, counterTargets } = await db.transaction().execute(async (trx) => {
-      const fullUser = await trx
-        .selectFrom("users")
-        .select(["id", "email", "displayName", "mobileNumber", "role", "createdAt"])
-        .where("id", "=", user.id)
-        .forUpdate()
-        .executeTakeFirst();
+      const columns = ["id", "email", "displayName", "mobileNumber", "createdAt"] as const;
+      const accountRow =
+        user.role === "teacher"
+          ? await trx.selectFrom("teachers").select(columns).where("id", "=", user.id).forUpdate().executeTakeFirst()
+          : await trx.selectFrom("students").select(columns).where("id", "=", user.id).forUpdate().executeTakeFirst();
+      const fullUser = accountRow && { ...accountRow, role: user.role };
 
       if (!fullUser) {
         throw new AccountNotFoundError();

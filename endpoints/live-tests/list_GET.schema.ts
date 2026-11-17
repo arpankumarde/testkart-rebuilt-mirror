@@ -1,7 +1,7 @@
 import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
-import { LiveTests, Users } from "../../helpers/schema";
+import { LiveTests, Teachers } from "../../helpers/schema";
 
 export const LiveTestStatusArray = [
   "upcoming",
@@ -50,7 +50,7 @@ export type LiveTestListItem = Pick<
   firstPrize: number;
   secondPrize: number;
   thirdPrize: number;
-  teacherName: Selectable<Users>["displayName"];
+  teacherName: Selectable<Teachers>["displayName"];
   teacherIsVerified: boolean;
   isEnrolled: boolean;
   hasAttempted: boolean;

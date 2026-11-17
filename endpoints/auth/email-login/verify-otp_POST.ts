@@ -19,11 +19,18 @@ import {
 import { recordSignIn } from "../../../helpers/recordSignIn";
 import { sendTemplateEmail } from "../../../helpers/sendTemplateEmail";
 import { addContactToAudience } from "../../../helpers/resendContacts";
+import {
+  createAccountChoiceResponse,
+  findLoginAccounts,
+  resolveLogin,
+  sideFromRoleParam,
+} from "../../../helpers/loginAccount";
+import { insertAccount, updateAccount } from "../../../helpers/accountRows";
 
 export async function handle(request: Request) {
   try {
     const json = superjson.parse(await request.text());
-    const { email, otpCode, role } = schema.parse(json);
+    const { email, otpCode, role, supportsAccountChoice } = schema.parse(json);
     const ipAddress = getClientIp(request);
 
     const limitMessage = await checkOtpVerifyLimit(email, ipAddress);
@@ -71,21 +78,20 @@ export async function handle(request: Request) {
       });
     }
 
-    // 4. OTP is correct, check if user exists
-    let user = await db
-      .selectFrom("users")
-      .select([
-        "id",
-        "email",
-        "displayName",
-        "role",
-        "avatarUrl",
-        "mobileNumber",
-        "mobileVerified",
-      ])
-      .where("email", "=", email)
-      .where("emailVerified", "=", true)
-      .executeTakeFirst();
+    // 4. OTP is correct: find this side's account, or offer the other side's (helpers/loginAccount)
+    const side = sideFromRoleParam(role);
+    const resolution = resolveLogin(await findLoginAccounts({ email }, side), supportsAccountChoice ?? false);
+    if (resolution.kind === "choice") {
+      await db.updateTable("emailOtps").set({ verifiedAt: new Date() }).where("id", "=", otpRecord.id).execute();
+      const choiceOutput = await createAccountChoiceResponse({
+        side,
+        otherAccount: resolution.otherAccount,
+        identifier: { email },
+        method: "email_otp",
+      });
+      return new Response(superjson.stringify(choiceOutput));
+    }
+    let user = resolution.kind === "existing" ? resolution.account : undefined;
 
     if (user) {
       const blockedMessage = await getAccountBlockMessage(user.id);
@@ -97,35 +103,18 @@ export async function handle(request: Request) {
     // 5. If no user exists, create a new account (signup flow)
     const isNewUser = !user;
     if (!user) {
-      const newUser = await db
-        .insertInto("users")
-        .values({
-          displayName: "User",
-          email,
-          emailVerified: true,
-          role: role === "teacher" ? "teacher" : "student",
-          mobileNumber: null,
-          isActive: true,
-        })
-        .returning([
-          "id",
-          "email",
-          "displayName",
-          "role",
-          "avatarUrl",
-          "mobileNumber",
-          "mobileVerified",
-        ])
-        .executeTakeFirstOrThrow();
+      const newUser = await insertAccount(db, side, {
+        displayName: "User",
+        email,
+        emailVerified: true,
+        mobileNumber: null,
+        isActive: true,
+      });
 
       const finalDisplayName = `User_${newUser.id}`;
       const avatarUrl = `https://api.dicebear.com/9.x/fun-emoji/png?seed=${newUser.id}`;
 
-      await db
-        .updateTable("users")
-        .set({ displayName: finalDisplayName, avatarUrl })
-        .where("id", "=", newUser.id)
-        .execute();
+      await updateAccount(db, side, newUser.id, { displayName: finalDisplayName, avatarUrl });
       await assignUserSlug(newUser.id, finalDisplayName);
 
       await db

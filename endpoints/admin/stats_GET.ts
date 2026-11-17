@@ -1,4 +1,5 @@
 import { db } from "../../helpers/db";
+import { allAccounts } from "../../helpers/allAccounts";
 import { getAdminServerSessionOrThrow } from "../../helpers/getAdminSession";
 import { OutputType } from "./stats_GET.schema";
 import superjson from "superjson";
@@ -33,16 +34,14 @@ export async function handle(request: Request): Promise<Response> {
     ] = await Promise.all([
       // Total teachers
       db
-        .selectFrom("users")
+        .selectFrom("teachers")
         .select((eb) => eb.fn.countAll<string>().as("count"))
-        .where("role", "=", "teacher")
         .executeTakeFirstOrThrow(),
 
       // Total students
       db
-        .selectFrom("users")
+        .selectFrom("students")
         .select((eb) => eb.fn.countAll<string>().as("count"))
-        .where("role", "=", "student")
         .executeTakeFirstOrThrow(),
 
       // Published tests
@@ -148,9 +147,8 @@ export async function handle(request: Request): Promise<Response> {
 
       // Monthly new teachers
       db
-        .selectFrom("users")
+        .selectFrom("teachers")
         .select((eb) => eb.fn.countAll<string>().as("count"))
-        .where("role", "=", "teacher")
         .where(
           sql`date_trunc('month', created_at)`,
           "=",
@@ -160,9 +158,8 @@ export async function handle(request: Request): Promise<Response> {
 
       // Monthly new students
       db
-        .selectFrom("users")
+        .selectFrom("students")
         .select((eb) => eb.fn.countAll<string>().as("count"))
-        .where("role", "=", "student")
         .where(
           sql`date_trunc('month', created_at)`,
           "=",
@@ -212,7 +209,7 @@ export async function handle(request: Request): Promise<Response> {
 
       // Last 6 months signup history (most recent first, we'll reverse)
       db
-        .selectFrom("users")
+        .selectFrom(allAccounts(db).as("account"))
         .select([
           sql<string>`to_char(created_at, 'YYYY-MM')`.as("month"),
           sql<string>`COUNT(*) FILTER (WHERE role = 'teacher')`.as("teachers"),

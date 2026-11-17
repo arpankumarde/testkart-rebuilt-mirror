@@ -13,7 +13,7 @@ export async function handle(request: Request): Promise<Response> {
     // the ones currently in effect (see Active Custom Trials for that).
     const trials = await db
       .selectFrom("teacherSubscriptions as ts")
-      .innerJoin("users as u", "u.id", "ts.teacherId")
+      .innerJoin("teachers as u", "u.id", "ts.teacherId")
       .where("ts.paymentMethod", "=", "admin_trial")
       .select([
         "ts.id as subscriptionId",

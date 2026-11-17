@@ -16,6 +16,7 @@ import { recordFunnelEvent } from "../../helpers/recordFunnelEvent";
 import { openCashfreeSession, settleCashfreeOrder } from "../../helpers/cashfreeOrders";
 import { cashfreeGatewayEnv, terminateCashfreeOrder } from "../../helpers/cashfree";
 import { liveBookingPath } from "../../helpers/liveBookingRoutes";
+import { liveBookingContactProblem } from "../../helpers/liveBookingContact";
 
 export async function handle(request: Request) {
   try {
@@ -23,6 +24,8 @@ export async function handle(request: Request) {
     if (user.role !== "student") {
       throw new NotAuthenticatedError("Only students can book 1:1 sessions.");
     }
+    const contactProblem = await liveBookingContactProblem(user.id);
+    if (contactProblem) throw new Error(contactProblem);
 
     const json = superjson.parse<InputType>(await request.text());
     const { teacherId, durationMinutes, startTime } = schema.parse(json);
@@ -32,11 +35,10 @@ export async function handle(request: Request) {
     }
 
     const teacher = await db
-      .selectFrom("users")
+      .selectFrom("teachers")
       .select([
         "id",
         "slug",
-        "role",
         "mentorshipEnabled",
         "mentorshipRatePerUnit",
         "mentorshipClassPrice60",
@@ -49,7 +51,6 @@ export async function handle(request: Request) {
     const prices = teacher ? resolveLivePrices(teacher) : null;
     if (
       !teacher ||
-      teacher.role !== "teacher" ||
       !teacher.mentorshipEnabled ||
       teacher.liveTeachingStatus !== "approved" ||
       !prices ||

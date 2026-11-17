@@ -1,0 +1,148 @@
+.dialogContent {
+  max-width: 26rem;
+}
+
+.statusList {
+  list-style: none;
+  margin: var(--spacing-4) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.statusRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--card);
+}
+
+.statusRowActive {
+  border-color: var(--primary);
+}
+
+.statusLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 100%;
+  margin-top: var(--spacing-4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.phoneRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.phonePrefix {
+  flex-shrink: 0;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.otpInfo {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.inlineLink {
+  padding: 0;
+  height: auto;
+  font-size: 0.875rem;
+  vertical-align: baseline;
+}
+
+.otpInput {
+  text-align: center;
+  font-size: 1.5rem;
+  letter-spacing: 0.5rem;
+  font-family: var(--font-family-monospace);
+}
+
+.resendRow {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.timer {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.formError {
+  margin: 0;
+  padding: var(--spacing-3);
+  border: 1px solid color-mix(in srgb, var(--error) 40%, transparent);
+  border-radius: var(--radius);
+  background-color: color-mix(in srgb, var(--error) 12%, var(--card));
+  color: var(--error-text);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.submitButton {
+  width: 100%;
+  min-height: 2.75rem;
+}
+
+.cancelButton {
+  width: 100%;
+  margin-top: calc(-1 * var(--spacing-2));
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.cancelButton:hover {
+  color: var(--foreground);
+}
+
+.loadingText {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+}
+
+.spinner {
+  color: currentColor;
+}
+
+@media (max-width: 480px) {
+  .form {
+    gap: var(--spacing-3);
+    margin-top: var(--spacing-3);
+  }
+
+  .otpInput {
+    font-size: 1.25rem;
+    letter-spacing: 0.3rem;
+  }
+}

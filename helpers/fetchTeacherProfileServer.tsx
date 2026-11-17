@@ -41,9 +41,8 @@ export class TeacherNotFoundError extends Error {
  */
 export async function fetchTeacherProfileServer(teacherSlug: string): Promise<OutputType> {
   const teacher = await db
-    .selectFrom("users")
+    .selectFrom("teachers")
     .selectAll()
-    .where("role", "=", "teacher")
     .where("isActive", "=", true)
     .where("slug", "=", teacherSlug)
     .executeTakeFirst();
@@ -72,7 +71,7 @@ export async function fetchTeacherProfileServer(teacherSlug: string): Promise<Ou
 
   const courses = await db
     .selectFrom("courses")
-    .innerJoin("users", "users.id", "courses.teacherId")
+    .innerJoin("teachers", "teachers.id", "courses.teacherId")
     .select([
       "courses.id",
       "courses.slug",
@@ -90,12 +89,12 @@ export async function fetchTeacherProfileServer(teacherSlug: string): Promise<Ou
       "courses.introVideoUrl",
       "courses.examId",
       "courses.examName",
-      "users.displayName as teacherName",
-      "users.slug as teacherSlugCol",
-      "users.isVerified as teacherIsVerifiedCol",
-      "users.avatarUrl as teacherAvatarUrl",
-      "users.tagline as teacherTagline",
-      "users.yearsOfExperience as teacherYearsOfExperience",
+      "teachers.displayName as teacherName",
+      "teachers.slug as teacherSlugCol",
+      "teachers.isVerified as teacherIsVerifiedCol",
+      "teachers.avatarUrl as teacherAvatarUrl",
+      "teachers.tagline as teacherTagline",
+      "teachers.yearsOfExperience as teacherYearsOfExperience",
     ])
     .select((eb) => [
       sql<number>`(
@@ -150,7 +149,7 @@ export async function fetchTeacherProfileServer(teacherSlug: string): Promise<Ou
 
   const products = await db
     .selectFrom("digitalProducts")
-    .innerJoin("users", "users.id", "digitalProducts.teacherId")
+    .innerJoin("teachers", "teachers.id", "digitalProducts.teacherId")
     .select([
       "digitalProducts.id",
       "digitalProducts.title",
@@ -166,12 +165,12 @@ export async function fetchTeacherProfileServer(teacherSlug: string): Promise<Ou
       "digitalProducts.totalPurchases",
       "digitalProducts.publishedAt",
       "digitalProducts.views",
-      "users.displayName as teacherName",
-      "users.avatarUrl as teacherAvatar",
-      "users.slug as teacherSlugCol",
-      "users.isVerified as teacherIsVerifiedCol",
-      "users.tagline as teacherTagline",
-      "users.yearsOfExperience as teacherYearsOfExperience",
+      "teachers.displayName as teacherName",
+      "teachers.avatarUrl as teacherAvatar",
+      "teachers.slug as teacherSlugCol",
+      "teachers.isVerified as teacherIsVerifiedCol",
+      "teachers.tagline as teacherTagline",
+      "teachers.yearsOfExperience as teacherYearsOfExperience",
     ])
     .select((eb) => [
       sql<number>`(
@@ -218,7 +217,7 @@ export async function fetchTeacherProfileServer(teacherSlug: string): Promise<Ou
 
   const tests = await db
     .selectFrom("mockTests")
-    .innerJoin("users", "users.id", "mockTests.teacherId")
+    .innerJoin("teachers", "teachers.id", "mockTests.teacherId")
     .leftJoin("exams", "exams.id", "mockTests.examId")
     .leftJoin("liveTests", (join) =>
       join.onRef("liveTests.mockTestId", "=", "mockTests.id").on("liveTests.isActive", "=", true)
@@ -251,11 +250,11 @@ export async function fetchTeacherProfileServer(teacherSlug: string): Promise<Ou
       "mockTests.examName",
       "mockTests.language",
       "mockTests.views",
-      "users.displayName as teacherName",
-      "users.slug as teacherSlugCol",
-      "users.avatarUrl as teacherAvatarUrl",
-      "users.tagline as teacherTagline",
-      "users.yearsOfExperience as teacherYearsOfExperience",
+      "teachers.displayName as teacherName",
+      "teachers.slug as teacherSlugCol",
+      "teachers.avatarUrl as teacherAvatarUrl",
+      "teachers.tagline as teacherTagline",
+      "teachers.yearsOfExperience as teacherYearsOfExperience",
       "exams.examSlug",
       "liveTests.id as liveTestId",
       "liveTests.price as liveTestPrice",

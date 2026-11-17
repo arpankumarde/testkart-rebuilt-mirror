@@ -62,7 +62,7 @@ async function loadRows(examIds: number[]): Promise<Row[]> {
         c.price, c.discount_price AS "discountPrice", COALESCE(c.views, 0) AS views,
         ex.exam_id AS "examId", ${teacherColumns}
       FROM courses c
-      JOIN users u ON u.id = c.teacher_id
+      JOIN teachers u ON u.id = c.teacher_id
       CROSS JOIN LATERAL (
         SELECT c.exam_id UNION SELECT ce.exam_id FROM course_exams ce WHERE ce.course_id = c.id
       ) ex(exam_id)
@@ -76,7 +76,7 @@ async function loadRows(examIds: number[]): Promise<Row[]> {
         m.price, m.discount_price AS "discountPrice", COALESCE(m.views, 0) AS views,
         ex.exam_id AS "examId", ${teacherColumns}
       FROM mock_tests m
-      JOIN users u ON u.id = m.teacher_id
+      JOIN teachers u ON u.id = m.teacher_id
       CROSS JOIN LATERAL (
         SELECT m.exam_id UNION SELECT ce.exam_id FROM mock_test_exams ce WHERE ce.mock_test_id = m.id
       ) ex(exam_id)

@@ -317,7 +317,7 @@ export async function loadExpiryRows(types: ContentType[]): Promise<ExpiryListRo
   const { rows } = await sql<Omit<ExpiryListRow, "teacherName">>`
     select x.*, u.display_name as teacher_name
     from (${union}) x
-    left join users u on u.id = x.teacher_id
+    left join teachers u on u.id = x.teacher_id
     order by coalesce(x.expired_at, x.expires_at) desc
   `.execute(db);
   return rows as ExpiryListRow[];

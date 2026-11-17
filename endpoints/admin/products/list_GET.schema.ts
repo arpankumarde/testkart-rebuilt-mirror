@@ -1,7 +1,7 @@
 import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
-import { DigitalProducts, Users } from "../../../helpers/schema";
+import { DigitalProducts, Teachers } from "../../../helpers/schema";
 
 export const schema = z.object({});
 
@@ -19,8 +19,8 @@ export type AdminProductListItem = Pick<
   | "isPublished"
 > & {
   price: number;
-  teacherName: Selectable<Users>["displayName"];
-  teacherId: Selectable<Users>["id"];
+  teacherName: Selectable<Teachers>["displayName"];
+  teacherId: Selectable<Teachers>["id"];
   filesCount: number;
   totalPages: number;
   /** False when a student would get nothing to download - see digitalProductRules. */

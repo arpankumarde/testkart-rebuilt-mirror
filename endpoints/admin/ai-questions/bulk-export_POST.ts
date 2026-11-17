@@ -17,7 +17,7 @@ export async function handle(request: Request): Promise<Response> {
       .selectFrom("testQuestions")
       .innerJoin("mockTestItems", "testQuestions.testId", "mockTestItems.id")
       .innerJoin("mockTests", "mockTestItems.packageId", "mockTests.id")
-      .innerJoin("users", "mockTests.teacherId", "users.id")
+      .innerJoin("teachers", "mockTests.teacherId", "teachers.id")
       .innerJoin("exams", "mockTests.examId", "exams.id")
       .leftJoin("testItemSubjects", "testQuestions.subjectId", "testItemSubjects.id")
       .where("testQuestions.isAiGenerated", "=", true);
@@ -54,7 +54,7 @@ export async function handle(request: Request): Promise<Response> {
         "testItemSubjects.subjectName",
         "mockTestItems.title as testItemTitle",
         "exams.examName",
-        "users.displayName as teacherName",
+        "teachers.displayName as teacherName",
         "testQuestions.createdAt",
         "testQuestions.markedForReview",
         "testQuestions.aiGenerationMetadata",

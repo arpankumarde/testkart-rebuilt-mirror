@@ -23,7 +23,7 @@ export async function homepageFetchFeaturedCourses(): Promise<HomepageFeaturedCo
 
   const courses = await db
     .selectFrom("courses")
-    .innerJoin("users", "users.id", "courses.teacherId")
+    .innerJoin("teachers", "teachers.id", "courses.teacherId")
     .where("courses.status", "=", "published")
     .where("courses.visibility", "=", "public")
     .where("courses.slug", "in", FEATURED_COURSE_SLUGS)
@@ -36,9 +36,9 @@ export async function homepageFetchFeaturedCourses(): Promise<HomepageFeaturedCo
       "courses.discountPrice",
       "courses.examName",
       "courses.level",
-      "users.displayName as teacherName",
-      "users.avatarUrl as teacherAvatarUrl",
-      "users.isVerified as teacherIsVerified",
+      "teachers.displayName as teacherName",
+      "teachers.avatarUrl as teacherAvatarUrl",
+      "teachers.isVerified as teacherIsVerified",
       sql<number>`(SELECT COUNT(*) FROM course_lessons cl INNER JOIN course_sections cs ON cs.id = cl.section_id WHERE cs.course_id = courses.id)`.as("totalLessons"),
     ])
     .execute();

@@ -21,8 +21,8 @@ export async function handle(request: Request) {
 
     const booking = await db
       .selectFrom("mentorshipBookings")
-      .innerJoin("users as student", "student.id", "mentorshipBookings.studentId")
-      .innerJoin("users as teacher", "teacher.id", "mentorshipBookings.teacherId")
+      .innerJoin("students as student", "student.id", "mentorshipBookings.studentId")
+      .innerJoin("teachers as teacher", "teacher.id", "mentorshipBookings.teacherId")
       .select([
         "mentorshipBookings.id",
         "mentorshipBookings.studentId",

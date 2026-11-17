@@ -18,8 +18,8 @@ export async function handle(request: Request) {
       .leftJoin("mockTests", "cartItems.mockTestId", "mockTests.id")
       .leftJoin("courses", "cartItems.courseId", "courses.id")
       .leftJoin("digitalProducts", "cartItems.digitalProductId", "digitalProducts.id")
-      .leftJoin("users", "courses.teacherId", "users.id")
-      .leftJoin("users as productTeacher", "digitalProducts.teacherId", "productTeacher.id")
+      .leftJoin("teachers", "courses.teacherId", "teachers.id")
+      .leftJoin("teachers as productTeacher", "digitalProducts.teacherId", "productTeacher.id")
       .where("cartItems.userId", "=", user.id)
       .select([
         "cartItems.id as cartItemId",
@@ -42,7 +42,7 @@ export async function handle(request: Request) {
         "courses.teacherId as courseTeacherId",
         "courses.expiresAt as courseExpiresAt",
         "courses.expiredAt as courseExpiredAt",
-        "users.displayName as courseTeacherName",
+        "teachers.displayName as courseTeacherName",
         "cartItems.digitalProductId",
         "digitalProducts.title as digitalProductTitle",
         "digitalProducts.slug as digitalProductSlug",

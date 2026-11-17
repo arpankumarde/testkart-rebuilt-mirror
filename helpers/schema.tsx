@@ -169,6 +169,33 @@ export type WalletTransactionType = "prize_credit" | "prize_lock_refund" | "purc
 
 export type WithdrawalStatus = "cancelled" | "completed" | "failed" | "pending";
 
+export interface Accounts {
+  avatarFileId: string | null;
+  avatarUrl: string | null;
+  billingDetails: Json | null;
+  bio: string | null;
+  createdAt: Timestamp | null;
+  displayName: string | null;
+  email: string | null;
+  emailBouncedAt: Timestamp | null;
+  emailVerified: boolean | null;
+  id: number | null;
+  isActive: boolean | null;
+  mobileNumber: string | null;
+  mobileVerified: boolean | null;
+  onboardingCompleted: boolean | null;
+  role: UserRole | null;
+  signupSource: string | null;
+  slug: string | null;
+  suspendedAt: Timestamp | null;
+  suspendedBy: string | null;
+  suspendedUntil: Timestamp | null;
+  suspensionKind: string | null;
+  suspensionReason: string | null;
+  timezone: string | null;
+  updatedAt: Timestamp | null;
+}
+
 export interface AdminLoginFailures {
   attemptedAt: Generated<Timestamp>;
   email: string;
@@ -2544,6 +2571,32 @@ export interface StudentBankDetails {
   verificationStatus: Generated<BankVerificationStatus>;
 }
 
+export interface Students {
+  avatarFileId: string | null;
+  avatarUrl: string | null;
+  billingDetails: Json | null;
+  bio: string | null;
+  createdAt: Generated<Timestamp | null>;
+  displayName: string;
+  email: string | null;
+  emailBouncedAt: Timestamp | null;
+  emailVerified: Generated<boolean>;
+  id: Generated<number>;
+  isActive: Generated<boolean>;
+  mobileNumber: string | null;
+  mobileVerified: Generated<boolean>;
+  onboardingCompleted: Generated<boolean>;
+  signupSource: string | null;
+  slug: string | null;
+  suspendedAt: Timestamp | null;
+  suspendedBy: string | null;
+  suspendedUntil: Timestamp | null;
+  suspensionKind: string | null;
+  suspensionReason: string | null;
+  timezone: Generated<string>;
+  updatedAt: Generated<Timestamp | null>;
+}
+
 export interface StudentWalletTransactions {
   amount: Numeric;
   createdAt: Generated<Timestamp>;
@@ -2810,6 +2863,67 @@ export interface TeacherPosts {
   updatedAt: Generated<Timestamp>;
 }
 
+export interface Teachers {
+  academyName: string | null;
+  avatarFileId: string | null;
+  avatarUrl: string | null;
+  awardsCertificates: Generated<Json | null>;
+  billingDetails: Json | null;
+  bio: string | null;
+  createdAt: Generated<Timestamp | null>;
+  currentOccupation: string | null;
+  discoverySource: string | null;
+  displayName: string;
+  drmEnabled: Generated<boolean>;
+  email: string | null;
+  emailBouncedAt: Timestamp | null;
+  emailVerified: Generated<boolean>;
+  expertiseAreas: Generated<Json | null>;
+  goals: string | null;
+  id: Generated<number>;
+  instituteType: InstituteType | null;
+  introVideoFileId: string | null;
+  introVideoUrl: string | null;
+  isActive: Generated<boolean>;
+  isVerified: Generated<boolean>;
+  languages: Generated<Json | null>;
+  liveTeachingStatus: Generated<string>;
+  location: string | null;
+  mentorshipClassPrice50: Numeric | null;
+  mentorshipClassPrice60: Numeric | null;
+  mentorshipEnabled: Generated<boolean>;
+  mentorshipRatePerUnit: Numeric | null;
+  mentorshipTrialDiscount: Generated<boolean>;
+  mentorshipTrialPrice25: Numeric | null;
+  mentorshipTrialPrice50: Numeric | null;
+  mobileNumber: string | null;
+  mobileVerified: Generated<boolean>;
+  onboardingCompleted: Generated<boolean>;
+  platformFeeOverride: Numeric | null;
+  productInterest: Json | null;
+  publicEmail: string | null;
+  publicPhone: string | null;
+  relationshipManagerAdminId: number | null;
+  responseTime: string | null;
+  schoolCollegeName: string | null;
+  signupSource: string | null;
+  slug: string | null;
+  socialLinks: Generated<Json | null>;
+  suspendedAt: Timestamp | null;
+  suspendedBy: string | null;
+  suspendedUntil: Timestamp | null;
+  suspensionKind: string | null;
+  suspensionReason: string | null;
+  tagline: string | null;
+  targetExams: Json | null;
+  teachingCategories: Json | null;
+  teachingExperienceLevel: string | null;
+  timezone: Generated<string>;
+  updatedAt: Generated<Timestamp | null>;
+  websiteUrl: string | null;
+  yearsOfExperience: number | null;
+}
+
 export interface TeacherSponsoredEnrollments {
   bundleId: number | null;
   commissionAmount: Numeric;
@@ -3030,65 +3144,16 @@ export interface UserPasswords {
 }
 
 export interface Users {
-  academyName: string | null;
-  avatarFileId: string | null;
-  avatarUrl: string | null;
-  awardsCertificates: Generated<Json | null>;
-  billingDetails: Json | null;
-  bio: string | null;
   createdAt: Generated<Timestamp | null>;
-  currentOccupation: string | null;
-  discoverySource: string | null;
-  displayName: string;
-  drmEnabled: Generated<boolean>;
-  email: string | null;
-  emailBouncedAt: Timestamp | null;
-  emailVerified: Generated<boolean>;
-  expertiseAreas: Generated<Json | null>;
-  goals: string | null;
   id: Generated<number>;
-  instituteType: InstituteType | null;
-  introVideoFileId: string | null;
-  introVideoUrl: string | null;
-  isActive: Generated<boolean>;
-  isVerified: Generated<boolean>;
-  languages: Generated<Json | null>;
-  liveTeachingStatus: Generated<string>;
-  location: string | null;
-  mentorshipClassPrice50: Numeric | null;
-  mentorshipClassPrice60: Numeric | null;
-  mentorshipEnabled: Generated<boolean>;
-  mentorshipRatePerUnit: Numeric | null;
-  mentorshipTrialDiscount: Generated<boolean>;
-  mentorshipTrialPrice25: Numeric | null;
-  mentorshipTrialPrice50: Numeric | null;
-  mobileNumber: string | null;
-  mobileVerified: Generated<boolean>;
-  onboardingCompleted: Generated<boolean>;
-  platformFeeOverride: Numeric | null;
-  productInterest: Json | null;
-  publicEmail: string | null;
-  publicPhone: string | null;
-  relationshipManagerAdminId: number | null;
-  responseTime: string | null;
   role: UserRole;
-  schoolCollegeName: string | null;
-  signupSource: string | null;
-  slug: string | null;
-  socialLinks: Generated<Json | null>;
-  suspendedAt: Timestamp | null;
-  suspendedBy: string | null;
-  suspendedUntil: Timestamp | null;
-  suspensionKind: string | null;
-  suspensionReason: string | null;
-  tagline: string | null;
-  targetExams: Json | null;
-  teachingCategories: Json | null;
-  teachingExperienceLevel: string | null;
-  timezone: Generated<string>;
-  updatedAt: Generated<Timestamp | null>;
-  websiteUrl: string | null;
-  yearsOfExperience: number | null;
+}
+
+export interface UserSplitTwins {
+  createdAt: Generated<Timestamp>;
+  rowsMoved: number;
+  studentId: number;
+  teacherId: number;
 }
 
 export interface WellKnownFiles {
@@ -3114,6 +3179,7 @@ export interface WithdrawalStatusHistory {
 }
 
 export interface DB {
+  accounts: Accounts;
   adminLoginFailures: AdminLoginFailures;
   adminLoginLinks: AdminLoginLinks;
   adminPasswordResets: AdminPasswordResets;
@@ -3273,6 +3339,7 @@ export interface DB {
   staticPages: StaticPages;
   storefrontEvents: StorefrontEvents;
   studentBankDetails: StudentBankDetails;
+  students: Students;
   studentWalletTransactions: StudentWalletTransactions;
   studentWithdrawals: StudentWithdrawals;
   subjectSections: SubjectSections;
@@ -3293,6 +3360,7 @@ export interface DB {
   teacherOnboardingEmails: TeacherOnboardingEmails;
   teacherPostLikes: TeacherPostLikes;
   teacherPosts: TeacherPosts;
+  teachers: Teachers;
   teacherSponsoredEnrollments: TeacherSponsoredEnrollments;
   teacherSubscriptions: TeacherSubscriptions;
   teacherTeamMembers: TeacherTeamMembers;
@@ -3310,6 +3378,7 @@ export interface DB {
   userExamFocus: UserExamFocus;
   userPasswords: UserPasswords;
   users: Users;
+  userSplitTwins: UserSplitTwins;
   wellKnownFiles: WellKnownFiles;
   withdrawalStatusHistory: WithdrawalStatusHistory;
 }

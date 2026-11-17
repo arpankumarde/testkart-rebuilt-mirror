@@ -8,7 +8,7 @@ import { HomepageNoteItem } from "../endpoints/homepage/data_GET.schema";
 export async function homepageFetchPopularNotes(): Promise<HomepageNoteItem[]> {
   const notes = await db
     .selectFrom("digitalProducts")
-    .innerJoin("users", "users.id", "digitalProducts.teacherId")
+    .innerJoin("teachers", "teachers.id", "digitalProducts.teacherId")
     .where("digitalProducts.status", "=", "published")
     .where("digitalProducts.isPublished", "=", true)
     .where("digitalProducts.visibility", "=", "public")
@@ -25,12 +25,12 @@ export async function homepageFetchPopularNotes(): Promise<HomepageNoteItem[]> {
       "digitalProducts.pageCount",
       "digitalProducts.views",
       "digitalProducts.examName",
-      "users.displayName as teacherName",
-      "users.slug as teacherSlug",
-      "users.avatarUrl as teacherAvatarUrl",
-      "users.tagline as teacherTagline",
-      "users.yearsOfExperience as teacherYearsOfExperience",
-      "users.isVerified as teacherIsVerified",
+      "teachers.displayName as teacherName",
+      "teachers.slug as teacherSlug",
+      "teachers.avatarUrl as teacherAvatarUrl",
+      "teachers.tagline as teacherTagline",
+      "teachers.yearsOfExperience as teacherYearsOfExperience",
+      "teachers.isVerified as teacherIsVerified",
       sql<number>`(SELECT COUNT(*) FROM digital_product_purchases WHERE product_id = digital_products.id AND purchased_at > NOW() - INTERVAL '7 days') * 3 + (SELECT COUNT(*) FROM digital_product_purchases WHERE product_id = digital_products.id AND purchased_at > NOW() - INTERVAL '30 days')`.as("recentActivityScore"),
     ])
     .orderBy("recentActivityScore", "desc")

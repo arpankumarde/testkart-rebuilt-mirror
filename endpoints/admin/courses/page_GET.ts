@@ -23,14 +23,14 @@ export async function handle(request: Request): Promise<Response> {
     await getAdminServerSessionOrThrow(request);
     const input = schema.parse(Object.fromEntries(new URL(request.url).searchParams));
 
-    let filtered = db.selectFrom("courses").innerJoin("users", "users.id", "courses.teacherId");
+    let filtered = db.selectFrom("courses").innerJoin("teachers", "teachers.id", "courses.teacherId");
     if (input.status) filtered = filtered.where("courses.status", "=", input.status);
     if (input.filter === "no-lessons") filtered = filtered.where(sql<boolean>`${lessonsCount} = 0`);
     if (input.id) filtered = filtered.where("courses.id", "=", input.id);
     if (input.search) {
       const pattern = containsPattern(input.search);
       filtered = filtered.where((eb) =>
-        eb.or([eb("courses.title", "ilike", pattern), eb("users.displayName", "ilike", pattern)])
+        eb.or([eb("courses.title", "ilike", pattern), eb("teachers.displayName", "ilike", pattern)])
       );
     }
 
@@ -49,7 +49,7 @@ export async function handle(request: Request): Promise<Response> {
         "courses.status",
         "courses.createdAt",
         "courses.price",
-        "users.displayName as teacherName",
+        "teachers.displayName as teacherName",
       ])
       .select([studentsEnrolled.as("studentsEnrolled"), lessonsCount.as("lessonsCount")])
       .orderBy(orderNullsLast(SORT_EXPRESSIONS[input.sortBy ?? "createdAt"], sortOrder))
@@ -60,7 +60,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const statusRows = await db
       .selectFrom("courses")
-      .innerJoin("users", "users.id", "courses.teacherId")
+      .innerJoin("teachers", "teachers.id", "courses.teacherId")
       .select(["courses.status"])
       .select((eb) => eb.fn.countAll<string>().as("cnt"))
       .groupBy("courses.status")

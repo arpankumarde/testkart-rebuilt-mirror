@@ -22,7 +22,8 @@ export async function loadExamFocus(userId: number, executor: Executor = db): Pr
 }
 
 // Replaces the user's focus, keeping the given order. A teacher's names are also written to
-// users.target_exams, which the admin teacher list, sales contacts and teacher cards still read.
+// teachers.target_exams (copied to users by the sync), which the admin teacher list, sales contacts and
+// teacher cards read.
 export async function saveExamFocus(
   trx: Transaction<DB>,
   userId: number,
@@ -53,7 +54,7 @@ export async function saveExamFocus(
 
   if (role === "teacher") {
     await trx
-      .updateTable("users")
+      .updateTable("teachers")
       .set({ targetExams: ordered.map((exam) => exam.examName), updatedAt: new Date() })
       .where("id", "=", userId)
       .execute();

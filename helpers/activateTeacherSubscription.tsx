@@ -40,7 +40,7 @@ export async function extendRenewedSubscription(
     .execute();
 
   await trx
-    .updateTable("users")
+    .updateTable("teachers")
     .set({ isVerified: true })
     .where("id", "=", teacherId)
     .execute();

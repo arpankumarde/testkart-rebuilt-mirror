@@ -86,7 +86,7 @@ export async function handle(request: Request) {
       const capturedAmount = Number(transaction.amount);
       
       const teacher = await db
-        .selectFrom("users")
+        .selectFrom("teachers")
         .select(["displayName", "email"])
         .where("id", "=", capturedTeacherId)
         .executeTakeFirst();

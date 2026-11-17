@@ -1,6 +1,8 @@
 import { db } from "./db";
 import { OAuthProviderType } from "./OAuthProvider";
 import { assignUserSlug } from "./assignUserSlug";
+import { insertAccount, updateAccount, updateAccountById } from "./accountRows";
+import { allAccounts } from "./allAccounts";
 import { syncWaplifyContact } from "./syncWaplifyContact";
 
 export type OAuthUserAccountResult = {
@@ -11,6 +13,8 @@ export type OAuthUserAccountResult = {
     role: string;
   };
   isNewUser: boolean;
+  /** Set when only an account on the other side matched and the caller can offer the choice. */
+  otherSideOnly?: boolean;
 };
 
 export type HandleOAuthUserAccountParams = {
@@ -25,6 +29,8 @@ export type HandleOAuthUserAccountParams = {
   requestedRole: string;
   linkUserId: number | null;
   now: Date;
+  /** The web popup can show the account choice; app deep links cannot. */
+  supportsAccountChoice: boolean;
 };
 
 /**
@@ -38,6 +44,7 @@ export async function handleOAuthUserAccount({
   requestedRole,
   linkUserId,
   now,
+  supportsAccountChoice,
 }: HandleOAuthUserAccountParams): Promise<OAuthUserAccountResult> {
   let user: {
     id: number;
@@ -58,7 +65,7 @@ export async function handleOAuthUserAccount({
 
     // Verify the user exists
     const existingUserResults = await db
-      .selectFrom("users")
+      .selectFrom(allAccounts(db).as("account"))
       .select(["id", "email", "displayName", "role", "mobileNumber"])
       .where("id", "=", linkUserId)
       .limit(1)
@@ -70,12 +77,13 @@ export async function handleOAuthUserAccount({
 
     const existingUser = existingUserResults[0];
 
-    // Check if the email is already used by another account
+    // Check if the email is already used by another account on the same side
     const emailConflictResults = await db
-      .selectFrom("users")
+      .selectFrom(allAccounts(db).as("account"))
       .select(["id"])
       .where("email", "=", providerEmail)
       .where("id", "!=", linkUserId)
+      .where("role", "=", existingUser.role)
       .limit(1)
       .execute();
 
@@ -86,15 +94,11 @@ export async function handleOAuthUserAccount({
     }
 
     // Update user with email only (preserve manually edited profile data)
-    await db
-      .updateTable("users")
-      .set({
-        email: providerEmail,
-        emailVerified: true,
-        updatedAt: now,
-      })
-      .where("id", "=", linkUserId)
-      .execute();
+    await updateAccountById(db, linkUserId, {
+      email: providerEmail,
+      emailVerified: true,
+      updatedAt: now,
+    });
 
     if (existingUser.mobileNumber && existingUser.email !== providerEmail) {
       await syncWaplifyContact(linkUserId);
@@ -140,16 +144,18 @@ export async function handleOAuthUserAccount({
       role: existingUser.role,
     };
   } else {
-    // Normal signup/login scenario - find by email
+    // Normal signup/login scenario - find by email, preferring the requested side (helpers/loginAccount)
+    const side = requestedRole === "teacher" ? "teacher" : "student";
     const existingUsers = await db
-      .selectFrom("users")
+      .selectFrom(allAccounts(db).as("account"))
       .select(["id", "email", "displayName", "role"])
       .where("email", "=", providerEmail)
-      .limit(1)
+      .orderBy("id", "asc")
       .execute();
+    const sameSideUser = existingUsers.find((u) => u.role === side);
 
     if (existingUsers.length > 0) {
-      const existingUser = existingUsers[0];
+      const existingUser = sameSideUser ?? existingUsers[0];
       user = {
         id: existingUser.id,
         email: existingUser.email,
@@ -158,11 +164,12 @@ export async function handleOAuthUserAccount({
       };
 
       // Ensure email is marked as verified since they logged in via OAuth
-      await db
-        .updateTable("users")
-        .set({ emailVerified: true, updatedAt: now })
-        .where("id", "=", user.id)
-        .execute();
+      await updateAccountById(db, user.id, { emailVerified: true, updatedAt: now });
+
+      // Only the other side has an account: the caller offers the choice instead of signing in
+      if (!sameSideUser && supportsAccountChoice && existingUser.role !== "admin") {
+        return { user, isNewUser: false, otherSideOnly: true };
+      }
 
       // Check if this user has any OAuth accounts (smart linking logic)
       const existingOAuthAccounts = await db
@@ -239,19 +246,16 @@ export async function handleOAuthUserAccount({
       isNewUser = true;
 
       // Create new user
-      const newUsers = await db
-        .insertInto("users")
-        .values({
+      const newUsers = [
+        await insertAccount(db, side, {
           email: providerEmail,
           emailVerified: true,
           displayName: mappedUserData.displayName,
           avatarUrl: mappedUserData.avatarUrl || null,
-          role: requestedRole as "student" | "teacher",
           createdAt: now,
           updatedAt: now,
-        })
-        .returning(["id", "email", "displayName", "role"])
-        .execute();
+        }),
+      ];
 
       const newUserId = newUsers[0].id;
 
@@ -259,11 +263,7 @@ export async function handleOAuthUserAccount({
       const resolvedAvatarUrl = mappedUserData.avatarUrl || `https://api.dicebear.com/9.x/fun-emoji/png?seed=${newUserId}`;
 
       if (!mappedUserData.avatarUrl) {
-        await db
-          .updateTable("users")
-          .set({ avatarUrl: resolvedAvatarUrl })
-          .where("id", "=", newUserId)
-          .execute();
+        await updateAccount(db, side, newUserId, { avatarUrl: resolvedAvatarUrl });
         console.log(`Avatar URL set for new OAuth user ${newUserId}: ${resolvedAvatarUrl}`);
       }
 

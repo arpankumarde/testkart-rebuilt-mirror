@@ -8,9 +8,8 @@ export async function handle(request: Request): Promise<Response> {
     // Fetch 50 random active teachers who have an avatar
     // We use RANDOM() to keep the list fresh and interesting
     const teachers = await db
-      .selectFrom("users")
+      .selectFrom("teachers")
       .select(["displayName", "avatarUrl"])
-      .where("role", "=", "teacher")
       .where("isActive", "=", true)
       .where("avatarUrl", "is not", null)
       .where("avatarUrl", "!=", "") // Ensure it's not an empty string

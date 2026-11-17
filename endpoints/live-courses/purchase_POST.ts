@@ -10,6 +10,7 @@ import { recordFunnelEvent } from "../../helpers/recordFunnelEvent";
 import { openCashfreeSession, settleCashfreeOrder } from "../../helpers/cashfreeOrders";
 import { cashfreeGatewayEnv, terminateCashfreeOrder } from "../../helpers/cashfree";
 import { liveCoursePath } from "../../helpers/liveCourseRules";
+import { liveBookingContactProblem } from "../../helpers/liveBookingContact";
 import { schema, type OutputType } from "./purchase_POST.schema";
 
 /** Buy now through Cashfree. Live courses take no Tcoins and no promo codes; the order is the full price. */
@@ -17,6 +18,8 @@ export async function handle(request: Request) {
   try {
     const { user } = await getServerUserSession(request);
     if (user.role !== "student") throw new NotAuthenticatedError("Only students can enrol in live courses.");
+    const contactProblem = await liveBookingContactProblem(user.id);
+    if (contactProblem) throw new Error(contactProblem);
     const { liveCourseId } = schema.parse(superjson.parse(await request.text()));
 
     const gatewayEnv = cashfreeGatewayEnv();

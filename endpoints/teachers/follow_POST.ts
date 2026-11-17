@@ -17,10 +17,9 @@ export async function handle(request: Request) {
     const input = schema.parse(json);
 
     const teacher = await db
-      .selectFrom("users")
+      .selectFrom("teachers")
       .select(["id"])
       .where("id", "=", input.teacherId)
-      .where("role", "=", "teacher")
       .executeTakeFirst();
 
     if (!teacher) {

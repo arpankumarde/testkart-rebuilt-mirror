@@ -10,7 +10,7 @@ export async function sendReviewReminder(payload: {
 }) {
   try {
     const user = await db
-      .selectFrom("users")
+      .selectFrom("students")
       .select(["email", "displayName"])
       .where("id", "=", payload.studentId)
       .executeTakeFirst();

@@ -10,7 +10,7 @@ export async function handle(request: Request) {
 
     const row = await db
       .selectFrom("groupLessons")
-      .innerJoin("users as teacher", "teacher.id", "groupLessons.teacherId")
+      .innerJoin("teachers as teacher", "teacher.id", "groupLessons.teacherId")
       .select([
         "groupLessons.id",
         "groupLessons.title",

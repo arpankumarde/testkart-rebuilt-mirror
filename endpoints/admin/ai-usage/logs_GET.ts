@@ -26,7 +26,7 @@ export async function handle(request: Request): Promise<Response> {
 
     let query = db
       .selectFrom("aiGenerationLogs")
-      .innerJoin("users", "users.id", "aiGenerationLogs.teacherId");
+      .innerJoin("teachers", "teachers.id", "aiGenerationLogs.teacherId");
 
     if (parsedInput.status) {
       query = query.where("aiGenerationLogs.status", "=", parsedInput.status);
@@ -41,8 +41,8 @@ export async function handle(request: Request): Promise<Response> {
       const q = parsedInput.searchQuery;
       query = query.where(eb =>
         eb.or([
-          eb("users.displayName", "ilike", `%${q}%`),
-          eb("users.email", "ilike", `%${q}%`),
+          eb("teachers.displayName", "ilike", `%${q}%`),
+          eb("teachers.email", "ilike", `%${q}%`),
         ])
       );
     }
@@ -59,7 +59,7 @@ export async function handle(request: Request): Promise<Response> {
       .select([
         "aiGenerationLogs.id",
         "aiGenerationLogs.teacherId",
-        "users.displayName as teacherName",
+        "teachers.displayName as teacherName",
         "aiGenerationLogs.feature",
         "aiGenerationLogs.status",
         "aiGenerationLogs.errorMessage",

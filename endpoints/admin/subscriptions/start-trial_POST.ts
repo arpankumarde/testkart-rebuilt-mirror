@@ -13,9 +13,8 @@ export async function handle(request: Request) {
     
     const result = await db.transaction().execute(async (trx) => {
       // 1. Verify teacher exists
-      const teacher = await trx.selectFrom("users")
+      const teacher = await trx.selectFrom("teachers")
         .where("id", "=", input.teacherId)
-        .where("role", "=", "teacher")
         .select("id")
         .executeTakeFirst();
         

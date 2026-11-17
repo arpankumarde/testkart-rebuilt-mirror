@@ -25,7 +25,7 @@ export async function handle(request: Request) {
       if (Number(pulled.numUpdatedRows) === 0) return false;
       if (what === "application") {
         await trx
-          .updateTable("users")
+          .updateTable("teachers")
           .set({ liveTeachingStatus: "none", mentorshipEnabled: false })
           .where("id", "=", effectiveTeacherId)
           .where("liveTeachingStatus", "=", "pending")

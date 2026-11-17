@@ -9,7 +9,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const bundles = await db
       .selectFrom("courseBundles")
-      .innerJoin("users", "users.id", "courseBundles.teacherId")
+      .innerJoin("teachers", "teachers.id", "courseBundles.teacherId")
       .leftJoin("courseBundleItems", "courseBundleItems.bundleId", "courseBundles.id")
       .select(({ fn }) => [
         "courseBundles.id",
@@ -21,14 +21,14 @@ export async function handle(request: Request): Promise<Response> {
         "courseBundles.isPublished",
         "courseBundles.publishedAt",
         "courseBundles.createdAt",
-        "users.displayName as teacherName",
-        "users.id as teacherId",
+        "teachers.displayName as teacherName",
+        "teachers.id as teacherId",
         fn.count<number>("courseBundleItems.id").as("itemsCount"),
       ])
       .groupBy([
         "courseBundles.id",
-        "users.displayName",
-        "users.id"
+        "teachers.displayName",
+        "teachers.id"
       ])
       .orderBy("courseBundles.createdAt", "desc")
       .execute();

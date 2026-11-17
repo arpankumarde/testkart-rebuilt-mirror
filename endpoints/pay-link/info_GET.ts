@@ -25,7 +25,7 @@ export async function handle(request: Request): Promise<Response> {
       return new Response(superjson.stringify({ error: "This payment link is not valid. Ask for a new one." }), { status: 404 });
     }
 
-    const student = await db.selectFrom("users").select(["displayName", "mobileNumber"]).where("id", "=", payRequest.userId).executeTakeFirst();
+    const student = await db.selectFrom("students").select(["displayName", "mobileNumber"]).where("id", "=", payRequest.userId).executeTakeFirst();
     const base = {
       studentName: studentFirstName(student?.displayName),
       maskedPhone: maskPhone(student?.mobileNumber),

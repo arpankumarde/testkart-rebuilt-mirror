@@ -14,7 +14,7 @@ export async function handle(request: Request) {
 
     const rows = await db.
     selectFrom("teacherTeamMembers").
-    innerJoin("users as owner", "owner.id", "teacherTeamMembers.teacherId").
+    innerJoin("teachers as owner", "owner.id", "teacherTeamMembers.teacherId").
     select([
     "teacherTeamMembers.id",
     "teacherTeamMembers.status",

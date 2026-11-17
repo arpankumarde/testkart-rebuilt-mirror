@@ -28,6 +28,6 @@ export const useAdminDeletedAccountsQuery = ({
         sortOrder,
       }),
     staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 };

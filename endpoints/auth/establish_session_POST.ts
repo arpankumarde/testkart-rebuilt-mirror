@@ -1,4 +1,5 @@
 import { db } from "../../helpers/db";
+import { allAccounts } from "../../helpers/allAccounts";
 import { schema } from "./establish_session_POST.schema";
 import { setServerSession } from "../../helpers/getSetServerSession";
 import { getAccountBlockMessage } from "../../helpers/accountSuspension";
@@ -40,7 +41,7 @@ export async function handle(request: Request) {
 
     // Fetch the user by userId from the session record
     const user = await db
-      .selectFrom("users")
+      .selectFrom(allAccounts(db).as("users"))
       .selectAll()
       .where("id", "=", tempSession.userId)
       .executeTakeFirst();

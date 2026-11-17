@@ -50,7 +50,7 @@ export async function handle(request: Request) {
        return newThread;
     });
  
-     const teacher = await db.selectFrom("users")
+     const teacher = await db.selectFrom("teachers")
       .select(["displayName", "email"])
        .where("id", "=", effectiveTeacherId)
        .executeTakeFirst();

@@ -9,7 +9,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const liveTests = await db
       .selectFrom("liveTests")
-      .innerJoin("users", "users.id", "liveTests.teacherId")
+      .innerJoin("teachers", "teachers.id", "liveTests.teacherId")
       .innerJoin("mockTests", "mockTests.id", "liveTests.mockTestId")
       .select([
         "liveTests.id",
@@ -24,8 +24,8 @@ export async function handle(request: Request): Promise<Response> {
         "liveTests.totalPrizePool",
         "liveTests.prizeDistributionStatus",
         "liveTests.createdAt",
-        "users.displayName as teacherName",
-        "users.id as teacherId",
+        "teachers.displayName as teacherName",
+        "teachers.id as teacherId",
         "mockTests.title as mockTestTitle",
         "mockTests.slug",
       ])

@@ -1,4 +1,5 @@
 import { db } from "../../helpers/db";
+import { allAccounts } from "../../helpers/allAccounts";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { OutputType, BillingDetails } from "./billing-details_GET.schema";
 import superjson from "superjson";
@@ -14,7 +15,7 @@ export async function handle(request: Request): Promise<Response> {
     const targetUserId = user.role === "teacher" ? effectiveTeacherId : user.id;
 
     const row = await db
-      .selectFrom("users")
+      .selectFrom(allAccounts(db).as("users"))
       .select(["billingDetails"])
       .where("id", "=", targetUserId)
       .executeTakeFirst();

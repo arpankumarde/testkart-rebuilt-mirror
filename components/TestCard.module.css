@@ -22,20 +22,13 @@
   box-shadow: var(--shadow-lg);
 }
 
-.badgeContainer {
-  padding: var(--spacing-4) var(--spacing-4) 0 var(--spacing-4);
-  display: flex;
-  gap: var(--spacing-2);
-  flex-wrap: wrap;
-}
-
 .thumbnail {
   width: 100%;
   aspect-ratio: 16 / 9;
   overflow: hidden;
   background-color: var(--muted);
   position: relative;
-  border-radius: var(--radius-md);
+  flex-shrink: 0;
 }
 
 .quickAddButton {
@@ -174,9 +167,22 @@
   flex-wrap: wrap;
 }
 
+.infoTextSingle {
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
 .infoLabel {
   color: var(--muted-foreground);
   font-weight: 500;
+  flex-shrink: 0;
+}
+
+.truncate {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .infoValue {
@@ -391,12 +397,6 @@
 }
 
 @media (max-width: 480px) {
-  .badgeContainer {
-    padding: var(--spacing-3) var(--spacing-3) 0 var(--spacing-3);
-  }
-
-  
-
   .title {
     font-size: 0.9375rem;
   }

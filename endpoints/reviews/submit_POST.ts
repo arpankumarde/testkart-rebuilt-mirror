@@ -110,7 +110,7 @@ export async function handle(request: Request) {
       if (!isUpdate) {
         try {
           const info = await db.selectFrom("mockTests")
-            .innerJoin("users as teacher", "mockTests.teacherId", "teacher.id")
+            .innerJoin("teachers as teacher", "mockTests.teacherId", "teacher.id")
             .select(["mockTests.title", "teacher.email as teacherEmail", "teacher.displayName as teacherName"])
             .where("mockTests.id", "=", mockTestId)
             .executeTakeFirst();
@@ -219,7 +219,7 @@ export async function handle(request: Request) {
       if (!isUpdate) {
         try {
           const info = await db.selectFrom("digitalProducts")
-            .innerJoin("users as teacher", "digitalProducts.teacherId", "teacher.id")
+            .innerJoin("teachers as teacher", "digitalProducts.teacherId", "teacher.id")
             .select(["digitalProducts.title", "teacher.email as teacherEmail", "teacher.displayName as teacherName"])
             .where("digitalProducts.id", "=", digitalProductId)
             .executeTakeFirst();
@@ -329,7 +329,7 @@ export async function handle(request: Request) {
       if (!isUpdate) {
         try {
           const info = await db.selectFrom("courses")
-            .innerJoin("users as teacher", "courses.teacherId", "teacher.id")
+            .innerJoin("teachers as teacher", "courses.teacherId", "teacher.id")
             .select(["courses.title", "teacher.email as teacherEmail", "teacher.displayName as teacherName"])
             .where("courses.id", "=", courseId)
             .executeTakeFirst();

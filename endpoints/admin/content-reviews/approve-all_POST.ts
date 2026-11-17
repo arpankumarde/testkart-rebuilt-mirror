@@ -76,7 +76,7 @@ export async function handle(request: Request): Promise<Response> {
       approved.map(async (review) => {
         try {
           const teacher = await db
-            .selectFrom("users")
+            .selectFrom("teachers")
             .select(["id", "displayName", "email"])
             .where("id", "=", review.teacherId)
             .executeTakeFirst();

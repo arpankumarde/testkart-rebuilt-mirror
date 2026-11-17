@@ -27,7 +27,7 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     await db.transaction().execute(async (trx) => {
-      await trx.updateTable("users").set({ timezone: input.timezone, updatedAt: new Date() }).where("id", "=", effectiveTeacherId).execute();
+      await trx.updateTable("teachers").set({ timezone: input.timezone, updatedAt: new Date() }).where("id", "=", effectiveTeacherId).execute();
       await trx.deleteFrom("mentorshipAvailability").where("teacherId", "=", effectiveTeacherId).execute();
       if (input.windows.length > 0) {
         await trx

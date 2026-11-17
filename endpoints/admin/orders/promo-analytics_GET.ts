@@ -30,7 +30,7 @@ export async function handle(request: Request) {
     /* Subscription codes discount teacher plans, not student orders, so they stay on the Subscriptions page. */
     const codes = await db
       .selectFrom("promoCodes")
-      .leftJoin("users as teacher", "teacher.id", "promoCodes.createdByTeacherId")
+      .leftJoin("teachers as teacher", "teacher.id", "promoCodes.createdByTeacherId")
       .select([
         "promoCodes.id",
         "promoCodes.code",

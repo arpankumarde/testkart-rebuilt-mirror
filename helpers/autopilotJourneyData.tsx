@@ -1,5 +1,6 @@
 import { sql } from "kysely";
 import { db } from "./db";
+import { allAccounts } from "./allAccounts";
 import { AUTOPILOT_PLAYBOOKS, AUTOPILOT_PLAYBOOK_LABELS } from "./autopilotPlaybooks";
 
 /**
@@ -66,7 +67,7 @@ const CHANNEL = (value: string | null) => (value === "whatsapp" ? "WhatsApp" : v
 
 export async function getAutopilotJourney(userId: number): Promise<AutopilotJourney | null> {
   const user = await db
-    .selectFrom("users")
+    .selectFrom(allAccounts(db).as("account"))
     .select(["id", "displayName", "email", "emailBouncedAt", "mobileNumber", "createdAt", "isActive"])
     .where("id", "=", userId)
     .executeTakeFirst();

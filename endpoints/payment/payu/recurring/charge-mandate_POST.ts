@@ -48,7 +48,7 @@ export async function handle(request: Request) {
       const subscription = await trx
         .selectFrom("teacherSubscriptions")
         .innerJoin("subscriptionPlans", "teacherSubscriptions.planId", "subscriptionPlans.id")
-        .innerJoin("users", "teacherSubscriptions.teacherId", "users.id")
+        .innerJoin("teachers", "teacherSubscriptions.teacherId", "teachers.id")
         .where("teacherSubscriptions.id", "=", subscriptionId)
         .where("teacherSubscriptions.teacherId", "=", effectiveTeacherId)
         .select([
@@ -67,9 +67,9 @@ export async function handle(request: Request) {
           "subscriptionPlans.durationDays",
           "subscriptionPlans.price",
           "subscriptionPlans.name as planName",
-          "users.email",
-          "users.displayName",
-          "users.mobileNumber",
+          "teachers.email",
+          "teachers.displayName",
+          "teachers.mobileNumber",
         ])
         .executeTakeFirst();
 
@@ -151,7 +151,7 @@ export async function handle(request: Request) {
 
         // Mark teacher as verified
         await trx
-          .updateTable("users")
+          .updateTable("teachers")
           .set({ isVerified: true })
           .where("id", "=", subscription.teacherId)
           .execute();

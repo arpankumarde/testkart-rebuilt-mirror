@@ -1,8 +1,5 @@
 import { ApiEndpoint } from "./apiDocsTypes";
 
-const PASSWORD_ROUTE_DEPRECATION =
-  "No page or app screen calls it, but the route is still live and public, and it creates accounts without verifying the email.";
-
 export const apiDocsAuth: ApiEndpoint[] = [
   // Sessions
   {
@@ -415,69 +412,6 @@ export const apiDocsAuth: ApiEndpoint[] = [
       "Plain JSON body and response, not wrapped in { json }. Failures use { message }, not { error }: 401 for a wrong email or password, 400 for a bad body.",
       "Returns 429 after 5 failed attempts for the same email within 15 minutes.",
       "Sets the session cookie only. No bearer token is returned. Only accounts with a stored password can use it, and OTP and Google accounts have none.",
-    ],
-  },
-  {
-    method: "POST",
-    route: "/_api/auth/register_with_password",
-    description: "Register a student account with email and password and sign in",
-    auth: "none",
-    category: "Authentication",
-    usedBy: [],
-    deprecated: `Use /_api/auth/email-signup/send-otp and /_api/auth/email-signup/verify-and-register, or the mobile-signup pair, instead. ${PASSWORD_ROUTE_DEPRECATION}`,
-    bodyParams: [
-      { name: "email", type: "string", required: true, description: "Email address. Stored as sent, not lowercased" },
-      { name: "password", type: "string", required: true, description: "At least 8 characters" },
-      { name: "displayName", type: "string", required: true, description: "At least 1 character" },
-    ],
-    responseFields: [
-      { name: "user", type: "object", description: "{ id, email, displayName, createdAt, role: 'student' }" },
-    ],
-    notes: [
-      "Plain JSON body and response, not wrapped in { json }. Failures use { message }: 409 when the email is taken, 400 otherwise.",
-      "Sets the session cookie only and sends the student welcome email.",
-    ],
-  },
-  {
-    method: "POST",
-    route: "/_api/auth/register_student",
-    description: "Register a student account with email and password and sign in",
-    auth: "none",
-    category: "Authentication",
-    usedBy: [],
-    deprecated: `Use /_api/auth/email-signup/send-otp and /_api/auth/email-signup/verify-and-register with role 'student', or the mobile-signup pair, instead. ${PASSWORD_ROUTE_DEPRECATION}`,
-    bodyParams: [
-      { name: "email", type: "string", required: true, description: "Email address" },
-      { name: "password", type: "string", required: true, description: "At least 8 characters" },
-      { name: "displayName", type: "string", required: true, description: "At least 1 character" },
-    ],
-    responseFields: [
-      { name: "user", type: "object", description: "{ id, email, displayName, avatarUrl, role: 'student', mobileNumber, mobileVerified }" },
-    ],
-    notes: [
-      "Returns 409 'Email already in use' when an account has that exact email, and 400 for anything else.",
-      "Sets the session cookie only (no token in the body) and sends the welcome email before responding.",
-    ],
-  },
-  {
-    method: "POST",
-    route: "/_api/auth/register_teacher",
-    description: "Register a teacher account with email and password and sign in",
-    auth: "none",
-    category: "Authentication",
-    usedBy: [],
-    deprecated: `Use /_api/auth/email-signup/send-otp and /_api/auth/email-signup/verify-and-register with role 'teacher', or the mobile-signup pair, instead. ${PASSWORD_ROUTE_DEPRECATION}`,
-    bodyParams: [
-      { name: "email", type: "string", required: true, description: "Email address" },
-      { name: "password", type: "string", required: true, description: "At least 8 characters" },
-      { name: "displayName", type: "string", required: true, description: "At least 1 character" },
-    ],
-    responseFields: [
-      { name: "user", type: "object", description: "{ id, email, displayName, avatarUrl, role: 'teacher', mobileNumber, mobileVerified }" },
-    ],
-    notes: [
-      "Returns 409 'Email already in use' when an account has that exact email, and 400 for anything else.",
-      "Creates the teacher with a profile slug and the active free plan and sets the session cookie. It does not ask for the mobile number that the OTP sign-up routes require from teachers.",
     ],
   },
 

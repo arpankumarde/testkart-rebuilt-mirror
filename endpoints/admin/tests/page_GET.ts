@@ -21,7 +21,7 @@ export async function handle(request: Request): Promise<Response> {
     await getAdminServerSessionOrThrow(request);
     const input = schema.parse(Object.fromEntries(new URL(request.url).searchParams));
 
-    let filtered = db.selectFrom("mockTests").innerJoin("users", "users.id", "mockTests.teacherId");
+    let filtered = db.selectFrom("mockTests").innerJoin("teachers", "teachers.id", "mockTests.teacherId");
     if (input.status === "published") filtered = filtered.where("mockTests.isPublished", "=", true);
     if (input.status === "unpublished") filtered = filtered.where(sql<boolean>`mock_tests.is_published IS NOT TRUE`);
     if (input.filter) {
@@ -34,7 +34,7 @@ export async function handle(request: Request): Promise<Response> {
     if (input.search) {
       const pattern = containsPattern(input.search);
       filtered = filtered.where((eb) =>
-        eb.or([eb("mockTests.title", "ilike", pattern), eb("users.displayName", "ilike", pattern)])
+        eb.or([eb("mockTests.title", "ilike", pattern), eb("teachers.displayName", "ilike", pattern)])
       );
     }
 
@@ -69,7 +69,7 @@ export async function handle(request: Request): Promise<Response> {
         "mockTests.totalQuestions",
         "mockTests.isFree",
         "mockTests.price",
-        "users.displayName as teacherName",
+        "teachers.displayName as teacherName",
       ])
       .select([
         completedOrders.as("totalOrders"),
@@ -84,7 +84,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const statusRows = await db
       .selectFrom("mockTests")
-      .innerJoin("users", "users.id", "mockTests.teacherId")
+      .innerJoin("teachers", "teachers.id", "mockTests.teacherId")
       .select(sql<boolean>`mock_tests.is_published IS TRUE`.as("published"))
       .select((eb) => eb.fn.countAll<string>().as("cnt"))
       .groupBy(sql`mock_tests.is_published IS TRUE`)

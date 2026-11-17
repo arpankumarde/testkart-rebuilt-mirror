@@ -9,10 +9,9 @@ export async function handle(request: Request) {
     const input = schema.parse({ teacherSlug: url.searchParams.get("teacherSlug") });
 
     const teacher = await db
-      .selectFrom("users")
+      .selectFrom("teachers")
       .select(["id"])
       .where("slug", "=", input.teacherSlug)
-      .where("role", "=", "teacher")
       .where("isActive", "=", true)
       .executeTakeFirst();
 

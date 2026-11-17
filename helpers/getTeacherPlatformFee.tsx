@@ -22,7 +22,7 @@ export async function getTeacherPlatformFee(
   const queryBuilder = trx ?? db;
 
   const account = await queryBuilder
-    .selectFrom("users")
+    .selectFrom("teachers")
     .select("platformFeeOverride")
     .where("id", "=", teacherId)
     .executeTakeFirst();

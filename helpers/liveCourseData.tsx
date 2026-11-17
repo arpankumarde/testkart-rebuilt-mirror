@@ -79,7 +79,7 @@ type SummaryRow = {
 function summaryQuery() {
   return db
     .selectFrom("liveCourses")
-    .innerJoin("users as teacher", "teacher.id", "liveCourses.teacherId")
+    .innerJoin("teachers as teacher", "teacher.id", "liveCourses.teacherId")
     .select([
       "liveCourses.id",
       "liveCourses.slug",

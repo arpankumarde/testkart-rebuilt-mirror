@@ -141,7 +141,7 @@ export async function handle(request: Request): Promise<Response> {
              )) AS paid_later
       FROM mine
       JOIN orders o ON o.id = mine.id
-      LEFT JOIN users u ON u.id = o.user_id
+      LEFT JOIN students u ON u.id = o.user_id
       WHERE ${paidAttemptSql}
       ORDER BY o.created_at DESC
     `.execute(db);

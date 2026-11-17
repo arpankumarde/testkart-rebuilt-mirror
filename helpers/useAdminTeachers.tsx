@@ -28,6 +28,6 @@ export const useAdminTeachersQuery = ({
         relationshipManager: relationshipManager || undefined,
       }),
     staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 };

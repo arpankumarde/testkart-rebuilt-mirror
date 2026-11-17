@@ -17,16 +17,16 @@ import { sql, RawBuilder } from "kysely";
  * Every builder accepts an optional `teacherIdExpr`:
  *   - omitted            -> no teacher filter at all (platform-wide aggregate)
  *   - a plain number      -> filters to one specific teacher (bound as a query param)
- *   - `sql.ref("users.id")` -> correlates against the outer query's current row,
+ *   - `sql.ref("teachers.id")` -> correlates against the outer query's current row,
  *                              for use as a per-row scalar subquery inside a
- *                              paginated admin listing (SELECT ... FROM users ...)
+ *                              paginated admin listing (SELECT ... FROM teachers ...)
  *
  * Each builder returns a parenthesized scalar subquery aliased internally as
  * `total` (and `count` where noted), so it can be used two ways:
  *   1. Standalone: `const r = await buildTeacherNetEarningsSql(teacherId).execute(db); r.rows[0].total`
- *   2. Embedded:   `.select([buildTeacherNetEarningsSql(sql.ref("users.id")).as("totalEarnings")])`
+ *   2. Embedded:   `.select([buildTeacherNetEarningsSql(sql.ref("teachers.id")).as("totalEarnings")])`
  *
- * IMPORTANT for cost/perf: prefer the correlated-subquery form (`sql.ref("users.id")`)
+ * IMPORTANT for cost/perf: prefer the correlated-subquery form (`sql.ref("teachers.id")`)
  * over calling the standalone form in a loop over paginated results. A single
  * query with N correlated subqueries costs one round trip; N separate calls
  * cost N round trips (and N times the Lambda/DB compute).
@@ -193,7 +193,7 @@ function earningsRowsFragment(teacherIdExpr?: TeacherIdExpr, window?: TeacherEar
     -- Tcoins a student spent are funded by Testkart, so they are added back to the sale value.
     SELECT (o.total_amount::numeric + o.tcoins_redeemed) * (1 - COALESCE(
       o.platform_fee_percentage,
-      (SELECT fee_user.platform_fee_override FROM users fee_user WHERE fee_user.id = cb.teacher_id),
+      (SELECT fee_user.platform_fee_override FROM teachers fee_user WHERE fee_user.id = cb.teacher_id),
       (SELECT COALESCE(ts.platform_fee_override, sp.platform_fee_percentage)
        FROM teacher_subscriptions ts
        JOIN subscription_plans sp ON ts.plan_id = sp.id

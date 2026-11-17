@@ -31,19 +31,18 @@ export async function fetchPopularTeachers(): Promise<HomepageTeacher[]> {
 
   const [teachers, testCounts, courseCounts, productCounts, followerCounts, enrollments] = await Promise.all([
     db
-      .selectFrom("users")
-      .where("users.id", "in", candidateIds)
-      .where("users.role", "=", "teacher")
-      .where("users.isActive", "=", true)
-      .where("users.slug", "is not", null)
+      .selectFrom("teachers")
+      .where("teachers.id", "in", candidateIds)
+      .where("teachers.isActive", "=", true)
+      .where("teachers.slug", "is not", null)
       .select([
-        "users.id",
-        "users.displayName",
-        "users.avatarUrl",
-        "users.slug",
-        "users.isVerified",
-        "users.tagline",
-        "users.targetExams",
+        "teachers.id",
+        "teachers.displayName",
+        "teachers.avatarUrl",
+        "teachers.slug",
+        "teachers.isVerified",
+        "teachers.tagline",
+        "teachers.targetExams",
       ])
       .execute(),
 

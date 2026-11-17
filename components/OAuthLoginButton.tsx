@@ -8,6 +8,9 @@ import { postEstablishSession } from "../endpoints/auth/establish_session_POST.s
 import { type OAuthPopupMessage } from "../helpers/oauthPopupMessage";
 import { validateRedirectPath } from "../helpers/validateRedirectPath";
 import { trackGTMEvent } from "../helpers/trackGTMEvent";
+import { AccountChoiceDialog } from "./AccountChoiceDialog";
+import type { AccountChoiceOutput } from "../helpers/loginAccount";
+import type { User } from "../helpers/User";
 import styles from "./OAuthLoginButton.module.css";
 
 interface OAuthLoginButtonProps {
@@ -35,9 +38,24 @@ export const OAuthLoginButton: React.FC<OAuthLoginButtonProps> = ({
     email: string;
     message: string;
   } | null>(null);
+  const [accountChoice, setAccountChoice] = useState<AccountChoiceOutput | null>(null);
   const { onLogin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const side = (roleProp || (location.pathname.startsWith("/teacher") ? "teacher" : "student")) as "student" | "teacher";
+
+  const finishAccountChoice = (user: User) => {
+    setAccountChoice(null);
+    onLogin(user);
+    const sameSidePath = side === "teacher" ? "/teacher/dashboard" : "/student/dashboard";
+    const destination =
+      user.role === side
+        ? validateRedirectPath(redirectTo ?? null) ?? sameSidePath
+        : user.role === "teacher"
+          ? "/teacher/dashboard"
+          : "/student/dashboard";
+    setTimeout(() => navigate(destination), 200);
+  };
 
   const handleOAuthLogin = async () => {
     setIsLoading(true);
@@ -194,6 +212,11 @@ export const OAuthLoginButton: React.FC<OAuthLoginButtonProps> = ({
           setIsLoading(false);
           window.removeEventListener("message", handleMessage);
         }
+      } else if (event.data.type === "OAUTH_ACCOUNT_CHOICE") {
+        setAccountChoice(event.data.choice);
+        popup.close();
+        setIsLoading(false);
+        window.removeEventListener("message", handleMessage);
       } else if (event.data.type === "OAUTH_ERROR") {
         // Handle OAuth error
         console.error(`${provider} OAuth error:`, event.data.error);
@@ -298,6 +321,12 @@ export const OAuthLoginButton: React.FC<OAuthLoginButtonProps> = ({
         )}
       </Button>
       {error && <div className={styles.errorMessage}>{error}</div>}
+      <AccountChoiceDialog
+        choice={accountChoice}
+        side={side}
+        onClose={() => setAccountChoice(null)}
+        onSignedIn={finishAccountChoice}
+      />
     </>
   );
 };

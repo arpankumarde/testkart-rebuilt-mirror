@@ -198,11 +198,10 @@ async function settleFinishedClasses() {
 
   const joined = await db
     .selectFrom("liveLessonAttendance")
-    .innerJoin("users", "users.id", "liveLessonAttendance.userId")
+    .innerJoin("teachers", "teachers.id", "liveLessonAttendance.userId")
     .select("liveLessonAttendance.mentorshipBookingId")
     .where("liveLessonAttendance.mentorshipBookingId", "in", due.map((b) => b.id))
     .where("liveLessonAttendance.role", "=", "teacher")
-    .where("users.role", "=", "teacher")
     .execute();
   const teacherCame = new Set(joined.map((j) => j.mentorshipBookingId));
 

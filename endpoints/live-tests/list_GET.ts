@@ -86,7 +86,7 @@ export async function handle(request: Request) {
 
     let query = db
       .selectFrom("liveTests")
-      .innerJoin("users", "users.id", "liveTests.teacherId")
+      .innerJoin("teachers", "teachers.id", "liveTests.teacherId")
       .innerJoin("mockTests", "mockTests.id", "liveTests.mockTestId")
       .leftJoin("exams", "exams.examName", "mockTests.examName")
       .select([
@@ -111,8 +111,8 @@ export async function handle(request: Request) {
         "liveTests.viewCount",
         "mockTests.examName",
         "mockTests.slug",
-        "users.displayName as teacherName",
-        "users.isVerified as teacherIsVerified",
+        "teachers.displayName as teacherName",
+        "teachers.isVerified as teacherIsVerified",
         (eb) => eb.selectFrom('mockTestItems')
           .select(sql<number>`COALESCE(SUM(duration_minutes), 0)`.as('total'))
           .whereRef('mockTestItems.packageId', '=', 'mockTests.id')
@@ -174,7 +174,7 @@ export async function handle(request: Request) {
         eb.or([
           eb("liveTests.title", "ilike", searchPattern),
           eb("liveTests.description", "ilike", searchPattern),
-          eb("users.displayName", "ilike", searchPattern),
+          eb("teachers.displayName", "ilike", searchPattern),
         ])
       );
     }

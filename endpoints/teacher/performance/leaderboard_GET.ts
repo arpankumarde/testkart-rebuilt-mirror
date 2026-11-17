@@ -145,7 +145,7 @@ export async function handle(request: Request): Promise<Response> {
       });
       const ids = ranked.map((entry) => entry.studentId);
       const photoRows =
-        ids.length > 0 ? await db.selectFrom("users").select(["id", "avatarUrl"]).where("id", "in", ids).execute() : [];
+        ids.length > 0 ? await db.selectFrom("students").select(["id", "avatarUrl"]).where("id", "in", ids).execute() : [];
       const photos = new Map(photoRows.map((u) => [u.id, avatarOrNull(u.avatarUrl)]));
       const liveMarks = await getAttemptMarks(ranked.map((entry) => entry.attemptId));
       const livePapers = [...new Set(ranked.map((entry) => entry.testId))];
@@ -204,7 +204,7 @@ export async function handle(request: Request): Promise<Response> {
           SELECT b.attempt_id, b.student_id, ${NAME_SQL} AS name, u.avatar_url, b.score, b.minutes,
                  (b.completed_at AT TIME ZONE 'UTC') AS completed_at, c.attempts
           FROM best b
-          JOIN users u ON u.id = b.student_id
+          JOIN students u ON u.id = b.student_id
           LEFT JOIN counts c ON c.student_id = b.student_id
           ORDER BY b.score DESC, b.minutes ASC NULLS LAST, b.completed_at ASC
         `.execute(db);
@@ -238,7 +238,7 @@ export async function handle(request: Request): Promise<Response> {
           SELECT b.student_id, ${NAME_SQL} AS name, u.avatar_url, count(*) AS papers_done,
                  avg(b.score) AS average_score, sum(b.score) AS total_score, max(b.score) AS best_score,
                  (max(b.last_at) AT TIME ZONE 'UTC') AS last_at
-          FROM best b JOIN users u ON u.id = b.student_id
+          FROM best b JOIN students u ON u.id = b.student_id
           GROUP BY b.student_id, u.display_name, u.avatar_url
           ORDER BY average_score DESC, papers_done DESC
         `.execute(db);

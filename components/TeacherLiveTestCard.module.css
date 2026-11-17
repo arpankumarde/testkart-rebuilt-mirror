@@ -1,7 +1,7 @@
 /*
  * The console card, as on TeacherTestCard: --tc-card on a hairline border, no
- * shadow. Hover moves the border rather than lifting the card. The left edge
- * stays as the status accent.
+ * shadow. Hover moves the border rather than lifting the card. The border
+ * colour carries the status.
  */
 .card {
   display: flex;
@@ -313,29 +313,30 @@
   font-variant-numeric: tabular-nums;
 }
 
+/*
+ * Two fixed rows: labelled buttons share the first row in equal widths, the
+ * icon tools sit on their own row below. Letting both groups share one
+ * wrapping row left a ragged footer whose rows differed card to card.
+ */
 .footer {
   padding: var(--spacing-3) var(--spacing-4);
   border-top: 1px solid var(--border);
   display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
   gap: var(--spacing-2);
 }
 
-/*
- * Both groups wrap internally and share the footer row while it fits, dropping
- * to their own rows when it does not. .actions previously held its width with
- * flex-shrink: 0 and no wrap, which pushed its last button (View Analytics)
- * past the card edge in a narrow column.
- */
 .primaryActions {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
   gap: var(--spacing-2);
-  flex: 1 1 auto;
   min-width: 0;
+}
+
+.primaryActions > * {
+  flex: 1 1 0;
+  min-width: max-content;
+  justify-content: center;
 }
 
 .actions {
@@ -344,7 +345,6 @@
   align-items: center;
   justify-content: flex-end;
   gap: var(--spacing-1);
-  flex: 1 1 auto;
   min-width: 0;
 }
 
@@ -416,23 +416,5 @@
 
   .spinnerIcon {
     animation: none;
-  }
-}
-
-/* Responsive footer layout for small screens */
-@media (max-width: 480px) {
-  .footer {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .primaryActions {
-    width: 100%;
-    justify-content: flex-start;
-  }
-  
-  .actions {
-    width: 100%;
-    justify-content: flex-end;
   }
 }

@@ -57,7 +57,7 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     const student = await db
-      .selectFrom("users")
+      .selectFrom("students")
       .select(["id", "displayName", "email", "mobileNumber", "isActive"])
       .where("id", "=", payRequest.userId)
       .executeTakeFirst();

@@ -4,6 +4,8 @@ import { db } from "./db";
  * New teachers must give both an email and a mobile number at signup. The OTP
  * verifies one of them; the other is stored unverified. Enforced here rather
  * than in the database so existing accounts and student signups are untouched.
+ * Only other teachers count: a student account with the same email or number
+ * is a separate account since the users split.
  * Returns an error message, or null when the second contact is acceptable.
  */
 export async function checkTeacherSecondContact(
@@ -20,7 +22,7 @@ export async function checkTeacherSecondContact(
   }
 
   const existing = await db
-    .selectFrom("users")
+    .selectFrom("teachers")
     .select("id")
     .where(field, "=", value)
     .executeTakeFirst();

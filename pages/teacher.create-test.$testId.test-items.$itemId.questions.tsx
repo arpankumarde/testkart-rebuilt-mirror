@@ -28,7 +28,7 @@ const Page = () => {
   const hasManySubjects = (subjects?.length ?? 0) > 1;
   const downloadPdf = useDownloadTestPdf();
   const itemsHref = `/teacher/create-test/${packageId}/test-items`;
-  const reviewHref = `/teacher/create-test/${packageId}/review`;
+  const detailsHref = `/teacher/create-test/basic-info?testId=${packageId}`;
   const questionsHref = (itemId: number, subjectId?: number) =>
     `/teacher/create-test/${packageId}/test-items/${itemId}/questions${subjectId ? `?subjectId=${subjectId}` : ""}`;
 
@@ -92,8 +92,8 @@ const Page = () => {
                   Next test: {nextItem.title} <ChevronRight size={16} />
                 </Link>
               ) : (
-                <Link to={reviewHref}>
-                  Review and publish <ChevronRight size={16} />
+                <Link to={detailsHref}>
+                  Next: Details <ChevronRight size={16} />
                 </Link>
               )}
             </Button>

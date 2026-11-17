@@ -59,14 +59,14 @@ export async function handle(request: Request) {
       const rows = await db
         .selectFrom("organizationTeachers")
         .innerJoin("organizations", "organizations.id", "organizationTeachers.organizationId")
-        .innerJoin("users", "users.id", "organizationTeachers.teacherId")
+        .innerJoin("teachers", "teachers.id", "organizationTeachers.teacherId")
         .select([
           "organizationTeachers.id as membershipId",
           "organizations.id as organizationId",
           "organizations.name as organizationName",
-          "users.id as teacherId",
-          "users.displayName as teacherName",
-          "users.avatarUrl as teacherAvatarUrl",
+          "teachers.id as teacherId",
+          "teachers.displayName as teacherName",
+          "teachers.avatarUrl as teacherAvatarUrl",
           "organizationTeachers.requestedAt",
         ])
         .where("organizationTeachers.organizationId", "in", createdOrgIds)

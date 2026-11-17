@@ -4,6 +4,9 @@ import { User } from "../../helpers/User";
 export const schema = z.object({
   email: z.string().email("Email is required"),
   password: z.string().min(1, "Password is required"),
+  role: z.enum(["user", "teacher"]).optional(),
+  /** Clients that can show the "you have an account on the other side" choice (helpers/loginAccount). */
+  supportsAccountChoice: z.boolean().optional(),
 });
 
 export type OutputType = {

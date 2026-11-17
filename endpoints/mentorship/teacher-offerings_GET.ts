@@ -16,7 +16,6 @@ const TEACHER_COLUMNS = [
   "bio",
   "tagline",
   "timezone",
-  "role",
   "mentorshipEnabled",
   "mentorshipRatePerUnit",
   "mentorshipClassPrice60",
@@ -27,9 +26,8 @@ const TEACHER_COLUMNS = [
 
 const findTeacher = async (by: { id: number } | { slug: string }) =>
   db
-    .selectFrom("users")
+    .selectFrom("teachers")
     .select(TEACHER_COLUMNS)
-    .where("role", "=", "teacher")
     .$call((q) => ("id" in by ? q.where("id", "=", by.id) : q.where("slug", "=", by.slug)))
     .executeTakeFirst();
 

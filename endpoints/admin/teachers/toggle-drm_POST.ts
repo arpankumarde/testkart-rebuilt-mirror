@@ -12,10 +12,9 @@ export async function handle(request: Request): Promise<Response> {
     const { teacherId, drmEnabled } = schema.parse(json);
 
     const updated = await db
-      .updateTable("users")
+      .updateTable("teachers")
       .set({ drmEnabled })
       .where("id", "=", teacherId)
-      .where("role", "=", "teacher")
       .returning("id")
       .executeTakeFirst();
 

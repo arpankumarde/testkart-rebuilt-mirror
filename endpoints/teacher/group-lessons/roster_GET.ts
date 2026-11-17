@@ -24,7 +24,7 @@ export async function handle(request: Request) {
 
     const rows = await db
       .selectFrom("groupLessonEnrollments")
-      .innerJoin("users as student", "student.id", "groupLessonEnrollments.studentId")
+      .innerJoin("students as student", "student.id", "groupLessonEnrollments.studentId")
       .select([
         "groupLessonEnrollments.id as enrollmentId",
         "student.id as studentId",

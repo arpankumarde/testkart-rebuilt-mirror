@@ -20,7 +20,7 @@ export async function handle(request: Request): Promise<Response> {
     const enrollments = await db
       .selectFrom("teacherSponsoredEnrollments")
       // Left join: a sponsored student who closed their account leaves student_id null.
-      .leftJoin("users", "teacherSponsoredEnrollments.studentId", "users.id")
+      .leftJoin("students", "teacherSponsoredEnrollments.studentId", "students.id")
       .leftJoin("mockTests", "teacherSponsoredEnrollments.mockTestId", "mockTests.id")
       .leftJoin("courses", "teacherSponsoredEnrollments.courseId", "courses.id")
       .leftJoin("digitalProducts", "teacherSponsoredEnrollments.digitalProductId", "digitalProducts.id")
@@ -39,7 +39,7 @@ export async function handle(request: Request): Promise<Response> {
       )
       .select([
         "teacherSponsoredEnrollments.id",
-        sql<string>`COALESCE(users.display_name, 'Deleted account')`.as("studentName"),
+        sql<string>`COALESCE(students.display_name, 'Deleted account')`.as("studentName"),
         "teacherSponsoredEnrollments.studentPhone",
         "teacherSponsoredEnrollments.contentType",
         sql<string>`COALESCE(mock_tests.title, courses.title, digital_products.title, course_bundles.title, 'Unknown')`.as("contentTitle"),

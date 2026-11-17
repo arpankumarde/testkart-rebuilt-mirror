@@ -23,6 +23,5 @@ export const useAIUsageLogs = (params: LogsInputType) => {
   return useQuery({
     queryKey: [AI_USAGE_QUERY_KEY, "logs", params],
     queryFn: () => getAdminAiUsageLogs(params),
-    refetchInterval: 30000, // keep the recent-attempts log reasonably fresh without hammering the server
   });
 };

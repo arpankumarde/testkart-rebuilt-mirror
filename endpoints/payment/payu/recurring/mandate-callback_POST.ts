@@ -122,7 +122,7 @@ export async function handle(request: Request) {
       // Fetch teacher info and check for existing active subscription BEFORE deactivating
       const [teacher, existingActiveSubscription] = await Promise.all([
         db
-          .selectFrom("users")
+          .selectFrom("teachers")
           .select(["displayName", "email as userEmail"])
           .where("id", "=", transaction.teacherId)
           .executeTakeFirst(),
@@ -215,7 +215,7 @@ export async function handle(request: Request) {
       // Failure email for mihpayid missing case
       try {
         const teacher = await db
-          .selectFrom("users")
+          .selectFrom("teachers")
           .select(["displayName", "email as userEmail"])
           .where("id", "=", transaction.teacherId)
           .executeTakeFirst();
@@ -263,7 +263,7 @@ export async function handle(request: Request) {
         // Payment failure email
         try {
           const teacher = await db
-            .selectFrom("users")
+            .selectFrom("teachers")
             .select(["displayName", "email as userEmail"])
             .where("id", "=", transaction.teacherId)
             .executeTakeFirst();

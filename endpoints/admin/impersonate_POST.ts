@@ -1,6 +1,7 @@
 import { schema, OutputType } from "./impersonate_POST.schema";
 import superjson from 'superjson';
 import { db } from "../../helpers/db";
+import { allAccounts } from "../../helpers/allAccounts";
 import { getAdminServerSessionOrThrow } from "../../helpers/getAdminSession";
 import { setServerSession, SessionExpirationSeconds } from "../../helpers/getSetServerSession";
 import { randomBytes } from "crypto";
@@ -13,7 +14,7 @@ export async function handle(request: Request): Promise<Response> {
     const { userId } = schema.parse(json);
 
     const targetUser = await db
-      .selectFrom("users")
+      .selectFrom(allAccounts(db).as("users"))
       .select(["id", "role", "isActive"])
       .where("id", "=", userId)
       .executeTakeFirst();

@@ -34,7 +34,7 @@ export async function handle(request: Request): Promise<Response> {
     // yet, so their name/email/phone live on the sales_contacts row itself.
     const contactRow = await db
       .selectFrom("salesContacts")
-      .leftJoin("users", "salesContacts.userId", "users.id")
+      .leftJoin("teachers", "salesContacts.userId", "teachers.id")
       .leftJoin("admins", "salesContacts.assignedToAdminId", "admins.id")
       .where("salesContacts.id", "=", contactId)
       .select([
@@ -49,34 +49,34 @@ export async function handle(request: Request): Promise<Response> {
           "preferredCallDate"
         ),
         "salesContacts.preferredCallSlot",
-        sql<string>`coalesce(users.display_name, sales_contacts.lead_name)`.as("displayName"),
-        sql<string | null>`coalesce(users.email, sales_contacts.lead_email)`.as("email"),
-        sql<string | null>`coalesce(users.mobile_number, sales_contacts.lead_phone)`.as("mobileNumber"),
-        "users.academyName",
-        "users.location",
+        sql<string>`coalesce(teachers.display_name, sales_contacts.lead_name)`.as("displayName"),
+        sql<string | null>`coalesce(teachers.email, sales_contacts.lead_email)`.as("email"),
+        sql<string | null>`coalesce(teachers.mobile_number, sales_contacts.lead_phone)`.as("mobileNumber"),
+        "teachers.academyName",
+        "teachers.location",
         "salesContacts.stage",
-        sql<Date>`coalesce(users.created_at, sales_contacts.created_at)`.as("signedUpAt"),
+        sql<Date>`coalesce(teachers.created_at, sales_contacts.created_at)`.as("signedUpAt"),
         "salesContacts.createdAt as importedAt",
         "salesContacts.updatedAt",
         "salesContacts.assignedToAdminId",
         "admins.fullName as assignedToAdminName",
         "salesContacts.followUpDate",
         "salesContacts.lastContactedAt",
-        sql<boolean>`coalesce(users.onboarding_completed, false)`.as("onboardingCompleted"),
-        "users.teachingCategories",
-        "users.targetExams",
-        "users.teachingExperienceLevel",
-        "users.currentOccupation",
-        "users.goals",
-        "users.discoverySource",
-        "users.schoolCollegeName",
-        "users.signupSource",
-        "users.productInterest",
-        "users.expertiseAreas",
-        "users.languages",
-        "users.bio",
-        "users.tagline",
-        "users.avatarUrl",
+        sql<boolean>`coalesce(teachers.onboarding_completed, false)`.as("onboardingCompleted"),
+        "teachers.teachingCategories",
+        "teachers.targetExams",
+        "teachers.teachingExperienceLevel",
+        "teachers.currentOccupation",
+        "teachers.goals",
+        "teachers.discoverySource",
+        "teachers.schoolCollegeName",
+        "teachers.signupSource",
+        "teachers.productInterest",
+        "teachers.expertiseAreas",
+        "teachers.languages",
+        "teachers.bio",
+        "teachers.tagline",
+        "teachers.avatarUrl",
       ])
       .executeTakeFirst();
 

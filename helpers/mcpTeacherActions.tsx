@@ -783,7 +783,7 @@ export async function describeTeacherAccount(access: TeacherAccess) {
     throw new McpTeacherToolError("This account is no longer a teacher account. Remove the connector.");
   }
   const profile = await db
-    .selectFrom("users")
+    .selectFrom("teachers")
     .select(["displayName", "academyName"])
     .where("id", "=", session.effectiveTeacherId)
     .executeTakeFirst();

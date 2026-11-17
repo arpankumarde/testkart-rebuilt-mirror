@@ -1,9 +1,30 @@
 /*
- * Two screens share this page after the AI prompt: the short start form for
- * "I'll fill the details myself", and the wait while the AI-filled draft is
- * created. The start form sits beside the same card preview the editor shows,
- * so the course looks the same from its first keystroke to Submit.
+ * The first page of the course creator's Lessons step, in the console's
+ * form-page shell: no padding of its own (.pageBody owns the gutter). The step
+ * track spans the page; below it the naming card sits beside the card preview.
+ * Section styles match teacher.create-test.
  */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 
 /* The query container; .start cannot measure itself. */
 .startWrap {
@@ -13,81 +34,53 @@
 .start {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--spacing-8);
+  gap: var(--spacing-6);
   width: 100%;
-  max-width: 60rem;
-  margin: 0 auto;
-  box-sizing: border-box;
 }
 
 .startMain {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-3);
+  gap: var(--spacing-4);
   min-width: 0;
-}
-
-.backLink {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  align-self: flex-start;
-  padding: 0;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: none;
-  font-family: var(--font-family-base);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--muted-foreground);
-  cursor: pointer;
-}
-
-.backLink:hover {
-  color: var(--foreground);
-}
-
-.backLink:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-focus);
-}
-
-@media (pointer: coarse) {
-  .backLink {
-    position: relative;
-  }
-
-  .backLink::after {
-    content: "";
-    position: absolute;
-    inset: -0.75rem -0.5rem;
-  }
-}
-
-.startTitle {
-  margin: var(--spacing-2) 0 0;
-  font-family: var(--font-family-heading);
-  font-size: 1.75rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-  color: var(--foreground);
-}
-
-.startLead {
-  margin: 0;
-  max-width: 46ch;
-  font-size: 0.9375rem;
-  line-height: 1.55;
-  color: var(--muted-foreground);
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  margin-top: var(--spacing-4);
-  max-width: 30rem;
+  gap: var(--spacing-4);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4) var(--spacing-6) var(--spacing-6);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow);
+}
+
+.sectionHead {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: var(--spacing-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-family-heading);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.sectionHint {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
 }
 
 .field {
@@ -102,96 +95,108 @@
   color: var(--foreground);
 }
 
-.optional {
-  font-weight: 500;
-  color: var(--muted-foreground);
-}
-
-.error {
+.fieldError {
   margin: 0;
   font-size: 0.8125rem;
   font-weight: 500;
   color: var(--error-text);
 }
 
-.priceRow {
+/* What the chapter builder asks for once the course is named. */
+.nextList {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: var(--spacing-3) var(--spacing-4);
+  list-style: none;
+  border: 1px solid var(--sp-lavender-edge);
+  border-radius: var(--radius);
+  background-color: var(--sp-lavender-tint);
+}
+
+.nextItem {
+  display: flex;
   align-items: center;
   gap: var(--spacing-3);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--foreground);
 }
 
-.rupeeInput {
-  position: relative;
-  width: 10rem;
+.nextIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--radius-full);
+  background-color: var(--surface);
+  color: var(--sp-lavender-ink);
 }
 
-.rupee {
-  position: absolute;
-  top: 50%;
-  left: var(--spacing-3);
-  transform: translateY(-50%);
-  font-weight: 600;
+.error {
+  margin: 0;
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid var(--error-text);
+  border-radius: var(--radius);
+  background-color: var(--surface);
+  color: var(--error-text);
+  font-size: 0.875rem;
+}
+
+/* The action sits on the page ground under the card, so it reads as the end
+   of the page rather than part of the card. */
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+}
+
+.actionsNote {
+  margin: 0;
+  margin-right: auto;
+  font-size: 0.8125rem;
   color: var(--muted-foreground);
-  pointer-events: none;
-}
-
-.rupeeInput input {
-  padding-left: 1.75rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.submit {
-  align-self: flex-start;
-  margin-top: var(--spacing-2);
 }
 
 .preview {
   align-self: start;
 }
 
-.bannerError {
-  max-width: 60rem;
-  margin: 0 auto var(--spacing-4);
-  padding: var(--spacing-3) var(--spacing-4);
-  border: 1px solid color-mix(in srgb, var(--error) 35%, var(--surface));
-  border-radius: var(--radius-md);
-  background-color: color-mix(in srgb, var(--error) 8%, var(--surface));
-  color: var(--error-text);
-  font-size: 0.875rem;
-}
-
-/* The wait while an AI-filled draft is created, then the editor opens. */
-.status {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-4);
-  min-height: 50vh;
-  text-align: center;
-}
-
-.statusText {
-  margin: 0;
-  font-size: 0.9375rem;
-  color: var(--muted-foreground);
-}
-
-@container (min-width: 44rem) {
+@container (min-width: 50rem) {
   .start {
     grid-template-columns: minmax(0, 1fr) 20rem;
     align-items: start;
-    padding-top: var(--spacing-6);
+  }
+
+  .preview {
+    position: sticky;
+    top: var(--spacing-6);
   }
 }
 
-@media (max-width: 480px) {
-  .startTitle {
-    font-size: 1.5rem;
+@media (max-width: 640px) {
+  .page {
+    gap: var(--spacing-4);
   }
 
-  .submit {
-    align-self: stretch;
+  .section {
+    padding: var(--spacing-4);
+  }
+
+  .actions {
+    justify-content: stretch;
+  }
+
+  .actionsNote {
+    margin-right: 0;
+  }
+
+  .actions > button {
+    width: 100%;
   }
 }

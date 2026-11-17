@@ -1,7 +1,7 @@
 import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
-import { MockTests, MockTestItems, Users } from "../../helpers/schema";
+import { MockTests, MockTestItems, Teachers } from "../../helpers/schema";
 import { SocialLinks, AwardCertificate } from "../../helpers/teacherProfileTypes";
 
 export const schema = z
@@ -31,14 +31,14 @@ export type PackageDetails = {
   examName: string | null;
   examSlug: string | null;
   slug: string;
-  teacherName: Selectable<Users>["displayName"];
-  teacherAvatarUrl: Selectable<Users>["avatarUrl"];
+  teacherName: Selectable<Teachers>["displayName"];
+  teacherAvatarUrl: Selectable<Teachers>["avatarUrl"];
   teacherId: number;
-  teacherBio: Selectable<Users>["bio"];
-  teacherWebsiteUrl: Selectable<Users>["websiteUrl"];
-  teacherPublicPhone: Selectable<Users>["publicPhone"];
-  teacherPublicEmail: Selectable<Users>["publicEmail"];
-  teacherAcademyName: Selectable<Users>["academyName"];
+  teacherBio: Selectable<Teachers>["bio"];
+  teacherWebsiteUrl: Selectable<Teachers>["websiteUrl"];
+  teacherPublicPhone: Selectable<Teachers>["publicPhone"];
+  teacherPublicEmail: Selectable<Teachers>["publicEmail"];
+  teacherAcademyName: Selectable<Teachers>["academyName"];
   teacherSocialLinks: SocialLinks | null;
   teacherAwardsCertificates: AwardCertificate[] | null;
   rating: number | null;

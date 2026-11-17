@@ -9,7 +9,7 @@ import { examNewsPublicServer } from "../../helpers/examNewsPublicServer";
 import { loadCourseCouponOffers } from "../../helpers/courseCouponOffersServer";
 
 /* Content from verified teachers ranks above everything else; popularity orders within each half. */
-const verifiedTeacherFirst = sql`coalesce(users.is_verified, false)`;
+const verifiedTeacherFirst = sql`coalesce(teachers.is_verified, false)`;
 
 export async function handle(request: Request): Promise<Response> {
   try {
@@ -33,7 +33,7 @@ export async function handle(request: Request): Promise<Response> {
     // 1. Search Mock Tests
     const testsPromise = db
       .selectFrom("mockTests")
-      .innerJoin("users", "users.id", "mockTests.teacherId")
+      .innerJoin("teachers", "teachers.id", "mockTests.teacherId")
       .select([
         "mockTests.id",
         "mockTests.slug",
@@ -45,12 +45,12 @@ export async function handle(request: Request): Promise<Response> {
         "mockTests.views",
         "mockTests.rating",
         "mockTests.reviewsCount",
-        "users.displayName as teacherName",
-        "users.isVerified as teacherIsVerified",
-        "users.avatarUrl as teacherAvatarUrl",
-        "users.tagline as teacherTagline",
-        "users.yearsOfExperience as teacherYearsOfExperience",
-        "users.slug as teacherSlug",
+        "teachers.displayName as teacherName",
+        "teachers.isVerified as teacherIsVerified",
+        "teachers.avatarUrl as teacherAvatarUrl",
+        "teachers.tagline as teacherTagline",
+        "teachers.yearsOfExperience as teacherYearsOfExperience",
+        "teachers.slug as teacherSlug",
       ])
       .where("mockTests.isPublished", "=", true)
       .where("mockTests.visibility", "=", "public")
@@ -75,7 +75,7 @@ export async function handle(request: Request): Promise<Response> {
             SELECT 1 FROM mock_test_exams mte
             WHERE mte.mock_test_id = mock_tests.id AND mte.exam_name ILIKE ${searchTerm}
           )`,
-          eb("users.displayName", "ilike", searchTerm),
+          eb("teachers.displayName", "ilike", searchTerm),
         ])
       )
       .orderBy(verifiedTeacherFirst, "desc")
@@ -89,7 +89,7 @@ export async function handle(request: Request): Promise<Response> {
     // 2. Search Courses
     const coursesPromise = db
       .selectFrom("courses")
-      .innerJoin("users", "users.id", "courses.teacherId")
+      .innerJoin("teachers", "teachers.id", "courses.teacherId")
       .select([
         "courses.id",
         "courses.slug",
@@ -99,12 +99,12 @@ export async function handle(request: Request): Promise<Response> {
         "courses.discountPrice",
         "courses.views",
         "courses.examName",
-        "users.displayName as teacherName",
-        "users.isVerified as teacherIsVerified",
-        "users.avatarUrl as teacherAvatarUrl",
-        "users.tagline as teacherTagline",
-        "users.yearsOfExperience as teacherYearsOfExperience",
-        "users.slug as teacherSlug",
+        "teachers.displayName as teacherName",
+        "teachers.isVerified as teacherIsVerified",
+        "teachers.avatarUrl as teacherAvatarUrl",
+        "teachers.tagline as teacherTagline",
+        "teachers.yearsOfExperience as teacherYearsOfExperience",
+        "teachers.slug as teacherSlug",
       ])
       .where("courses.status", "=", "published")
       .where("courses.visibility", "=", "public")
@@ -112,7 +112,7 @@ export async function handle(request: Request): Promise<Response> {
         eb.or([
           eb("courses.title", "ilike", searchTerm),
           eb("courses.description", "ilike", searchTerm),
-          eb("users.displayName", "ilike", searchTerm),
+          eb("teachers.displayName", "ilike", searchTerm),
         ])
       )
       .orderBy(verifiedTeacherFirst, "desc")
@@ -126,7 +126,7 @@ export async function handle(request: Request): Promise<Response> {
     // 3. Search Bundles
     const bundlesPromise = db
       .selectFrom("courseBundles")
-      .innerJoin("users", "users.id", "courseBundles.teacherId")
+      .innerJoin("teachers", "teachers.id", "courseBundles.teacherId")
       .select([
         "courseBundles.id",
         "courseBundles.slug",
@@ -134,12 +134,12 @@ export async function handle(request: Request): Promise<Response> {
         "courseBundles.thumbnailUrl",
         "courseBundles.price",
         "courseBundles.originalPrice",
-        "users.displayName as teacherName",
-        "users.isVerified as teacherIsVerified",
-        "users.avatarUrl as teacherAvatarUrl",
-        "users.tagline as teacherTagline",
-        "users.yearsOfExperience as teacherYearsOfExperience",
-        "users.slug as teacherSlug",
+        "teachers.displayName as teacherName",
+        "teachers.isVerified as teacherIsVerified",
+        "teachers.avatarUrl as teacherAvatarUrl",
+        "teachers.tagline as teacherTagline",
+        "teachers.yearsOfExperience as teacherYearsOfExperience",
+        "teachers.slug as teacherSlug",
       ])
       .select((eb) => [
         sql<number>`(
@@ -154,7 +154,7 @@ export async function handle(request: Request): Promise<Response> {
         eb.or([
           eb("courseBundles.title", "ilike", searchTerm),
           eb("courseBundles.description", "ilike", searchTerm),
-          eb("users.displayName", "ilike", searchTerm),
+          eb("teachers.displayName", "ilike", searchTerm),
         ])
       )
       .orderBy(verifiedTeacherFirst, "desc")
@@ -168,7 +168,7 @@ export async function handle(request: Request): Promise<Response> {
     // 4. Search Digital Products
     const productsPromise = db
       .selectFrom("digitalProducts")
-      .innerJoin("users", "users.id", "digitalProducts.teacherId")
+      .innerJoin("teachers", "teachers.id", "digitalProducts.teacherId")
       .select([
         "digitalProducts.id",
         "digitalProducts.slug",
@@ -179,12 +179,12 @@ export async function handle(request: Request): Promise<Response> {
         "digitalProducts.views",
         "digitalProducts.category",
         "digitalProducts.examName",
-        "users.displayName as teacherName",
-        "users.isVerified as teacherIsVerified",
-        "users.avatarUrl as teacherAvatarUrl",
-        "users.tagline as teacherTagline",
-        "users.yearsOfExperience as teacherYearsOfExperience",
-        "users.slug as teacherSlug",
+        "teachers.displayName as teacherName",
+        "teachers.isVerified as teacherIsVerified",
+        "teachers.avatarUrl as teacherAvatarUrl",
+        "teachers.tagline as teacherTagline",
+        "teachers.yearsOfExperience as teacherYearsOfExperience",
+        "teachers.slug as teacherSlug",
       ])
       .where("digitalProducts.status", "=", "published")
       .where("digitalProducts.isPublished", "=", true)
@@ -193,7 +193,7 @@ export async function handle(request: Request): Promise<Response> {
         eb.or([
           eb("digitalProducts.title", "ilike", searchTerm),
           eb("digitalProducts.description", "ilike", searchTerm),
-          eb("users.displayName", "ilike", searchTerm),
+          eb("teachers.displayName", "ilike", searchTerm),
         ])
       )
       .orderBy(verifiedTeacherFirst, "desc")

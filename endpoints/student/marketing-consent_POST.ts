@@ -2,6 +2,7 @@ import { sql } from "kysely";
 import superjson from "superjson";
 import { db } from "../../helpers/db";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
+import { isStudentAccount, STUDENT_ACCOUNT_REQUIRED } from "../../helpers/studentAccountRequired";
 import { schema, OutputType } from "./marketing-consent_POST.schema";
 
 const NOTICE_VERSION = "2026-11-14";
@@ -16,6 +17,9 @@ const NOTICE_VERSION = "2026-11-14";
 export async function handle(request: Request): Promise<Response> {
   try {
     const { user } = await getServerUserSession(request);
+    if (!isStudentAccount(user)) {
+      return new Response(superjson.stringify({ error: STUDENT_ACCOUNT_REQUIRED }), { status: 403 });
+    }
     const input = schema.parse(superjson.parse(await request.text()));
     await db
       .insertInto("marketingConsents")

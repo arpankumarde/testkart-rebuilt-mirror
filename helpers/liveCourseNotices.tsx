@@ -157,8 +157,8 @@ type CourseInfo = { id: string; title: string; teacherId: number; teacherName: s
 async function courseInfo(courseId: string): Promise<CourseInfo | null> {
   const row = await db
     .selectFrom("liveCourses")
-    .innerJoin("users", "users.id", "liveCourses.teacherId")
-    .select(["liveCourses.id", "liveCourses.title", "liveCourses.teacherId", "users.displayName as teacherName", "users.email as teacherEmail"])
+    .innerJoin("teachers", "teachers.id", "liveCourses.teacherId")
+    .select(["liveCourses.id", "liveCourses.title", "liveCourses.teacherId", "teachers.displayName as teacherName", "teachers.email as teacherEmail"])
     .where("liveCourses.id", "=", courseId)
     .executeTakeFirst();
   return row ?? null;
@@ -166,7 +166,7 @@ async function courseInfo(courseId: string): Promise<CourseInfo | null> {
 
 async function studentById(studentId: number): Promise<CourseStudent | null> {
   const row = await db
-    .selectFrom("users")
+    .selectFrom("students")
     .select(["id as studentId", "displayName as name", "email", "mobileNumber"])
     .where("id", "=", studentId)
     .executeTakeFirst();

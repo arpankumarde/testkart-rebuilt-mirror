@@ -474,7 +474,7 @@ export async function handle(request: Request) {
 
       // Fetch student details for potential failure email (needed outside transaction)
       const studentForEmail = await trx
-        .selectFrom("users")
+        .selectFrom("students")
         .select(["email", "displayName"])
         .where("id", "=", claimedOrder.userId)
         .executeTakeFirst();

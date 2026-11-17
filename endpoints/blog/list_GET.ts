@@ -19,7 +19,6 @@ export async function handle(request: Request) {
     let query = db.selectFrom("blogPosts")
       .leftJoin("blogCategories", "blogPosts.categoryId", "blogCategories.id")
       .leftJoin("admins", "blogPosts.authorId", "admins.id")
-      .leftJoin("users", "blogPosts.authorId", "users.id")
       .where("blogPosts.status", "=", "published")
       .where("blogPosts.type", "=", input.type);
 
@@ -84,8 +83,8 @@ export async function handle(request: Request) {
         "blogPosts.isFeatured",
         "blogCategories.name as categoryName",
         "blogCategories.slug as categorySlug",
-        sql<string | null>`COALESCE(admins.full_name, users.display_name)`.as("authorName"),
-        sql<string | null>`CASE WHEN admins.id IS NOT NULL THEN admins.avatar_url ELSE users.avatar_url END`.as("authorAvatar"),
+        "admins.fullName as authorName",
+        "admins.avatarUrl as authorAvatar",
       ])
       .orderBy("blogPosts.id", "desc")
       .limit(input.limit)

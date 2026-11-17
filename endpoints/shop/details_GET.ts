@@ -26,7 +26,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const product = await db
       .selectFrom("digitalProducts")
-      .innerJoin("users", "users.id", "digitalProducts.teacherId")
+      .innerJoin("teachers", "teachers.id", "digitalProducts.teacherId")
       .leftJoin("exams", "exams.id", "digitalProducts.examId")
       .select([
         "digitalProducts.id",
@@ -58,12 +58,12 @@ export async function handle(request: Request): Promise<Response> {
         "digitalProducts.visibility",
         "digitalProducts.expiresAt",
         "digitalProducts.expiredAt",
-        "users.displayName as teacherName",
-        "users.avatarUrl as teacherAvatar",
-        "users.bio as teacherBio",
-        "users.isVerified as teacherVerified",
-        "users.academyName as teacherAcademyName",
-        "users.slug as teacherSlugCol",
+        "teachers.displayName as teacherName",
+        "teachers.avatarUrl as teacherAvatar",
+        "teachers.bio as teacherBio",
+        "teachers.isVerified as teacherVerified",
+        "teachers.academyName as teacherAcademyName",
+        "teachers.slug as teacherSlugCol",
       ])
       .where("digitalProducts.slug", "=", input.slug)
       .where("digitalProducts.status", "=", "published")

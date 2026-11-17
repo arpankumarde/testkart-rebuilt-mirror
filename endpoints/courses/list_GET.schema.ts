@@ -1,7 +1,7 @@
 import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
-import { Courses, Users } from "../../helpers/schema";
+import { Courses, Teachers } from "../../helpers/schema";
 import type { CourseCouponOffer } from "../../helpers/courseCouponOffer";
 
 export const schema = z.object({
@@ -35,7 +35,7 @@ export type CourseListItem = Pick<
   | "examId"
   | "examName"
 > & {
-  teacherName: Selectable<Users>["displayName"];
+  teacherName: Selectable<Teachers>["displayName"];
   teacherSlug: string;
   teacherIsVerified: boolean;
   enrollmentCount: number;

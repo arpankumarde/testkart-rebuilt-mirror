@@ -1,5 +1,6 @@
 import { sql } from "kysely";
 import { db } from "../../../../helpers/db";
+import { allAccounts } from "../../../../helpers/allAccounts";
 import { getServerUserSession } from "../../../../helpers/getServerUserSession";
 import { getLessonAccessContext, LessonAccessError } from "../../../../helpers/mentorshipLessonAccess";
 import { schema, OutputType } from "./list_GET.schema";
@@ -20,7 +21,7 @@ export async function handle(request: Request) {
 
     let query = db
       .selectFrom("liveLessonChatMessages")
-      .innerJoin("users as sender", "sender.id", "liveLessonChatMessages.senderId")
+      .innerJoin(allAccounts(db).as("sender"), "sender.id", "liveLessonChatMessages.senderId")
       .select([
         "liveLessonChatMessages.id",
         "liveLessonChatMessages.senderId",

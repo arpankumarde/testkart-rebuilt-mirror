@@ -1,4 +1,5 @@
 import { db } from "../../../helpers/db";
+import { allAccounts } from "../../../helpers/allAccounts";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { OutputType, schema } from "./teacher-orders_GET.schema";
 import superjson from "superjson";
@@ -22,7 +23,7 @@ export async function handle(request: Request): Promise<Response> {
     const rawOrderItems = await db
       .selectFrom("orderItems as oi")
       .innerJoin("orders as o", "o.id", "oi.orderId")
-      .innerJoin("users as u", "u.id", "o.userId")
+      .innerJoin(allAccounts(db).as("u"), "u.id", "o.userId")
       .leftJoin("mockTests as mt", "mt.id", "oi.mockTestId")
       .leftJoin("courses as c", "c.id", "oi.courseId")
       .leftJoin("digitalProducts as dp", "dp.id", "oi.digitalProductId")

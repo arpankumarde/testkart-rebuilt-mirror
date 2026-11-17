@@ -1,4 +1,5 @@
 import { db } from "../../helpers/db";
+import { allAccounts } from "../../helpers/allAccounts";
 import {
   schema,
   OutputType,
@@ -10,6 +11,7 @@ import {
 } from "./submit_POST.schema";
 import { sendTemplateEmail, ADMIN_EMAIL } from "../../helpers/sendTemplateEmail";
 import { assignUserSlug } from "../../helpers/assignUserSlug";
+import { insertAccount, updateAccount } from "../../helpers/accountRows";
 import superjson from "superjson";
 import { sql } from "kysely";
 import { ZodError } from "zod";
@@ -17,7 +19,7 @@ import { ZodError } from "zod";
 /** Author recorded on notes/activities created by this public form. */
 const LEAD_AUTHOR = "Website (Demo Request)";
 
-/** Stamped on users.signup_source so demo-created accounts stay identifiable. */
+/** Stamped on teachers.signup_source so demo-created accounts stay identifiable. */
 const DEMO_SIGNUP_SOURCE = "demo_request";
 
 /**
@@ -36,32 +38,25 @@ async function createTeacherAccountForLead(input: {
   expertise: string;
 }): Promise<number | null> {
   try {
-    const newUser = await db
-      .insertInto("users")
-      .values({
-        displayName: input.name,
-        mobileNumber: input.phone,
-        email: input.email,
-        role: "teacher",
-        // Neither was confirmed — they filled a marketing form, not a signup.
-        mobileVerified: false,
-        emailVerified: false,
-        isActive: true,
-        onboardingCompleted: false,
-        signupSource: DEMO_SIGNUP_SOURCE,
-        // Same vocabulary the onboarding quiz uses, so the profile lines up.
-        teachingCategories: [input.expertise],
-      })
-      .returning("id")
-      .executeTakeFirstOrThrow();
+    const newUser = await insertAccount(db, "teacher", {
+      displayName: input.name,
+      mobileNumber: input.phone,
+      email: input.email,
+      // Neither was confirmed - they filled a marketing form, not a signup.
+      mobileVerified: false,
+      emailVerified: false,
+      isActive: true,
+      onboardingCompleted: false,
+      signupSource: DEMO_SIGNUP_SOURCE,
+      // Same vocabulary the onboarding quiz uses, so the profile lines up.
+      teachingCategories: [input.expertise],
+    });
 
     await assignUserSlug(newUser.id, input.name);
 
-    await db
-      .updateTable("users")
-      .set({ avatarUrl: `https://api.dicebear.com/9.x/fun-emoji/png?seed=${newUser.id}` })
-      .where("id", "=", newUser.id)
-      .execute();
+    await updateAccount(db, "teacher", newUser.id, {
+      avatarUrl: `https://api.dicebear.com/9.x/fun-emoji/png?seed=${newUser.id}`,
+    });
 
     const freePlan = await db
       .selectFrom("subscriptionPlans")
@@ -166,7 +161,7 @@ export async function handle(request: Request): Promise<Response> {
     // request to their pipeline row rather than creating a parallel lead.
     let matchedUserId: number | null = null;
     const userByPhone = await db
-      .selectFrom("users")
+      .selectFrom(allAccounts(db).as("users"))
       .select("id")
       .where("mobileNumber", "=", phone)
       .executeTakeFirst();
@@ -174,7 +169,7 @@ export async function handle(request: Request): Promise<Response> {
       matchedUserId = userByPhone.id;
     } else if (email) {
       const userByEmail = await db
-        .selectFrom("users")
+        .selectFrom(allAccounts(db).as("users"))
         .select("id")
         .where("email", "=", email)
         .executeTakeFirst();

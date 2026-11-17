@@ -1,7 +1,5 @@
 @layer components {
-  /* The layout's .pageBody owns the gutter; this page only sets its measure.
-     A form column stays narrower than the list pages so labels and inputs
-     keep a comfortable line length. */
+  /* The layout's .pageBody owns the gutter; this page only sets its measure. */
   .container {
     display: flex;
     flex-direction: column;
@@ -12,14 +10,24 @@
     box-sizing: border-box;
   }
 
+  .srOnly {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
   .form {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-4);
   }
 
-  /* Each group is its own card, so the twelve fields read as three short
-     tasks instead of one long scroll. */
   .section {
     display: flex;
     flex-direction: column;
@@ -52,69 +60,11 @@
     color: var(--muted-foreground);
   }
 
-  .row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: var(--spacing-4);
-    align-items: start;
-  }
-
   .labelWithAI {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: var(--spacing-2);
-  }
-
-  /* Paid or Free as two cards; the chosen one takes the Details step's lavender. */
-  .choiceGroup {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--spacing-3);
-  }
-
-  .choice {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: var(--spacing-3) var(--spacing-4);
-    text-align: left;
-    font-family: var(--font-family-base);
-    background-color: var(--surface);
-    border: 2px solid var(--border);
-    border-radius: var(--radius);
-    cursor: pointer;
-    transition: border-color var(--animation-duration-fast) ease;
-  }
-
-  .choice:hover {
-    border-color: var(--tc-line-strong, var(--border));
-  }
-
-  .choice[aria-checked="true"] {
-    border-color: var(--sp-lavender-edge);
-    background-color: var(--sp-lavender-tint);
-  }
-
-  .choice[aria-checked="true"] .choiceTitle {
-    color: var(--sp-lavender-ink);
-  }
-
-  .choice:focus-visible {
-    outline: none;
-    box-shadow: var(--shadow-focus);
-  }
-
-  .choiceTitle {
-    font-size: 0.9375rem;
-    font-weight: 700;
-    color: var(--foreground);
-  }
-
-  .choiceHint {
-    font-size: 0.8125rem;
-    line-height: 1.4;
-    color: var(--muted-foreground);
   }
 
   .countRow {
@@ -184,82 +134,39 @@
     box-shadow: var(--shadow-focus);
   }
 
-  .storefront {
-    background-color: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-  }
-
-  .storefrontTrigger {
-    width: 100%;
+  /* The rest of the flow, so the teacher knows exams and price are not skipped. */
+  .nextList {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
     gap: var(--spacing-3);
+    margin: 0;
     padding: var(--spacing-4) var(--spacing-6);
-    background: none;
-    border: none;
-    cursor: pointer;
-    text-align: left;
-    font-family: var(--font-family-heading);
-    font-size: 0.9375rem;
-    font-weight: 700;
-    color: var(--foreground);
+    list-style: none;
+    background-color: var(--sp-lavender-tint);
+    border: 1px solid var(--sp-lavender-line);
+    border-radius: var(--radius-md);
+    color: var(--sp-lavender-ink);
+    font-size: 0.875rem;
+    line-height: 1.5;
   }
 
-  .storefrontTrigger:hover {
-    background-color: var(--muted);
-  }
-
-  .storefrontTrigger:focus-visible {
-    outline: none;
-    box-shadow: var(--shadow-focus);
-  }
-
-  .storefrontHint {
-    display: block;
-    margin-top: 2px;
-    font-family: var(--font-family-base);
-    font-weight: 400;
-    font-size: 0.8125rem;
-    color: var(--muted-foreground);
-  }
-
-  .storefrontChevron {
-    flex-shrink: 0;
-    color: var(--muted-foreground);
-    transition: transform var(--animation-duration-fast) ease;
-  }
-
-  .storefrontTrigger[data-state="open"] .storefrontChevron {
-    transform: rotate(180deg);
-  }
-
-  .storefrontContent {
+  .nextList li {
     display: flex;
-    flex-direction: column;
-    gap: var(--spacing-6);
-    padding: var(--spacing-2) var(--spacing-6) var(--spacing-6);
-    border-top: 1px solid var(--border);
-  }
-
-  .dynamicList {
-    display: flex;
-    flex-direction: column;
+    align-items: flex-start;
     gap: var(--spacing-3);
   }
 
-  .dynamicListRow {
-    display: flex;
-    gap: var(--spacing-2);
-    align-items: center;
-  }
-
-  .dynamicListAdd {
-    align-self: flex-start;
-    margin-top: var(--spacing-1);
+  .nextNum {
+    flex-shrink: 0;
+    display: inline-grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 999px;
+    background-color: var(--sp-lavender-ink);
+    color: var(--sp-lavender-tint);
+    font-size: 0.75rem;
+    font-weight: 700;
   }
 
   .error {
@@ -271,8 +178,6 @@
     font-size: 0.875rem;
   }
 
-  /* The action sits on the page ground under the cards, so it reads as the
-     end of the form rather than part of the last group. */
   .actions {
     display: flex;
     align-items: center;
@@ -289,18 +194,9 @@
   }
 
   @media (max-width: 640px) {
-    .section {
+    .section,
+    .nextList {
       padding: var(--spacing-4);
-    }
-
-    .storefrontTrigger,
-    .storefrontContent {
-      padding-left: var(--spacing-4);
-      padding-right: var(--spacing-4);
-    }
-
-    .row {
-      grid-template-columns: minmax(0, 1fr);
     }
 
     .actions {
@@ -309,13 +205,6 @@
 
     .actionsNote {
       margin-right: 0;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .storefrontChevron,
-    .choice {
-      transition: none;
     }
   }
 }

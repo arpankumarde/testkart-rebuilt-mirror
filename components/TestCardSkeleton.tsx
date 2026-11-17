@@ -5,11 +5,6 @@ import styles from "./TestCardSkeleton.module.css";
 export const TestCardSkeleton: React.FC = () => {
   return (
     <div className={styles.card}>
-      {/* Top Badge */}
-      <div className={styles.badgeContainer}>
-                <Skeleton style={{ width: "120px", height: "1.75rem", borderRadius: "var(--radius)" }} />
-      </div>
-
       {/* Thumbnail */}
       <div className={styles.thumbnail}>
         <Skeleton style={{ width: "100%", height: "100%" }} />

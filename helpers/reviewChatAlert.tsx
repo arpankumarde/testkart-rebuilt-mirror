@@ -53,7 +53,7 @@ export async function sendReviewChatAlert(queued: QueuedReview[]): Promise<void>
   try {
     const teacherIds = [...new Set(reviews.map((r) => r.teacherId))];
     const teachers = await db
-      .selectFrom("users")
+      .selectFrom("teachers")
       .select(["id", "displayName"])
       .where("id", "in", teacherIds)
       .execute();

@@ -8,7 +8,7 @@ import { mockTestShownPriceSql } from "./paidFirst";
 export async function homepageFetchTopMockTests(): Promise<HomepageTestItem[]> {
   const tests = await db
     .selectFrom("mockTests")
-    .innerJoin("users", "users.id", "mockTests.teacherId")
+    .innerJoin("teachers", "teachers.id", "mockTests.teacherId")
     .where("mockTests.isPublished", "=", true)
     .where("mockTests.visibility", "=", "public")
     .where("mockTests.deletedAt", "is", null)
@@ -35,12 +35,12 @@ export async function homepageFetchTopMockTests(): Promise<HomepageTestItem[]> {
       "mockTests.rating",
       "mockTests.reviewsCount",
       "mockTests.views",
-      "users.displayName as teacherName",
-      "users.slug as teacherSlug",
-      "users.avatarUrl as teacherAvatarUrl",
-      "users.tagline as teacherTagline",
-      "users.yearsOfExperience as teacherYearsOfExperience",
-      "users.isVerified as teacherIsVerified",
+      "teachers.displayName as teacherName",
+      "teachers.slug as teacherSlug",
+      "teachers.avatarUrl as teacherAvatarUrl",
+      "teachers.tagline as teacherTagline",
+      "teachers.yearsOfExperience as teacherYearsOfExperience",
+      "teachers.isVerified as teacherIsVerified",
       sql<number>`(SELECT COUNT(*) FROM mock_test_enrollments WHERE mock_test_id = mock_tests.id AND enrolled_at > NOW() - INTERVAL '7 days')`.as("recentEnrollments"),
     ])
     .orderBy("recentEnrollments", "desc")

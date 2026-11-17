@@ -1,5 +1,6 @@
 import superjson from "superjson";
 import { db } from "../../../helpers/db";
+import { allAccounts } from "../../../helpers/allAccounts";
 import { getLoginLinkStatus } from "../../../helpers/loginLinks";
 import { hashLoginLinkToken, LOGIN_LINK_TOKEN_PATTERN } from "../../../helpers/loginLinkToken";
 import { accountBlockedMessage, getAccountStatus } from "../../../helpers/accountStatus";
@@ -28,7 +29,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const row = await db
       .selectFrom("adminLoginLinks")
-      .innerJoin("users", "users.id", "adminLoginLinks.userId")
+      .innerJoin(allAccounts(db).as("users"), "users.id", "adminLoginLinks.userId")
       .select([
         "adminLoginLinks.expiresAt",
         "adminLoginLinks.singleUse",

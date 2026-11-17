@@ -145,7 +145,7 @@ async function messagesSentRecently(userId: number, shadow: boolean): Promise<{ 
 
 async function reachableEmail(userId: number): Promise<string | null> {
   const user = await db
-    .selectFrom("users")
+    .selectFrom("students")
     .select(["email", "emailBouncedAt", "isActive"])
     .where("id", "=", userId)
     .executeTakeFirst();

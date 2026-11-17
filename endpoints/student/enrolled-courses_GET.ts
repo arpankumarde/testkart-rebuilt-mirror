@@ -11,14 +11,14 @@ export async function handle(request: Request): Promise<Response> {
     const enrolledCourses = await db
       .selectFrom("courseEnrollments")
       .innerJoin("courses", "courses.id", "courseEnrollments.courseId")
-      .innerJoin("users", "users.id", "courses.teacherId")
+      .innerJoin("teachers", "teachers.id", "courses.teacherId")
       .select([
         "courses.id",
         "courses.title",
         "courses.thumbnailUrl",
         "courses.thumbnailImageUrl",
         "courses.introVideoUrl",
-        "users.displayName as teacherName",
+        "teachers.displayName as teacherName",
         "courseEnrollments.enrolledAt",
         "courseEnrollments.completionPercentage",
         "courseEnrollments.lastAccessedAt",

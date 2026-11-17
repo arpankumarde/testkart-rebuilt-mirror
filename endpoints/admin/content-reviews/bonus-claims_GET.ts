@@ -41,7 +41,7 @@ export async function handle(request: Request): Promise<Response> {
 
     let query = db
       .selectFrom("teacherCampaignClaims as c")
-      .innerJoin("users as u", "u.id", "c.teacherId")
+      .innerJoin("teachers as u", "u.id", "c.teacherId")
       .leftJoin("contentReviews as r", "r.id", "c.contentReviewId")
       .leftJoin("admins as a", "a.id", "c.decidedBy")
       .select([

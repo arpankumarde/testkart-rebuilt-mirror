@@ -79,7 +79,7 @@ const notFound = () => new Response(superjson.stringify({ error: "This item no l
 
 async function loadTeacher(teacherId: number) {
   const teacher = await db
-    .selectFrom("users")
+    .selectFrom("teachers")
     .select(["id", "displayName", "email"])
     .where("id", "=", teacherId)
     .executeTakeFirst();

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
-import { Courses, CourseEnrollments, Users } from "../../helpers/schema";
+import { Courses, CourseEnrollments, Teachers } from "../../helpers/schema";
 
 export const schema = z.object({});
 
@@ -15,7 +15,7 @@ export type EnrolledCourse = Pick<
     Selectable<CourseEnrollments>,
     "enrolledAt" | "completionPercentage" | "lastAccessedAt"
    > & {
-     teacherName: Selectable<Users>["displayName"];
+     teacherName: Selectable<Teachers>["displayName"];
      totalLessons: number;
     hasReviewed: boolean;
     reviewRating: number | null;

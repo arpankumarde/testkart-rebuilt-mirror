@@ -194,10 +194,10 @@ export async function handle(request: Request): Promise<Response> {
             (SELECT count(*) FROM orders WHERE status = 'completed' AND total_amount > 0 AND gateway_env IS DISTINCT FROM 'sandbox' AND created_at >= ${previousStart} AND created_at < ${currentStart}) AS paid_prev,
             (SELECT count(*) FROM orders WHERE status = 'failed' AND created_at >= ${currentStart}) AS failed_cur,
             (SELECT count(*) FROM orders WHERE status = 'failed' AND created_at >= ${previousStart} AND created_at < ${currentStart}) AS failed_prev,
-            (SELECT count(*) FROM users WHERE role = 'teacher' AND created_at >= ${currentStart}) AS teachers_cur,
-            (SELECT count(*) FROM users WHERE role = 'teacher' AND created_at >= ${previousStart} AND created_at < ${currentStart}) AS teachers_prev,
-            (SELECT count(*) FROM users WHERE role = 'student' AND created_at >= ${currentStart}) AS students_cur,
-            (SELECT count(*) FROM users WHERE role = 'student' AND created_at >= ${previousStart} AND created_at < ${currentStart}) AS students_prev,
+            (SELECT count(*) FROM teachers WHERE created_at >= ${currentStart}) AS teachers_cur,
+            (SELECT count(*) FROM teachers WHERE created_at >= ${previousStart} AND created_at < ${currentStart}) AS teachers_prev,
+            (SELECT count(*) FROM students WHERE created_at >= ${currentStart}) AS students_cur,
+            (SELECT count(*) FROM students WHERE created_at >= ${previousStart} AND created_at < ${currentStart}) AS students_prev,
             (SELECT count(*) FROM test_attempts WHERE completed_at >= ${currentStart}) AS attempts_cur,
             (SELECT count(*) FROM test_attempts WHERE completed_at >= ${previousStart} AND completed_at < ${currentStart}) AS attempts_prev,
             (SELECT count(*) FROM mock_tests WHERE is_published = true AND deleted_at IS NULL AND created_at >= ${currentStart}) AS tests_cur,
@@ -220,7 +220,7 @@ export async function handle(request: Request): Promise<Response> {
             SELECT (created_at AT TIME ZONE ${IST})::date AS d,
                    count(*) FILTER (WHERE role = 'teacher') AS teachers,
                    count(*) FILTER (WHERE role = 'student') AS students
-            FROM users WHERE created_at >= ${currentStart} GROUP BY 1
+            FROM accounts WHERE created_at >= ${currentStart} GROUP BY 1
           ),
           a AS (
             SELECT ((completed_at AT TIME ZONE 'UTC') AT TIME ZONE ${IST})::date AS d, count(*) AS attempts
@@ -297,7 +297,7 @@ export async function handle(request: Request): Promise<Response> {
             UNION ALL SELECT amt, kind, title, teacher_id FROM bundles
           )
           SELECT e.kind, e.title, u.display_name AS teacher_name, count(*) AS units, sum(e.amt) AS revenue
-          FROM everything e LEFT JOIN users u ON u.id = e.teacher_id
+          FROM everything e LEFT JOIN teachers u ON u.id = e.teacher_id
           GROUP BY e.kind, e.title, u.display_name
           ORDER BY sum(e.amt) DESC, count(*) DESC
           LIMIT 6
@@ -334,7 +334,7 @@ export async function handle(request: Request): Promise<Response> {
             UNION ALL SELECT amt, teacher_id FROM live
           )
           SELECT e.teacher_id, coalesce(u.display_name, u.email, 'Unknown teacher') AS name, count(*) AS units, sum(e.amt) AS revenue
-          FROM everything e LEFT JOIN users u ON u.id = e.teacher_id
+          FROM everything e LEFT JOIN teachers u ON u.id = e.teacher_id
           GROUP BY e.teacher_id, u.display_name, u.email
           ORDER BY sum(e.amt) DESC, count(*) DESC
           LIMIT 5
@@ -352,7 +352,7 @@ export async function handle(request: Request): Promise<Response> {
                     WHERE oi.order_id = o.id ORDER BY oi.id LIMIT 1) AS first_item,
                  cb.title AS bundle_title
           FROM orders o
-          LEFT JOIN users u ON u.id = o.user_id
+          LEFT JOIN students u ON u.id = o.user_id
           LEFT JOIN course_bundles cb ON cb.id = o.bundle_id
           ORDER BY o.created_at DESC
           LIMIT 8
@@ -360,8 +360,8 @@ export async function handle(request: Request): Promise<Response> {
 
         sql<Row>`
           SELECT
-            (SELECT count(*) FROM users WHERE role = 'teacher') AS teachers,
-            (SELECT count(*) FROM users WHERE role = 'student') AS students,
+            (SELECT count(*) FROM teachers) AS teachers,
+            (SELECT count(*) FROM students) AS students,
             (SELECT count(*) FROM mock_tests WHERE is_published = true AND deleted_at IS NULL) AS published_tests,
             (SELECT count(*) FROM courses WHERE status = 'published') AS published_courses,
             (SELECT count(*) FROM digital_products WHERE status = 'published') AS published_products,

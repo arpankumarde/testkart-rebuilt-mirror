@@ -36,7 +36,7 @@ export async function handle(request: Request) {
     // Start building the query
     let query = db
       .selectFrom("mockTests")
-      .innerJoin("users", "users.id", "mockTests.teacherId")
+      .innerJoin("teachers", "teachers.id", "mockTests.teacherId")
       .leftJoin("exams", "exams.id", "mockTests.examId")
       .select([
         "mockTests.id",
@@ -59,12 +59,12 @@ export async function handle(request: Request) {
         "mockTests.language",
         "mockTests.languages",
         "mockTests.views",
-        "users.displayName as teacherName",
-        "users.isVerified as teacherIsVerified",
-        "users.avatarUrl as teacherAvatarUrl",
-        "users.tagline as teacherTagline",
-        "users.yearsOfExperience as teacherYearsOfExperience",
-        "users.slug as teacherSlug",
+        "teachers.displayName as teacherName",
+        "teachers.isVerified as teacherIsVerified",
+        "teachers.avatarUrl as teacherAvatarUrl",
+        "teachers.tagline as teacherTagline",
+        "teachers.yearsOfExperience as teacherYearsOfExperience",
+        "teachers.slug as teacherSlug",
         "exams.examSlug",
                 // Calculate total duration accounting for subject-wise and question-wise timing
         sql<number>`COALESCE((

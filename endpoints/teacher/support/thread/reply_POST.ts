@@ -69,7 +69,7 @@ const TEACHER_SUPPORT_TICKETS_EMAIL = "teacher-support-tickets@testkart.in";
        return newMessage;
     });
  
-     const teacher = await db.selectFrom("users")
+     const teacher = await db.selectFrom("teachers")
       .select(["displayName", "email"])
       .where("id", "=", effectiveTeacherId)
       .executeTakeFirst();

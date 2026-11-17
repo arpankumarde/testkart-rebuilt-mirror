@@ -1,5 +1,7 @@
 import { sql } from "kysely";
 import { db } from "../../helpers/db";
+import { allAccounts } from "../../helpers/allAccounts";
+import { updateAccountById } from "../../helpers/accountRows";
 import { verifySvixSignature } from "../../helpers/verifySvixSignature";
 import { recordUnsubscribe } from "../../helpers/emailUnsubscribe";
 import { schema } from "./resend_POST.schema";
@@ -25,7 +27,7 @@ function messageIdFromTags(tags: unknown): string | null {
  * by Svix signature (RESEND_WEBHOOK_SECRET). Each event is stored once in
  * message_events (keyed on svix-id). Events for autopilot emails (tag mid)
  * update the rev_messages row. A bounce marks the address undeliverable
- * (users.email_bounced_at) and a spam complaint unsubscribes the person from
+ * (email_bounced_at on the student or teacher row) and a spam complaint unsubscribes the person from
  * student_marketing, for any email, so later campaigns skip them. No email
  * address is stored.
  */
@@ -101,7 +103,7 @@ export async function handle(request: Request): Promise<Response> {
       let userId = message?.userId ?? null;
       if (userId === null && to) {
         const user = await db
-          .selectFrom("users")
+          .selectFrom(allAccounts(db).as("users"))
           .select("id")
           .where(sql<boolean>`lower(email) = ${to.trim().toLowerCase()}`)
           .executeTakeFirst();
@@ -109,7 +111,7 @@ export async function handle(request: Request): Promise<Response> {
       }
       if (userId !== null) {
         if (type === "bounced") {
-          await db.updateTable("users").set({ emailBouncedAt: when }).where("id", "=", userId).execute();
+          await updateAccountById(db, userId, { emailBouncedAt: when });
         } else {
           await recordUnsubscribe(db, userId, "student_marketing");
         }

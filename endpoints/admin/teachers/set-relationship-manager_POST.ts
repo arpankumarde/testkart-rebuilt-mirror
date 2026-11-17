@@ -26,10 +26,9 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     const updated = await db
-      .updateTable("users")
+      .updateTable("teachers")
       .set({ relationshipManagerAdminId: admin.id })
       .where("id", "=", teacherId)
-      .where("role", "=", "teacher")
       .returning("id")
       .executeTakeFirst();
 

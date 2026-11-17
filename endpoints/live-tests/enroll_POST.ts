@@ -149,9 +149,9 @@ export async function handle(request: Request) {
     try {
       const [student, liveTestInfo] = await Promise.all([
         // Look up student info and live test info for emails
-        db.selectFrom("users").select(["email", "displayName"]).where("id", "=", user.id).executeTakeFirst(),
+        db.selectFrom("students").select(["email", "displayName"]).where("id", "=", user.id).executeTakeFirst(),
         db.selectFrom("liveTests")
-          .innerJoin("users as teacher", "liveTests.teacherId", "teacher.id")
+          .innerJoin("teachers as teacher", "liveTests.teacherId", "teacher.id")
           .select([
             "liveTests.title",
             "liveTests.startTime",

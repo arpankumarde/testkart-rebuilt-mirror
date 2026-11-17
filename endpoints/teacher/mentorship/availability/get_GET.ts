@@ -11,7 +11,7 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     const [teacher, windows, blockedDates] = await Promise.all([
-      db.selectFrom("users").select(["timezone"]).where("id", "=", effectiveTeacherId).executeTakeFirst(),
+      db.selectFrom("teachers").select(["timezone"]).where("id", "=", effectiveTeacherId).executeTakeFirst(),
       db
         .selectFrom("mentorshipAvailability")
         .select(["id", "dayOfWeek", "startTime", "endTime", "isActive"])

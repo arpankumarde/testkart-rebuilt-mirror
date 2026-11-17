@@ -66,11 +66,11 @@ export async function openAdminEditSession(
   if (!item) return { ok: false, status: 404, error: `This ${ADMIN_EDIT_LABELS[type]} no longer exists.` };
 
   const teacher = await db
-    .selectFrom("users")
-    .select(["id", "role", "displayName", "email"])
+    .selectFrom("teachers")
+    .select(["id", "displayName", "email"])
     .where("id", "=", item.teacherId)
     .executeTakeFirst();
-  if (!teacher || teacher.role !== "teacher") {
+  if (!teacher) {
     return {
       ok: false,
       status: 409,

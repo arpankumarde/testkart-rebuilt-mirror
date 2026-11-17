@@ -54,7 +54,7 @@ const TEACHER_SUPPORT_TICKETS_EMAIL = "teacher-support-tickets@testkart.in";
  
         // Send notification to teacher
     if (thread.teacherId) {
-      const teacher = await db.selectFrom("users")
+      const teacher = await db.selectFrom("teachers")
         .select(["email", "displayName"])
         .where("id", "=", thread.teacherId)
         .executeTakeFirst();

@@ -13,6 +13,7 @@ import { postMentorshipGroupLessonEnroll } from "../endpoints/mentorship/group-l
 import { postMentorshipGroupLessonUnenroll } from "../endpoints/mentorship/group-lessons/unenroll_POST.schema";
 import { getMentorshipMyGroupLessonEnrollments, InputType as MyGroupLessonEnrollmentsInput } from "../endpoints/mentorship/group-lessons/my-enrollments_GET.schema";
 import { gatePurchase, usePurchaseDetailsGate } from "./usePurchaseDetailsGate";
+import { useLiveBookingGate } from "./useLiveBookingGate";
 
 export const MENTORSHIP_BOOKINGS_QUERY_KEY = ["mentorship", "bookings"] as const;
 export const MENTORSHIP_GROUP_LESSONS_QUERY_KEY = ["mentorship", "group-lessons"] as const;
@@ -45,8 +46,8 @@ export const useMentorshipSlotsQuery = (
   });
 
 export const useMentorshipPurchaseMutation = () => {
-  const ensurePurchaseDetails = usePurchaseDetailsGate();
-  return useMutation({ mutationFn: gatePurchase(ensurePurchaseDetails, postMentorshipPurchase) });
+  const ensureLiveBooking = useLiveBookingGate();
+  return useMutation({ mutationFn: gatePurchase(ensureLiveBooking, postMentorshipPurchase) });
 };
 
 export const useMentorshipBookingCreateMutation = () => {

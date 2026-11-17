@@ -402,10 +402,35 @@
   color: var(--surface-foreground);
 }
 
-.noReviews {
-  margin: 0;
+.reviewPrompt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+}
+
+.reviewPromptText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.reviewPromptTitle {
+  font-family: var(--font-family-heading);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--surface-foreground);
+}
+
+.reviewPromptHint {
+  font-size: 0.875rem;
   color: var(--muted-foreground);
-  font-style: italic;
+}
+
+.reviewPrompt .writeReviewButton {
+  margin-top: 0;
 }
 
 .disclaimerSection {

@@ -18,7 +18,7 @@ export async function homepageFetchLiveSpotlight(): Promise<HomepageLiveTestSpot
   const tests = await db
     .selectFrom("liveTests")
     .innerJoin("mockTests", "mockTests.id", "liveTests.mockTestId")
-    .innerJoin("users", "users.id", "liveTests.teacherId")
+    .innerJoin("teachers", "teachers.id", "liveTests.teacherId")
     .where("liveTests.isActive", "=", true)
     .where("liveTests.visibility", "=", "public")
     .where("liveTests.endTime", ">", now)
@@ -34,12 +34,12 @@ export async function homepageFetchLiveSpotlight(): Promise<HomepageLiveTestSpot
       "liveTests.endTime",
       "mockTests.examName",
       "mockTests.slug",
-      "users.displayName as teacherName",
-      "users.slug as teacherSlug",
-      "users.avatarUrl as teacherAvatarUrl",
-      "users.tagline as teacherTagline",
-      "users.yearsOfExperience as teacherYearsOfExperience",
-      "users.isVerified as teacherIsVerified",
+      "teachers.displayName as teacherName",
+      "teachers.slug as teacherSlug",
+      "teachers.avatarUrl as teacherAvatarUrl",
+      "teachers.tagline as teacherTagline",
+      "teachers.yearsOfExperience as teacherYearsOfExperience",
+      "teachers.isVerified as teacherIsVerified",
     ])
     .execute();
 

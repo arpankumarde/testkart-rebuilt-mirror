@@ -123,11 +123,10 @@ export async function getTrialState(studentId: number, teacherId: number, exec: 
         .exists(
           eb
             .selectFrom("liveLessonAttendance")
-            .innerJoin("users", "users.id", "liveLessonAttendance.userId")
+            .innerJoin("teachers", "teachers.id", "liveLessonAttendance.userId")
             .select("liveLessonAttendance.id")
             .whereRef("liveLessonAttendance.mentorshipBookingId", "=", "mentorshipBookings.id")
             .where("liveLessonAttendance.role", "=", "teacher")
-            .where("users.role", "=", "teacher")
         )
         .as("teacherJoined"),
     ])
@@ -304,7 +303,7 @@ export async function schedulePackageCredits(
     .executeTakeFirst();
   if (!pkg || pkg.studentId !== studentId) throw new Error("Package not found.");
   if (!(LIVE_PACKAGE_STATUSES as readonly string[]).includes(pkg.status)) throw new Error("This package has stopped.");
-  const teacher = await trx.selectFrom("users").select("timezone").where("id", "=", pkg.teacherId).executeTakeFirstOrThrow();
+  const teacher = await trx.selectFrom("teachers").select("timezone").where("id", "=", pkg.teacherId).executeTakeFirstOrThrow();
 
   const credits = await trx
     .selectFrom("liveClassCredits")
@@ -894,11 +893,11 @@ export async function startLiveRenewal(packageId: string): Promise<void> {
     if (prevEnd.getTime() - Date.now() > PACKAGE_RENEW_LEAD_DAYS * DAY_MS) return null;
 
     const teacher = await trx
-      .selectFrom("users")
-      .select(["role", "mentorshipEnabled", "liveTeachingStatus", "isActive"])
+      .selectFrom("teachers")
+      .select(["mentorshipEnabled", "liveTeachingStatus", "isActive"])
       .where("id", "=", pkg.teacherId)
       .executeTakeFirst();
-    if (!teacher || teacher.role !== "teacher" || !teacher.mentorshipEnabled || teacher.liveTeachingStatus !== "approved" || !teacher.isActive) {
+    if (!teacher || !teacher.mentorshipEnabled || teacher.liveTeachingStatus !== "approved" || !teacher.isActive) {
       return { kind: "teacher_gone" as const };
     }
 

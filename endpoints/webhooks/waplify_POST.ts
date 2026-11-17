@@ -1,5 +1,6 @@
 import { sql } from "kysely";
 import { db } from "../../helpers/db";
+import { allAccounts } from "../../helpers/allAccounts";
 import { verifyWaplifySignature } from "../../helpers/verifyWaplifySignature";
 import { handleQuickReply } from "../../helpers/autopilotQuickReplies";
 import { schema } from "./waplify_POST.schema";
@@ -28,7 +29,7 @@ function when(value: unknown): Date {
 async function usersForPhone(phone: string | null): Promise<number[]> {
   const digits = (phone ?? "").replace(/\D/g, "");
   if (digits.length < 10) return [];
-  const rows = await db.selectFrom("users").select("id").where("mobileNumber", "=", digits.slice(-10)).execute();
+  const rows = await db.selectFrom(allAccounts(db).as("users")).select("id").where("mobileNumber", "=", digits.slice(-10)).execute();
   return rows.map((row) => row.id);
 }
 
@@ -130,12 +131,17 @@ async function handleInbound(params: {
 
   if (STOP_WORDS.test(params.content.trim())) {
     const optOutTargets = userIds.length ? userIds : await usersForPhone(params.phone);
+    const studentIds = optOutTargets.length
+      ? new Set((await db.selectFrom("students").select("id").where("id", "in", optOutTargets).execute()).map((row) => row.id))
+      : new Set<number>();
     for (const userId of optOutTargets) {
       await db
         .insertInto("emailUnsubscribes")
         .values({ userId, list: WHATSAPP_OPT_OUT_LIST })
         .onConflict((oc) => oc.columns(["userId", "list"]).doNothing())
         .execute();
+      // Consents are a student record (FK to students); a teacher's STOP is kept by the opt-out row above.
+      if (!studentIds.has(userId)) continue;
       await db
         .insertInto("marketingConsents")
         .values({ userId, channel: "whatsapp", granted: false, source: "whatsapp_stop", noticeVersion: "2026-11-14" })

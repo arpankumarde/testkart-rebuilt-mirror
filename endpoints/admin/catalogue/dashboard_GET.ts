@@ -337,7 +337,7 @@ export async function handle(request: Request): Promise<Response> {
             WHERE be.enrolled_at >= ${curNv} GROUP BY cb.id, cb.title, cb.teacher_id
           )
           SELECT eng.kind, eng.id, eng.title, u.display_name AS teacher_name, eng.n AS engagement
-          FROM eng LEFT JOIN users u ON u.id = eng.teacher_id
+          FROM eng LEFT JOIN teachers u ON u.id = eng.teacher_id
           ORDER BY eng.n DESC, eng.title
           LIMIT 8
         `.execute(db),
@@ -370,7 +370,7 @@ export async function handle(request: Request): Promise<Response> {
           )
           SELECT a.teacher_id, coalesce(u.display_name, u.email, 'Unknown teacher') AS name,
                  sum(a.created) AS created, sum(a.published) AS published, sum(a.questions) AS questions
-          FROM agg a LEFT JOIN users u ON u.id = a.teacher_id
+          FROM agg a LEFT JOIN teachers u ON u.id = a.teacher_id
           GROUP BY a.teacher_id, u.display_name, u.email
           ORDER BY sum(a.created) DESC, sum(a.questions) DESC
           LIMIT 8
@@ -398,7 +398,7 @@ export async function handle(request: Request): Promise<Response> {
              FROM course_bundles ORDER BY created_at DESC LIMIT 10)
           )
           SELECT r.kind, r.id, r.title, r.status, r.created_at, u.display_name AS teacher_name
-          FROM recent r LEFT JOIN users u ON u.id = r.teacher_id
+          FROM recent r LEFT JOIN teachers u ON u.id = r.teacher_id
           ORDER BY r.created_at DESC
           LIMIT 10
         `.execute(db),

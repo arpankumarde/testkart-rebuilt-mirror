@@ -49,7 +49,7 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     const account = await db
-      .selectFrom("users")
+      .selectFrom("teachers")
       .select("platformFeeOverride")
       .where("id", "=", effectiveTeacherId)
       .executeTakeFirst();

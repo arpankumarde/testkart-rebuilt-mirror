@@ -1,15 +1,17 @@
 import { db } from "./db";
+import { allAccounts } from "./allAccounts";
 import type { BillingDetails } from "../endpoints/account/billing-details_GET.schema";
 import { isIndianState } from "./indianLocationsData";
 
 /**
- * Reads users.billing_details tolerantly: rows are jsonb objects today, but
- * jsonb columns in this project have held JSON-encoded strings before. A
- * stored state that is not one of INDIAN_STATES is read back as null.
+ * Reads the account's billing_details (students or teachers) tolerantly: rows
+ * are jsonb objects today, but jsonb columns in this project have held
+ * JSON-encoded strings before. A stored state that is not one of INDIAN_STATES
+ * is read back as null.
  */
 export async function readStoredBillingDetails(userId: number): Promise<BillingDetails | null> {
   const row = await db
-    .selectFrom("users")
+    .selectFrom(allAccounts(db).as("account"))
     .select(["billingDetails"])
     .where("id", "=", userId)
     .executeTakeFirst();

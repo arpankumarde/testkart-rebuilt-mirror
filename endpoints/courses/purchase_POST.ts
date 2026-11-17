@@ -1,5 +1,6 @@
 import { db } from "../../helpers/db";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
+import { isStudentAccount, STUDENT_ACCOUNT_REQUIRED } from "../../helpers/studentAccountRequired";
 import { schema, OutputType } from "./purchase_POST.schema";
 import superjson from "superjson";
 import { nanoid } from "nanoid";
@@ -10,6 +11,9 @@ import { courseEffectivePrice } from "../../helpers/coursePricing";
 export async function handle(request: Request): Promise<Response> {
   try {
     const { user } = await getServerUserSession(request);
+    if (!isStudentAccount(user)) {
+      return new Response(superjson.stringify({ error: STUDENT_ACCOUNT_REQUIRED }), { status: 403 });
+    }
     const json = superjson.parse(await request.text());
     const { courseId } = schema.parse(json);
 

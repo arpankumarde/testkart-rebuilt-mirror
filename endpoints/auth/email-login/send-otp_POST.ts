@@ -2,6 +2,7 @@ import { z } from "zod";
 import superjson from "superjson";
 import { schema } from "./send-otp_POST.schema";
 import { db } from "../../../helpers/db";
+import { allAccounts } from "../../../helpers/allAccounts";
 import { sendEmail } from "../../../helpers/sendEmail";
 import { getBrandedEmailHtml } from "../../../helpers/emailBaseTemplate";
 import { getClientIp } from "../../../helpers/getClientIp";
@@ -37,7 +38,7 @@ export async function handle(request: Request) {
 
     // 1. Check if a user exists with this email (optional - not required for signup)
     const user = await db
-      .selectFrom("users")
+      .selectFrom(allAccounts(db).as("users"))
       .select(["id", "role"])
       .where("email", "=", email)
       .where("emailVerified", "=", true)

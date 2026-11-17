@@ -369,7 +369,7 @@ const Page = () => {
             </p>
           </header>
         ) : (
-          <TestSeriesSteps current="publish" packageId={packageId} back={`/teacher/create-test/${packageId}/test-items`} />
+          <TestSeriesSteps current="publish" packageId={packageId} back={basicInfoLink} />
         )}
 
         <TeacherRejectionBanner

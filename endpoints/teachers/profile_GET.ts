@@ -29,9 +29,8 @@ export async function handle(request: Request) {
   try {
     // Look up teacher directly by the slug column
     const teacher = await db
-      .selectFrom("users")
+      .selectFrom("teachers")
       .selectAll()
-      .where("role", "=", "teacher")
       .where("isActive", "=", true)
       .where("slug", "=", teacherSlug)
       .executeTakeFirst();
@@ -77,7 +76,7 @@ export async function handle(request: Request) {
     // Fetch all published courses
     const courses = await db
       .selectFrom("courses")
-      .innerJoin("users", "users.id", "courses.teacherId")
+      .innerJoin("teachers", "teachers.id", "courses.teacherId")
       .select([
         "courses.id",
         "courses.slug",
@@ -95,12 +94,12 @@ export async function handle(request: Request) {
         "courses.introVideoUrl",
         "courses.examId",
         "courses.examName",
-        "users.displayName as teacherName",
-        "users.slug as teacherSlugCol",
-        "users.isVerified as teacherIsVerifiedCol",
-        "users.avatarUrl as teacherAvatarUrl",
-        "users.tagline as teacherTagline",
-        "users.yearsOfExperience as teacherYearsOfExperience",
+        "teachers.displayName as teacherName",
+        "teachers.slug as teacherSlugCol",
+        "teachers.isVerified as teacherIsVerifiedCol",
+        "teachers.avatarUrl as teacherAvatarUrl",
+        "teachers.tagline as teacherTagline",
+        "teachers.yearsOfExperience as teacherYearsOfExperience",
       ])
       .select((eb) => [
         sql<number>`(
@@ -156,7 +155,7 @@ export async function handle(request: Request) {
     // Fetch all published digital products
     const products = await db
       .selectFrom("digitalProducts")
-      .innerJoin("users", "users.id", "digitalProducts.teacherId")
+      .innerJoin("teachers", "teachers.id", "digitalProducts.teacherId")
       .select([
         "digitalProducts.id",
         "digitalProducts.title",
@@ -172,12 +171,12 @@ export async function handle(request: Request) {
         "digitalProducts.totalPurchases",
         "digitalProducts.publishedAt",
         "digitalProducts.views",
-        "users.displayName as teacherName",
-        "users.avatarUrl as teacherAvatar",
-        "users.slug as teacherSlugCol",
-        "users.isVerified as teacherIsVerifiedCol",
-        "users.tagline as teacherTagline",
-        "users.yearsOfExperience as teacherYearsOfExperience",
+        "teachers.displayName as teacherName",
+        "teachers.avatarUrl as teacherAvatar",
+        "teachers.slug as teacherSlugCol",
+        "teachers.isVerified as teacherIsVerifiedCol",
+        "teachers.tagline as teacherTagline",
+        "teachers.yearsOfExperience as teacherYearsOfExperience",
       ])
       .select((eb) => [
         sql<number>`(
@@ -225,7 +224,7 @@ export async function handle(request: Request) {
     // Fetch all published tests
     const tests = await db
       .selectFrom("mockTests")
-      .innerJoin("users", "users.id", "mockTests.teacherId")
+      .innerJoin("teachers", "teachers.id", "mockTests.teacherId")
       .leftJoin("exams", "exams.id", "mockTests.examId")
       .leftJoin("liveTests", (join) =>
         join
@@ -260,11 +259,11 @@ export async function handle(request: Request) {
         "mockTests.examName",
         "mockTests.language",
         "mockTests.views",
-        "users.displayName as teacherName",
-        "users.slug as teacherSlugCol",
-        "users.avatarUrl as teacherAvatarUrl",
-        "users.tagline as teacherTagline",
-        "users.yearsOfExperience as teacherYearsOfExperience",
+        "teachers.displayName as teacherName",
+        "teachers.slug as teacherSlugCol",
+        "teachers.avatarUrl as teacherAvatarUrl",
+        "teachers.tagline as teacherTagline",
+        "teachers.yearsOfExperience as teacherYearsOfExperience",
         "exams.examSlug",
         "liveTests.id as liveTestId",
         "liveTests.price as liveTestPrice",

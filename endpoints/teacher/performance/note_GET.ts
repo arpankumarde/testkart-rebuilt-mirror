@@ -56,7 +56,7 @@ export async function handle(request: Request): Promise<Response> {
     const result = await sql<Row>`
       WITH reads AS (${teacherNoteReadsSql(teacherId, sql`dp.id = ${selected.id}`)})
       SELECT r.*, coalesce(nullif(trim(u.display_name), ''), 'Student') AS name, u.avatar_url
-      FROM reads r JOIN users u ON u.id = r.student_id
+      FROM reads r JOIN students u ON u.id = r.student_id
     `.execute(db);
 
     const rows: NoteReaderRow[] = result.rows

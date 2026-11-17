@@ -11,7 +11,7 @@ import { loadDigitalProductCouponOffers } from "./courseCouponOffersServer";
 export async function fetchShopProductDetailsServer(slug: string): Promise<OutputType> {
   const product = await db
     .selectFrom("digitalProducts")
-    .innerJoin("users", "users.id", "digitalProducts.teacherId")
+    .innerJoin("teachers", "teachers.id", "digitalProducts.teacherId")
     .leftJoin("exams", "exams.id", "digitalProducts.examId")
     .select([
       "digitalProducts.id",
@@ -42,12 +42,12 @@ export async function fetchShopProductDetailsServer(slug: string): Promise<Outpu
      "digitalProducts.examName",
      "digitalProducts.examId",
      "exams.examSlug as examSlug",
-      "users.displayName as teacherName",
-      "users.avatarUrl as teacherAvatar",
-      "users.bio as teacherBio",
-      "users.isVerified as teacherVerified",
-      "users.academyName as teacherAcademyName",
-            "users.slug as teacherSlugCol",
+      "teachers.displayName as teacherName",
+      "teachers.avatarUrl as teacherAvatar",
+      "teachers.bio as teacherBio",
+      "teachers.isVerified as teacherVerified",
+      "teachers.academyName as teacherAcademyName",
+            "teachers.slug as teacherSlugCol",
       "digitalProducts.teacherId",
     ])
     .where("digitalProducts.slug", "=", slug)

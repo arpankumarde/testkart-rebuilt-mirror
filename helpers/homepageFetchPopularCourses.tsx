@@ -10,7 +10,7 @@ export async function homepageFetchPopularCourses(): Promise<HomepageCourseItem[
 
   const courses = await db
     .selectFrom("courses")
-    .innerJoin("users", "users.id", "courses.teacherId")
+    .innerJoin("teachers", "teachers.id", "courses.teacherId")
     .where("courses.status", "=", "published")
     .where("courses.visibility", "=", "public")
     .select((eb) => [
@@ -22,12 +22,12 @@ export async function homepageFetchPopularCourses(): Promise<HomepageCourseItem[
       "courses.discountPrice",
       "courses.rating",
       "courses.views",
-      "users.displayName as teacherName",
-      "users.slug as teacherSlug",
-      "users.avatarUrl as teacherAvatarUrl",
-      "users.tagline as teacherTagline",
-      "users.yearsOfExperience as teacherYearsOfExperience",
-      "users.isVerified as teacherIsVerified",
+      "teachers.displayName as teacherName",
+      "teachers.slug as teacherSlug",
+      "teachers.avatarUrl as teacherAvatarUrl",
+      "teachers.tagline as teacherTagline",
+      "teachers.yearsOfExperience as teacherYearsOfExperience",
+      "teachers.isVerified as teacherIsVerified",
       eb
         .selectFrom("courseEnrollments")
         .select(eb.fn.count<number>("id").as("count"))

@@ -4,6 +4,8 @@ import { getServerUserSession } from '../../../helpers/getServerUserSession';
 import { requireOwnerRole } from '../../../helpers/getTeacherContext';
 import { db } from '../../../helpers/db';
 import { generateUniqueSlug } from '../../../helpers/generateUniqueSlug';
+import { insertAccount } from '../../../helpers/accountRows';
+import { allAccounts } from '../../../helpers/allAccounts';
 
 const fail = (error: string) => new Response(superjson.stringify({ error }), { status: 400 });
 const ok = (status: OutputType["status"]) =>
@@ -36,10 +38,10 @@ export async function handle(request: Request) {
 
     // Mobile OTP login signs in the verified holder of a number, so that is the account a member uses.
     const existingUser = await db.
-    selectFrom("users").
-    select(["id", "role"]).
-    where("mobileNumber", "=", phone).
-    where("mobileVerified", "=", true).
+    selectFrom(allAccounts(db).as("account")).
+    select(["account.id", "account.role"]).
+    where("account.mobileNumber", "=", phone).
+    where("account.mobileVerified", "=", true).
     executeTakeFirst();
 
     if (existingUser) {
@@ -117,17 +119,16 @@ export async function handle(request: Request) {
     await db.transaction().execute(async (trx) => {
       // Onboarding is skipped for managers in the app, and stays pending for
       // this account in case it is ever used as its own academy.
-      const newUser = await trx.insertInto("users").values({
+      const newUser = await insertAccount(trx, "teacher", {
         displayName,
         mobileNumber: phone,
         mobileVerified: true,
-        role: "teacher",
         slug,
         avatarUrl,
         emailVerified: false,
         isActive: true,
         onboardingCompleted: false
-      }).returning("id").executeTakeFirstOrThrow();
+      });
 
       await trx.insertInto("teacherTeamMembers").values({
         teacherId: effectiveTeacherId,

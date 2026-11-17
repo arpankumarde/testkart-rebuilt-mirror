@@ -240,7 +240,7 @@ export async function getAutopilotDashboard(days: number): Promise<AutopilotDash
       coalesce(sum(net), 0)::float AS total_gmv,
       coalesce(sum(net * fee / 100) FILTER (WHERE own), 0)::float AS fee_now,
       coalesce(sum(net * 0.12) FILTER (WHERE own), 0)::float AS fee_at_twelve
-    FROM items JOIN users u ON u.id = items.teacher_id
+    FROM items JOIN teachers u ON u.id = items.teacher_id
     GROUP BY u.id, u.display_name
     HAVING count(*) FILTER (WHERE own) > 0
     ORDER BY own_gmv DESC LIMIT 15
@@ -289,7 +289,7 @@ export async function getAutopilotDashboard(days: number): Promise<AutopilotDash
   const replies = await sql<Row>`
     SELECT r.id, r.channel::text AS channel, r.body, r.received_at, u.display_name AS user_name, m.playbook_key
     FROM message_replies r
-    LEFT JOIN users u ON u.id = r.user_id
+    LEFT JOIN accounts u ON u.id = r.user_id
     LEFT JOIN rev_messages m ON m.id = r.message_id
     ORDER BY r.received_at DESC LIMIT 10
   `.execute(db);

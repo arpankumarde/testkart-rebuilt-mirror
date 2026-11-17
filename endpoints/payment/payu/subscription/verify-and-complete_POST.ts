@@ -73,7 +73,7 @@ async function completeSubscriptionTransaction(
 
   // Auto-verify teacher on paid subscription
   await trx
-    .updateTable("users")
+    .updateTable("teachers")
     .set({ isVerified: true })
     .where("id", "=", transaction.teacherId)
     .execute();
@@ -237,7 +237,7 @@ export async function handle(request: Request): Promise<Response> {
         // Activation email (only when this request created the subscription)
         try {
           const teacher = await db
-            .selectFrom("users")
+            .selectFrom("teachers")
             .select(["displayName", "email"])
             .where("id", "=", transaction.teacherId)
             .executeTakeFirst();

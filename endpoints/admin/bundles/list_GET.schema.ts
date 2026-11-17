@@ -1,7 +1,7 @@
 import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
-import { CourseBundles, Users } from "../../../helpers/schema";
+import { CourseBundles, Teachers } from "../../../helpers/schema";
 
 export const schema = z.object({});
 
@@ -19,8 +19,8 @@ export type AdminBundleListItem = Pick<
   price: number;
   originalPrice: number;
   discountPercentage: number | null;
-  teacherName: Selectable<Users>["displayName"];
-  teacherId: Selectable<Users>["id"];
+  teacherName: Selectable<Teachers>["displayName"];
+  teacherId: Selectable<Teachers>["id"];
   itemsCount: number;
 };
 

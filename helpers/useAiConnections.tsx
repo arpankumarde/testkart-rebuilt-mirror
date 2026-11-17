@@ -6,9 +6,8 @@ import { postAdminAiConnectionRevoke } from "../endpoints/admin/ai-connections/r
 import { postTeacherAiConnectionRevoke } from "../endpoints/teacher/ai-connections/revoke_POST.schema";
 
 /**
- * Refetches on mount and on window focus, overriding the app-wide defaults: the usual way back to
- * the dashboard after connecting is switching tabs from the AI app, and the card should show the
- * new connection the moment that happens.
+ * Refetches on mount, overriding the app-wide default, so a new connection shows the next time the
+ * dashboard opens or reloads.
  */
 export const useAiConnections = (audience: AiConnectorAudience, enabled = true) =>
   useQuery({
@@ -16,7 +15,6 @@ export const useAiConnections = (audience: AiConnectorAudience, enabled = true) 
     queryFn: () => (audience === "admin" ? getAdminAiConnections() : getTeacherAiConnections()),
     staleTime: 30 * 1000,
     refetchOnMount: true,
-    refetchOnWindowFocus: true,
     enabled,
   });
 

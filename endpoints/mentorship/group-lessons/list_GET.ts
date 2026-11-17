@@ -13,7 +13,7 @@ export async function handle(request: Request) {
 
     let query = db
       .selectFrom("groupLessons")
-      .innerJoin("users as teacher", "teacher.id", "groupLessons.teacherId")
+      .innerJoin("teachers as teacher", "teacher.id", "groupLessons.teacherId")
       .select([
         "groupLessons.id",
         "groupLessons.title",

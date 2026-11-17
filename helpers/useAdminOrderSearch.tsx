@@ -8,7 +8,8 @@ import type { AdminOrderFilters, AdminOrderSort } from "./adminOrderFilters";
  * Query hooks for the admin Transactions page. Every key starts with
  * ["admin", "orders"], the same prefix as useAdminOrdersQuery, so a refund,
  * reconcile or mark-failed invalidates the table, the figures and the facets
- * in one call.
+ * in one call. The table and figures reload when the page opens (after a
+ * minute), never on a timer or on tab focus.
  */
 export const ADMIN_ORDERS_PREFIX = ["admin", "orders"] as const;
 
@@ -20,7 +21,7 @@ export const useAdminOrderSearch = (filters: AdminOrderFilters, sort: AdminOrder
     queryFn: () => postAdminOrdersSearch({ filters, sort, page, pageSize: TRANSACTIONS_PAGE_SIZE }),
     placeholderData: keepPreviousData,
     staleTime: 60 * 1000,
-    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
 export const useAdminOrderSummary = (filters: AdminOrderFilters, breakdown: OrderBreakdown) =>
@@ -29,7 +30,7 @@ export const useAdminOrderSummary = (filters: AdminOrderFilters, breakdown: Orde
     queryFn: () => postAdminOrdersSummary({ filters, breakdown }),
     placeholderData: keepPreviousData,
     staleTime: 60 * 1000,
-    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
 export const useAdminOrderFacets = () =>

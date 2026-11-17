@@ -35,7 +35,7 @@ const reviewKind = (contentType: unknown): TeacherMixKind =>
   str(contentType) === "course_bundle" ? "bundle" : asMixKind(contentType);
 
 /**
- * users.product_interest holds the onboarding "what will you publish" answers,
+ * teachers.product_interest holds the onboarding "what will you publish" answers,
  * written over time as both labels ("Study Notes", "Mock Tests", "PDFs") and
  * keys ("study_notes", "mock_test"), as a jsonb array or occasionally a string.
  */
@@ -224,7 +224,7 @@ export async function handle(request: Request): Promise<Response> {
                coalesce(u.display_name, u.email, 'Guest') AS student_name
         FROM mine
         JOIN orders o ON o.id = mine.id
-        LEFT JOIN users u ON u.id = o.user_id
+        LEFT JOIN students u ON u.id = o.user_id
         -- Same rule as the earnings transactions: only completed orders are sales.
         WHERE o.status = 'completed'
         ORDER BY o.created_at DESC NULLS LAST
@@ -261,7 +261,7 @@ export async function handle(request: Request): Promise<Response> {
           (SELECT count(*) FROM teacher_follows WHERE teacher_id = ${teacherId}) AS followers,
           ${buildTeacherNetEarningsSql(teacherId)} AS lifetime_earnings,
           ${buildTeacherAvailableBalanceSql(teacherId)} AS available_balance,
-          (SELECT product_interest FROM users WHERE id = ${teacherId}) AS product_interest
+          (SELECT product_interest FROM teachers WHERE id = ${teacherId}) AS product_interest
       `.execute(db),
 
       // The latest review per item decides its state, so an item rejected and

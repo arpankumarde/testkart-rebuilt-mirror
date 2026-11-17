@@ -228,6 +228,12 @@
   color: var(--tk-brand-text);
 }
 
+/* On a panel the page's muted tokens no longer match the background, so the note uses the panel's own ink. */
+.quietOnBrand,
+.quietOnBrand .link {
+  color: inherit;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .claimable,
   .blob {

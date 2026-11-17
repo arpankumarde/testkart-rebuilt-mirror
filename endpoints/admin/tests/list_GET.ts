@@ -10,7 +10,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const tests = await db
       .selectFrom("mockTests")
-      .innerJoin("users", "users.id", "mockTests.teacherId")
+      .innerJoin("teachers", "teachers.id", "mockTests.teacherId")
       .leftJoin("exams", "exams.id", "mockTests.examId")
       .select([
         "mockTests.id",
@@ -31,8 +31,8 @@ export async function handle(request: Request): Promise<Response> {
         "mockTests.language",
         "mockTests.discountPrice",
         "mockTests.freeTestsCount",
-        "users.displayName as teacherName",
-        "users.id as teacherId",
+        "teachers.displayName as teacherName",
+        "teachers.id as teacherId",
         "exams.examSlug",
         "exams.examName",
       ])

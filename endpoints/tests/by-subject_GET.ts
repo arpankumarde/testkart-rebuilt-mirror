@@ -38,7 +38,7 @@ export async function handle(request: Request) {
           ))`
         )
       )
-      .innerJoin("users", "users.id", "mockTests.teacherId")
+      .innerJoin("teachers", "teachers.id", "mockTests.teacherId")
       .select([
         "mockTests.id",
         "mockTests.slug",
@@ -74,12 +74,12 @@ export async function handle(request: Request) {
         "exams.examName",
         "mockTests.language",
         "mockTests.views",
-        "users.displayName as teacherName",
-        "users.isVerified as teacherIsVerified",
-        "users.avatarUrl as teacherAvatarUrl",
-        "users.tagline as teacherTagline",
-        "users.yearsOfExperience as teacherYearsOfExperience",
-        "users.slug as teacherSlug",
+        "teachers.displayName as teacherName",
+        "teachers.isVerified as teacherIsVerified",
+        "teachers.avatarUrl as teacherAvatarUrl",
+        "teachers.tagline as teacherTagline",
+        "teachers.yearsOfExperience as teacherYearsOfExperience",
+        "teachers.slug as teacherSlug",
         "exams.examSlug",
         // Count actual questions from test_questions table across all test items
         // in the package, excluding trashed items — see the matching note in

@@ -127,8 +127,8 @@ async function emailCancelledBookings(bookingIds: string[], reason: string) {
   try {
     const bookings = await db
       .selectFrom("mentorshipBookings")
-      .innerJoin("users as student", "student.id", "mentorshipBookings.studentId")
-      .innerJoin("users as teacher", "teacher.id", "mentorshipBookings.teacherId")
+      .innerJoin("students as student", "student.id", "mentorshipBookings.studentId")
+      .innerJoin("teachers as teacher", "teacher.id", "mentorshipBookings.teacherId")
       .select([
         "mentorshipBookings.scheduledAt",
         "mentorshipBookings.durationMinutes",

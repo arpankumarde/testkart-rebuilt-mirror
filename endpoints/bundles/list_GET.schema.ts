@@ -1,7 +1,7 @@
 import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
-import { CourseBundles, Users } from "../../helpers/schema";
+import { CourseBundles, Teachers } from "../../helpers/schema";
 
 export const schema = z.object({
   page: z.coerce.number().int().positive().optional(),
@@ -25,7 +25,7 @@ export type BundleListItem = Omit<
   price: number;
   originalPrice: number;
   discountPercentage: number | null;
-  teacherName: Selectable<Users>["displayName"];
+  teacherName: Selectable<Teachers>["displayName"];
   teacherIsVerified: boolean;
   teacherAvatarUrl: string | null;
   /** Profile slug for /expert/:slug. Optional: older callers build items without it. */

@@ -7,7 +7,7 @@ import { sql, type RawBuilder } from "kysely";
  * straight off the series row so it is cheap enough to sort a list by:
  * depth (questions and tests), a free test to try in a paid series, a
  * rating backed by a few reviews, a complete listing and a verified teacher.
- * It needs `mock_tests` and `users` (the teacher) in the query.
+ * It needs `mock_tests` and `teachers` (the series teacher) in the query.
  *
  * Used as the tiebreak of the "popular" sort and as the "recommended" sort,
  * which the series page uses for its "more for this exam" block. Keep the
@@ -23,7 +23,7 @@ export const mockTestValueScoreSql = sql<number>`(
       ELSE 0 END
   + CASE WHEN mock_tests.thumbnail_url IS NOT NULL THEN 5 ELSE 0 END
   + CASE WHEN length(COALESCE(mock_tests.long_description, '')) >= 300 THEN 10 ELSE 0 END
-  + CASE WHEN COALESCE(users.is_verified, false) THEN 10 ELSE 0 END
+  + CASE WHEN COALESCE(teachers.is_verified, false) THEN 10 ELSE 0 END
 )`;
 
 /**

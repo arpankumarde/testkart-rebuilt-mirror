@@ -1,5 +1,6 @@
 import type { Kysely } from "kysely";
 import type { DB } from "./schema";
+import { allAccounts } from "./allAccounts";
 import type { PriceHistoryEntry } from "../endpoints/admin/price-history/list_GET.schema";
 import type { PriceChangeSource, PriceHistoryProductType } from "./productPriceHistory";
 
@@ -7,8 +8,8 @@ import type { PriceChangeSource, PriceHistoryProductType } from "./productPriceH
 export const priceHistoryRows = (executor: Kysely<DB>) =>
   executor
     .selectFrom("productPriceHistory as h")
-    .leftJoin("users as teacher", "teacher.id", "h.teacherId")
-    .leftJoin("users as actor", "actor.id", "h.changedByUserId")
+    .leftJoin("teachers as teacher", "teacher.id", "h.teacherId")
+    .leftJoin(allAccounts(executor).as("actor"), "actor.id", "h.changedByUserId")
     .leftJoin("admins as actorAdmin", "actorAdmin.id", "h.changedByAdminId");
 
 export const PRICE_HISTORY_COLUMNS = [

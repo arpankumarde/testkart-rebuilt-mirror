@@ -19,7 +19,7 @@ import { getBrandedEmailHtml, EmailTableRow } from "./emailBaseTemplate";
 export async function sendOrderConfirmationEmails(orderId: number, userId: number): Promise<void> {
   // Fetch user details
   const user = await db
-    .selectFrom("users")
+    .selectFrom("students")
     .select(["email", "displayName"])
     .where("id", "=", userId)
     .executeTakeFirst();
@@ -133,7 +133,7 @@ export async function sendOrderConfirmationEmails(orderId: number, userId: numbe
     if (item.mockTestId && item.testTitle && item.testTeacherId) {
       // Fetch teacher details for test
       const teacher = await db
-        .selectFrom("users")
+        .selectFrom("teachers")
         .select(["displayName", "email"])
         .where("id", "=", item.testTeacherId)
         .executeTakeFirst();
@@ -188,7 +188,7 @@ export async function sendOrderConfirmationEmails(orderId: number, userId: numbe
     } else if (item.courseId && item.courseTitle && item.courseTeacherId) {
       // Fetch teacher details for course
       const teacher = await db
-        .selectFrom("users")
+        .selectFrom("teachers")
         .select(["displayName", "email"])
         .where("id", "=", item.courseTeacherId)
         .executeTakeFirst();
@@ -243,7 +243,7 @@ export async function sendOrderConfirmationEmails(orderId: number, userId: numbe
     } else if (item.digitalProductId && item.productTitle && item.digitalProductTeacherId) {
       // Fetch teacher details for digital product
       const teacher = await db
-        .selectFrom("users")
+        .selectFrom("teachers")
         .select(["displayName", "email"])
         .where("id", "=", item.digitalProductTeacherId)
         .executeTakeFirst();
@@ -305,7 +305,7 @@ export async function sendOrderConfirmationEmails(orderId: number, userId: numbe
   try {
     const usages = await db.selectFrom("promoCodeUsages")
       .innerJoin("promoCodes", "promoCodes.id", "promoCodeUsages.promoCodeId")
-      .leftJoin("users as teacher", "promoCodes.createdByTeacherId", "teacher.id")
+      .leftJoin("teachers as teacher", "promoCodes.createdByTeacherId", "teacher.id")
       .select([
         "promoCodes.code",
         "promoCodeUsages.discountAmount",

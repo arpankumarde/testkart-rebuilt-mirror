@@ -3,7 +3,9 @@ import {
   createOAuthPopupResponseHtml,
   type OAuthTokenSuccessMessage,
   type OAuthErrorMessage,
+  type OAuthAccountChoiceMessage,
 } from "../../helpers/oauthPopupMessage";
+import { createAccountChoiceResponse } from "../../helpers/loginAccount";
 import {
   OAuthProviderInterface,
   type OAuthProviderType,
@@ -361,6 +363,8 @@ export async function handle(request: Request) {
     };
     let isNewUser = false;
 
+    const fromAppDeepLink = actualRedirectPath !== null && isAppDeepLink(actualRedirectPath);
+
     try {
       const accountResult = await handleOAuthUserAccount({
         providerName,
@@ -369,9 +373,36 @@ export async function handle(request: Request) {
         requestedRole: oauthState.requestedRole,
         linkUserId,
         now,
+        supportsAccountChoice: !fromAppDeepLink && linkUserId === null,
       });
       user = accountResult.user;
       isNewUser = accountResult.isNewUser;
+
+      if (accountResult.otherSideOnly) {
+        await db.deleteFrom("oauthStates").where("id", "=", oauthState.id).execute();
+        const choiceMessage: OAuthAccountChoiceMessage = {
+          type: "OAUTH_ACCOUNT_CHOICE",
+          provider: providerName,
+          choice: await createAccountChoiceResponse({
+            side: oauthState.requestedRole === "teacher" ? "teacher" : "student",
+            otherAccount: {
+              id: user.id,
+              email: user.email,
+              displayName: user.displayName,
+              role: user.role as "student" | "teacher",
+              avatarUrl: null,
+              mobileNumber: null,
+              mobileVerified: false,
+            },
+            identifier: { email: providerEmail },
+            method: "google",
+          }),
+        };
+        return new Response(createOAuthPopupResponseHtml(choiceMessage), {
+          status: 200,
+          headers: { "Content-Type": "text/html" },
+        });
+      }
     } catch (accountError) {
       console.error("Failed to handle OAuth user account:", accountError);
 

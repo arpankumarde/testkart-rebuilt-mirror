@@ -24,7 +24,9 @@ export async function handle(request: Request) {
 
     // Upcoming means still joinable: enrolled, lesson scheduled and not yet past the join window's end,
     // so a class that has started stays here, next to its classroom link, instead of dropping into Past.
-    const stillJoinable = (eb: ExpressionBuilder<DB, "groupLessonEnrollments" | "groupLessons">) =>
+    const stillJoinable = (
+      eb: ExpressionBuilder<DB & { teacher: DB["teachers"] }, "groupLessonEnrollments" | "groupLessons" | "teacher">
+    ) =>
       eb.and([
         eb("groupLessonEnrollments.status", "=", "enrolled"),
         eb("groupLessons.status", "=", "scheduled"),
@@ -34,7 +36,7 @@ export async function handle(request: Request) {
     let query = db
       .selectFrom("groupLessonEnrollments")
       .innerJoin("groupLessons", "groupLessons.id", "groupLessonEnrollments.groupLessonId")
-      .innerJoin("users as teacher", "teacher.id", "groupLessons.teacherId")
+      .innerJoin("teachers as teacher", "teacher.id", "groupLessons.teacherId")
       .select([
         "groupLessonEnrollments.id as enrollmentId",
         "groupLessonEnrollments.status",

@@ -13,7 +13,7 @@ export async function handle(request: Request) {
     // 2. Fetch all subscription transactions joined with users and subscription_plans
     const transactions = await db
       .selectFrom("subscriptionTransactions as st")
-      .innerJoin("users as u", "u.id", "st.teacherId")
+      .innerJoin("teachers as u", "u.id", "st.teacherId")
       .innerJoin("subscriptionPlans as sp", "sp.id", "st.planId")
       .select([
         "st.id",

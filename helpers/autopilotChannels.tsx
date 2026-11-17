@@ -32,7 +32,7 @@ export async function chooseChannel(
   preferWhatsApp: boolean
 ): Promise<ChannelChoice | null> {
   const user = await db
-    .selectFrom("users")
+    .selectFrom("students")
     .select(["email", "emailBouncedAt", "isActive", "mobileNumber"])
     .where("id", "=", userId)
     .executeTakeFirst();
@@ -72,7 +72,7 @@ export async function chooseChannel(
 
 /** The email route for a user, used when WhatsApp fails (for example a template still waiting for Meta). */
 export async function emailFallback(userId: number): Promise<{ channel: "email"; email: string } | null> {
-  const user = await db.selectFrom("users").select(["email", "emailBouncedAt"]).where("id", "=", userId).executeTakeFirst();
+  const user = await db.selectFrom("students").select(["email", "emailBouncedAt"]).where("id", "=", userId).executeTakeFirst();
   const email = user?.email?.trim();
   if (!email || user?.emailBouncedAt || /@mail\.testkart\.in$/i.test(email)) return null;
   const unsubscribed = await db

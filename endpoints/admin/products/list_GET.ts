@@ -10,7 +10,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const products = await db
       .selectFrom("digitalProducts")
-      .innerJoin("users", "users.id", "digitalProducts.teacherId")
+      .innerJoin("teachers", "teachers.id", "digitalProducts.teacherId")
       .select([
         "digitalProducts.id",
         "digitalProducts.title",
@@ -21,8 +21,8 @@ export async function handle(request: Request): Promise<Response> {
         "digitalProducts.totalPurchases",
         "digitalProducts.category",
         "digitalProducts.isPublished",
-        "users.displayName as teacherName",
-        "users.id as teacherId",
+        "teachers.displayName as teacherName",
+        "teachers.id as teacherId",
       ])
       .select((eb) =>
         eb

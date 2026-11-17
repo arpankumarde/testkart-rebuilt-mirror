@@ -11,16 +11,16 @@ import { isExpired } from "./contentExpiry";
 export async function fetchCourseDetailsServer(slug: string): Promise<OutputType> {
   const course = await db
     .selectFrom("courses")
-    .innerJoin("users", "users.id", "courses.teacherId")
+    .innerJoin("teachers", "teachers.id", "courses.teacherId")
     .selectAll("courses")
     .select([
-      "users.id as teacherId",
-      "users.displayName as teacherDisplayName",
-      "users.avatarUrl as teacherProfilePicture",
-      "users.isVerified as teacherIsVerified",
-      "users.bio as teacherBio",
-      "users.academyName as teacherAcademyName",
-      "users.slug as teacherSlugCol",
+      "teachers.id as teacherId",
+      "teachers.displayName as teacherDisplayName",
+      "teachers.avatarUrl as teacherProfilePicture",
+      "teachers.isVerified as teacherIsVerified",
+      "teachers.bio as teacherBio",
+      "teachers.academyName as teacherAcademyName",
+      "teachers.slug as teacherSlugCol",
     ])
     .where("courses.slug", "=", slug)
     .where("courses.status", "=", "published")
@@ -85,7 +85,7 @@ export async function fetchCourseDetailsServer(slug: string): Promise<OutputType
 
   const reviews = await db
     .selectFrom("reviews")
-    .innerJoin("users", "reviews.userId", "users.id")
+    .innerJoin("students", "reviews.userId", "students.id")
     .select([
       "reviews.id",
       "reviews.rating",
@@ -94,8 +94,8 @@ export async function fetchCourseDetailsServer(slug: string): Promise<OutputType
       "reviews.teacherRepliedAt",
       "reviews.createdAt",
       "reviews.userId",
-      "users.displayName as reviewerName",
-      "users.avatarUrl as reviewerAvatarUrl",
+      "students.displayName as reviewerName",
+      "students.avatarUrl as reviewerAvatarUrl",
     ])
     .where("reviews.courseId", "=", course.id)
     .orderBy("reviews.createdAt", "desc")

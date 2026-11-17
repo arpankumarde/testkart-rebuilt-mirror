@@ -6,13 +6,13 @@ export async function loadCourseRoster(courseId: string): Promise<OutputType> {
   const [students, classes] = await Promise.all([
     db
       .selectFrom("liveCourseEnrollments")
-      .innerJoin("users", "users.id", "liveCourseEnrollments.studentId")
+      .innerJoin("students", "students.id", "liveCourseEnrollments.studentId")
       .select([
         "liveCourseEnrollments.id as enrollmentId",
-        "users.id as studentId",
-        "users.displayName as name",
-        "users.avatarUrl as avatarUrl",
-        "users.email as email",
+        "students.id as studentId",
+        "students.displayName as name",
+        "students.avatarUrl as avatarUrl",
+        "students.email as email",
         "liveCourseEnrollments.status",
         "liveCourseEnrollments.amountPaid",
         "liveCourseEnrollments.enrolledAt",

@@ -318,6 +318,43 @@ export const TeacherLiveTestCard: React.FC<TeacherLiveTestCardProps> = ({
                 </Button>
               </div>
             </>
+          ) : hasEnded ? (
+            <>
+              {/* An ended test can no longer be edited or deleted, so its footer leads with what still applies. */}
+              <div className={styles.primaryActions}>
+                {onDuplicate && (
+                  <Button variant="outline" size="sm" onClick={() => onDuplicate(liveTest.id)} title="Re-publish Test">
+                    <RefreshCw size={14} />
+                    Re-publish
+                  </Button>
+                )}
+                <Button variant="outline" size="sm" onClick={() => onViewAnalytics(liveTest.id)} title="View Analytics" data-card-primary>
+                  <BarChart2 size={14} />
+                  View Analytics
+                </Button>
+              </div>
+              <div className={styles.actions}>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => setShareDialogOpen(true)}
+                  title="Share"
+                  aria-label={`Share ${liveTest.title}`}
+                >
+                  <Share2 size={16} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => liveTest.firstTestItemId != null && downloadPdf({ testItemId: liveTest.firstTestItemId })}
+                  title="Download PDF"
+                  aria-label="Download PDF"
+                  disabled={liveTest.firstTestItemId == null || isDownloading}
+                >
+                  {isDownloading ? <Loader2 size={16} className={styles.spinnerIcon} /> : <Download size={16} />}
+                </Button>
+              </div>
+            </>
           ) : (
             <>
               <div className={styles.primaryActions}>
@@ -378,24 +415,9 @@ export const TeacherLiveTestCard: React.FC<TeacherLiveTestCardProps> = ({
                     <EyeOff size={16} />
                   </Button>
                 )}
-                {status === 'ended' ? (
-                  <>
-                    {onDuplicate && (
-                      <Button variant="outline" size="sm" onClick={() => onDuplicate(liveTest.id)} title="Re-publish Test">
-                        <RefreshCw size={14} />
-                        Re-publish
-                      </Button>
-                    )}
-                    <Button variant="outline" size="sm" onClick={() => onViewAnalytics(liveTest.id)} title="View Analytics">
-                      <BarChart2 size={14} />
-                      View Analytics
-                    </Button>
-                  </>
-                ) : (
-                  <Button variant="ghost" size="icon-sm" onClick={() => onViewAnalytics(liveTest.id)} title="View Analytics">
-                    <BarChart2 size={16} />
-                  </Button>
-                )}
+                <Button variant="ghost" size="icon-sm" onClick={() => onViewAnalytics(liveTest.id)} title="View Analytics">
+                  <BarChart2 size={16} />
+                </Button>
                 <Button
                   variant="ghost"
                   size="icon-sm"

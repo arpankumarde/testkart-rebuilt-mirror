@@ -22,7 +22,7 @@ export async function handle(request: Request) {
       const credit = await trx
         .selectFrom("liveClassCredits")
         .innerJoin("livePackages", "livePackages.id", "liveClassCredits.packageId")
-        .innerJoin("users as teacher", "teacher.id", "liveClassCredits.teacherId")
+        .innerJoin("teachers as teacher", "teacher.id", "liveClassCredits.teacherId")
         .select([
           "liveClassCredits.id",
           "liveClassCredits.studentId",

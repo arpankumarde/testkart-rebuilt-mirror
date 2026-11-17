@@ -93,6 +93,7 @@ const ApplicationCard: React.FC<{ application: LiveTeachingApplicationRow }> = (
             <span className={styles.email}>{t.email}</span>
           </div>
           {isVideo && <Badge variant="default">New intro video</Badge>}
+          {!application.isLatest && <Badge variant="secondary">Superseded</Badge>}
           <Badge variant={STATUS_VARIANT[application.status]}>{STATUS_LABEL[application.status]}</Badge>
         </div>
 

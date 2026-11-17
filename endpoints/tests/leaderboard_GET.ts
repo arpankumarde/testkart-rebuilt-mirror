@@ -85,10 +85,10 @@ export async function handle(request: Request) {
 
     const leaderboardData = await db
       .selectFrom(bestAttemptsSubquery.as('best_attempts'))
-      .innerJoin("users", "users.id", "best_attempts.studentId")
+      .innerJoin("students", "students.id", "best_attempts.studentId")
       .select([
-        "users.displayName as studentName",
-        "users.id as studentId",
+        "students.displayName as studentName",
+        "students.id as studentId",
         "best_attempts.score",
         "best_attempts.completedAt",
         "best_attempts.timeTakenMinutes",

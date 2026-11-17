@@ -111,7 +111,7 @@ export async function handle(request: Request) {
       // If payment failed, fetch teacher info for failure email and return
       if (newStatus === "failed") {
         const teacherUserFailed = await trx
-          .selectFrom("users")
+          .selectFrom("teachers")
           .select(["displayName", "email"])
           .where("id", "=", claimedOrder.userId)
           .executeTakeFirst();
@@ -182,12 +182,12 @@ export async function handle(request: Request) {
       // Fetch teacher and student info for email notifications
       const [teacherUser, studentUser] = await Promise.all([
         trx
-          .selectFrom("users")
+          .selectFrom("teachers")
           .select(["displayName", "email"])
           .where("id", "=", claimedOrder.userId)
           .executeTakeFirst(),
         trx
-          .selectFrom("users")
+          .selectFrom("students")
           .select(["displayName", "email"])
           .where("id", "=", sponsorship.studentId)
           .executeTakeFirst(),

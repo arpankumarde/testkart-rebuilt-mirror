@@ -1,7 +1,7 @@
 import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
-import { LiveTests, Users, MockTests } from "../../../helpers/schema";
+import { LiveTests, Teachers, MockTests } from "../../../helpers/schema";
 
 export const schema = z.object({});
 
@@ -22,8 +22,8 @@ export type AdminLiveTestListItem = Pick<
 > & {
   price: number;
   totalPrizePool: number;
-  teacherName: Selectable<Users>["displayName"];
-  teacherId: Selectable<Users>["id"];
+  teacherName: Selectable<Teachers>["displayName"];
+  teacherId: Selectable<Teachers>["id"];
   mockTestTitle: Selectable<MockTests>["title"];
   /** Public URL slug, /live-test/:slug. */
   slug: Selectable<MockTests>["slug"];

@@ -1,6 +1,8 @@
 import { schema, OutputType } from "./verify_otp_POST.schema";
 import superjson from 'superjson';
 import { db } from "../../helpers/db";
+import { allAccounts } from "../../helpers/allAccounts";
+import { updateAccountById } from "../../helpers/accountRows";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { NotAuthenticatedError } from "../../helpers/getSetServerSession";
 import { getClientIp } from "../../helpers/getClientIp";
@@ -62,7 +64,7 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     // Check if another verified user already has this mobile number
-    const existingUser = await db.selectFrom('users')
+    const existingUser = await db.selectFrom(allAccounts(db).as('users'))
       .select('id')
       .where('mobileNumber', '=', normalizedMobile)
       .where('mobileVerified', '=', true)
@@ -76,14 +78,11 @@ export async function handle(request: Request): Promise<Response> {
 
     // OTP is correct, update user and OTP entry
     await db.transaction().execute(async (trx) => {
-      await trx.updateTable('users')
-        .set({
-          mobileNumber: normalizedMobile,
-          mobileVerified: true,
-          updatedAt: new Date(),
-        })
-        .where('id', '=', user.id)
-        .execute();
+      await updateAccountById(trx, user.id, {
+        mobileNumber: normalizedMobile,
+        mobileVerified: true,
+        updatedAt: new Date(),
+      });
 
       await trx.updateTable('mobileOtps')
         .set({ verifiedAt: new Date() })

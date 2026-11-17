@@ -70,7 +70,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const teacherRows = await db
       .selectFrom("productPriceHistory as h")
-      .leftJoin("users as teacher", "teacher.id", "h.teacherId")
+      .leftJoin("teachers as teacher", "teacher.id", "h.teacherId")
       .where("h.productType", "in", allowed)
       .where("h.teacherId", "is not", null)
       .select(["h.teacherId", "teacher.displayName", "teacher.email"])

@@ -18,7 +18,7 @@ export async function handle(request: Request) {
 
     const lesson = await db
       .selectFrom("groupLessons")
-      .innerJoin("users as teacher", "teacher.id", "groupLessons.teacherId")
+      .innerJoin("teachers as teacher", "teacher.id", "groupLessons.teacherId")
       .select([
         "groupLessons.id",
         "groupLessons.teacherId",
@@ -67,7 +67,7 @@ export async function handle(request: Request) {
 
     const enrolled = await db
       .selectFrom("groupLessonEnrollments")
-      .innerJoin("users as student", "student.id", "groupLessonEnrollments.studentId")
+      .innerJoin("students as student", "student.id", "groupLessonEnrollments.studentId")
       .select(["student.email as email", "student.displayName as name"])
       .where("groupLessonEnrollments.groupLessonId", "=", input.id)
       .where("groupLessonEnrollments.status", "=", "enrolled")

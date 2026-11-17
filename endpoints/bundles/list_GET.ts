@@ -36,7 +36,7 @@ export async function handle(request: Request): Promise<Response> {
     // Build the main query with joins for the bundle list
     let query = db
       .selectFrom("courseBundles")
-      .innerJoin("users", "users.id", "courseBundles.teacherId")
+      .innerJoin("teachers", "teachers.id", "courseBundles.teacherId")
       .where("courseBundles.isPublished", "=", true)
       .where("courseBundles.visibility", "=", "public");
 
@@ -46,7 +46,7 @@ export async function handle(request: Request): Promise<Response> {
     // It joins users like the main query so search can match the teacher name.
     let countQuery = db
       .selectFrom("courseBundles")
-      .innerJoin("users", "users.id", "courseBundles.teacherId")
+      .innerJoin("teachers", "teachers.id", "courseBundles.teacherId")
       .where("courseBundles.isPublished", "=", true)
       .where("courseBundles.visibility", "=", "public");
 
@@ -57,14 +57,14 @@ export async function handle(request: Request): Promise<Response> {
         eb.or([
           eb("courseBundles.title", "ilike", searchPattern),
           eb("courseBundles.description", "ilike", searchPattern),
-          eb("users.displayName", "ilike", searchPattern),
+          eb("teachers.displayName", "ilike", searchPattern),
         ])
       );
       countQuery = countQuery.where((eb) =>
         eb.or([
           eb("courseBundles.title", "ilike", searchPattern),
           eb("courseBundles.description", "ilike", searchPattern),
-          eb("users.displayName", "ilike", searchPattern),
+          eb("teachers.displayName", "ilike", searchPattern),
         ])
       );
     }
@@ -122,10 +122,10 @@ export async function handle(request: Request): Promise<Response> {
     const bundlesQuery = query
       .selectAll("courseBundles")
       .select([
-        "users.displayName as teacherName",
-        "users.isVerified as teacherIsVerified",
-        "users.avatarUrl as teacherAvatarUrl",
-        "users.slug as teacherSlug",
+        "teachers.displayName as teacherName",
+        "teachers.isVerified as teacherIsVerified",
+        "teachers.avatarUrl as teacherAvatarUrl",
+        "teachers.slug as teacherSlug",
       ])
       .select((eb) => [
         sql<number>`(

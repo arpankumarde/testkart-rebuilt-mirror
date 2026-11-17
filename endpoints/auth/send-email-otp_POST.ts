@@ -1,6 +1,7 @@
 import { schema, OutputType } from "./send-email-otp_POST.schema";
 import superjson from 'superjson';
 import { db } from "../../helpers/db";
+import { allAccounts } from "../../helpers/allAccounts";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { sendEmail } from "../../helpers/sendEmail";
 import { NotAuthenticatedError } from "../../helpers/getSetServerSession";
@@ -35,7 +36,7 @@ export async function handle(request: Request): Promise<Response> {
     const normalizedEmail = email.toLowerCase().trim();
 
     // Check if another user already has this email
-    const existingUser = await db.selectFrom('users')
+    const existingUser = await db.selectFrom(allAccounts(db).as('users'))
       .select('id')
       .where('email', '=', normalizedEmail)
       .where('id', '!=', user.id)

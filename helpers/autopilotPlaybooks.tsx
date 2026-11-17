@@ -157,9 +157,9 @@ const failedPayment: Playbook = {
           (SELECT coalesce(c.thumbnail_url, c.thumbnail_image_url) FROM order_items oi JOIN courses c ON c.id = oi.course_id WHERE oi.order_id = o.id LIMIT 1),
           (SELECT d.thumbnail_url FROM order_items oi JOIN digital_products d ON d.id = oi.digital_product_id WHERE oi.order_id = o.id LIMIT 1),
           (SELECT b.thumbnail_url FROM course_bundles b WHERE b.id = o.bundle_id)) AS image_url
-      FROM orders o JOIN users u ON u.id = o.user_id
+      FROM orders o JOIN students u ON u.id = o.user_id
       WHERE o.status IN ('failed', 'cancelled') AND o.total_amount > 0 AND o.payment_method = 'payu'
-        AND o.updated_at > now() - interval '6 hours' AND u.role = 'student'
+        AND o.updated_at > now() - interval '6 hours'
         AND NOT EXISTS (SELECT 1 FROM orders p WHERE p.user_id = o.user_id AND p.status IN ('completed', 'pending')
                           AND p.total_amount > 0 AND p.created_at > o.created_at)
         AND NOT EXISTS (SELECT 1 FROM rev_enrolments e WHERE e.user_id = o.user_id AND e.playbook_key = 'failed_payment'
@@ -253,8 +253,8 @@ const cartAbandoned: Playbook = {
         LEFT JOIN courses co ON co.id = ci.course_id
         LEFT JOIN digital_products dp ON dp.id = ci.digital_product_id
         GROUP BY ci.user_id
-      ) c JOIN users u ON u.id = c.user_id
-      WHERE u.role = 'student' AND c.last_added < now() - interval '1 hour' AND c.last_added > now() - interval '48 hours'
+      ) c JOIN students u ON u.id = c.user_id
+      WHERE c.last_added < now() - interval '1 hour' AND c.last_added > now() - interval '48 hours'
         AND NOT EXISTS (SELECT 1 FROM orders o WHERE o.user_id = c.user_id AND o.created_at > c.first_added)
         AND NOT EXISTS (SELECT 1 FROM rev_enrolments e WHERE e.user_id = c.user_id AND e.playbook_key = 'cart_abandoned'
                           AND e.created_at > now() - interval '7 days')
@@ -340,8 +340,8 @@ const onboarding: Playbook = {
       SELECT u.id AS user_id, u.created_at AS at, u.display_name,
         (SELECT e.exam_name FROM user_exam_focus f JOIN exams e ON e.id = f.exam_id WHERE f.user_id = u.id ORDER BY f.position LIMIT 1) AS exam_name,
         (SELECT e.exam_slug FROM user_exam_focus f JOIN exams e ON e.id = f.exam_id WHERE f.user_id = u.id ORDER BY f.position LIMIT 1) AS exam_slug
-      FROM users u
-      WHERE u.role = 'student' AND u.created_at > now() - interval '24 hours' AND u.created_at < now() - interval '30 minutes'
+      FROM students u
+      WHERE u.created_at > now() - interval '24 hours' AND u.created_at < now() - interval '30 minutes'
         AND NOT EXISTS (SELECT 1 FROM test_attempts t WHERE t.student_id = u.id)
         AND NOT EXISTS (SELECT 1 FROM orders o WHERE o.user_id = u.id AND o.status = 'completed' AND o.total_amount > 0)
       LIMIT 500
@@ -416,8 +416,8 @@ const freeToPaid: Playbook = {
       FROM test_attempts t
       JOIN mock_test_items i ON i.id = t.test_id
       JOIN mock_tests mt ON mt.id = i.package_id
-      JOIN users u ON u.id = t.student_id
-      WHERE u.role = 'student' AND i.is_free = true AND mt.is_published = true AND mt.deleted_at IS NULL
+      JOIN students u ON u.id = t.student_id
+      WHERE i.is_free = true AND mt.is_published = true AND mt.deleted_at IS NULL
         AND coalesce(mt.discount_price, mt.price) > 0
         AND t.completed_at > now() - interval '24 hours' AND t.completed_at < now() - interval '30 minutes'
         AND NOT EXISTS (SELECT 1 FROM live_tests lt WHERE lt.mock_test_id = mt.id)
@@ -469,7 +469,7 @@ const repeatPurchase: Playbook = {
   findTriggers: async () => {
     const result = await sql<Row>`
       SELECT o.user_id, o.id AS order_id, o.created_at AS at, u.display_name, rec.slug, rec.title AS item_title, rec.image_url, rec.amount
-      FROM orders o JOIN users u ON u.id = o.user_id
+      FROM orders o JOIN students u ON u.id = o.user_id
       JOIN LATERAL (
         SELECT mt2.slug, mt2.title, mt2.thumbnail_url AS image_url, coalesce(mt2.discount_price, mt2.price) AS amount
         FROM order_items oi
@@ -481,7 +481,7 @@ const repeatPurchase: Playbook = {
           AND NOT EXISTS (SELECT 1 FROM mock_test_enrollments me WHERE me.student_id = o.user_id AND me.mock_test_id = mt2.id)
         ORDER BY mt2.students_enrolled DESC NULLS LAST LIMIT 1
       ) rec ON true
-      WHERE o.status = 'completed' AND o.total_amount > 0 AND u.role = 'student'
+      WHERE o.status = 'completed' AND o.total_amount > 0
         AND o.created_at < now() - interval '3 days' AND o.created_at > now() - interval '4 days'
         AND NOT EXISTS (SELECT 1 FROM orders p WHERE p.user_id = o.user_id AND p.status = 'completed'
                           AND p.total_amount > 0 AND p.created_at > o.created_at)

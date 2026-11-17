@@ -43,7 +43,7 @@ export async function handle(request: Request): Promise<Response> {
     const { studentId } = schema.parse({ studentId: url.searchParams.get("studentId") ?? undefined });
 
     const user = await db
-      .selectFrom("users")
+      .selectFrom("students")
       .select(["id", "displayName", "avatarUrl"])
       .where("id", "=", studentId)
       .executeTakeFirst();

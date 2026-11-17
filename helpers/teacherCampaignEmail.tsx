@@ -53,7 +53,7 @@ function buildEmail(
 export async function sendCampaignDecisionEmail(claim: CampaignClaim, decision: Decision): Promise<void> {
   try {
     const teacher = await db
-      .selectFrom("users")
+      .selectFrom("teachers")
       .select(["displayName", "email"])
       .where("id", "=", claim.teacherId)
       .executeTakeFirst();

@@ -1,5 +1,6 @@
 import { db } from "../../../helpers/db";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
+import { isStudentAccount, STUDENT_ACCOUNT_REQUIRED } from "../../../helpers/studentAccountRequired";
 import { schema, OutputType } from "./initiate_POST.schema";
 import superjson from "superjson";
 import { nanoid } from "nanoid";
@@ -31,6 +32,9 @@ export async function handle(request: Request) {
     // Always use production domain for PayU callback URLs
     const baseUrl = "https://testkart.in";
     const { user } = await getServerUserSession(request);
+    if (!isStudentAccount(user)) {
+      return new Response(superjson.stringify({ error: STUDENT_ACCOUNT_REQUIRED }), { status: 403 });
+    }
     const body = superjson.parse(await request.text());
     const input = schema.parse(body);
     if (input.promoCodeId && input.useTcoins) {

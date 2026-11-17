@@ -36,7 +36,7 @@ export async function assignRelationshipManager(userId: number): Promise<void> {
       .where("admins.email", "in", RELATIONSHIP_MANAGER_EMAILS)
       .where("admins.isActive", "=", true)
       .orderBy(
-        sql`(SELECT count(*) FROM users u WHERE u.relationship_manager_admin_id = admins.id AND u.created_at >= ${ROTATION_STARTED_AT})`
+        sql`(SELECT count(*) FROM teachers u WHERE u.relationship_manager_admin_id = admins.id AND u.created_at >= ${ROTATION_STARTED_AT})`
       )
       .orderBy(sql`random()`)
       .executeTakeFirst();
@@ -44,7 +44,7 @@ export async function assignRelationshipManager(userId: number): Promise<void> {
     if (!pick) return;
 
     await db
-      .updateTable("users")
+      .updateTable("teachers")
       .set({ relationshipManagerAdminId: pick.id })
       .where("id", "=", userId)
       .where((eb) =>
@@ -65,10 +65,10 @@ export async function assignRelationshipManager(userId: number): Promise<void> {
 
 const readManager = (teacherId: number) =>
   db
-    .selectFrom("users")
-    .innerJoin("admins", "admins.id", "users.relationshipManagerAdminId")
+    .selectFrom("teachers")
+    .innerJoin("admins", "admins.id", "teachers.relationshipManagerAdminId")
     .select(["admins.fullName", "admins.email", "admins.avatarUrl"])
-    .where("users.id", "=", teacherId)
+    .where("teachers.id", "=", teacherId)
     .where("admins.isActive", "=", true)
     .executeTakeFirst();
 

@@ -112,6 +112,7 @@ export default function CourseDetailsPage() {
     : null;
   // Enrolment is the only gate: a student who bought the course can review it before finishing it.
   const canReview = authState.type === "authenticated" && !!course?.isEnrolled;
+  const hasReviews = reviews.length > 0;
 
   const ratingCounts = useMemo(() => {
     const counts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
@@ -310,13 +311,30 @@ export default function CourseDetailsPage() {
             />
           </section>
 
+          {!hasReviews && canReview && (
+            <section className={`${styles.section} ${styles.reviewPrompt}`}>
+              <div className={styles.reviewPromptText}>
+                <span className={styles.reviewPromptTitle}>Rate this course</span>
+                <span className={styles.reviewPromptHint}>No reviews yet. Yours will help other students decide.</span>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => setIsReviewDialogOpen(true)}
+                className={styles.writeReviewButton}
+              >
+                Write a review
+              </Button>
+            </section>
+          )}
+
+          {hasReviews && (
           <section id="reviews" className={styles.section}>
             <SectionHeading tone="butter" icon={<Star />}>Student reviews</SectionHeading>
-            
+
             <div className={styles.reviewsContainer}>
                <div className={styles.ratingSummary}>
                   <div className={styles.averageRating}>
-                     <span className={styles.bigRating}>{course.rating ? Number(course.rating).toFixed(1) : "0"}</span>
+                     <span className={styles.bigRating}>{Number(course.rating ?? 0).toFixed(1)}</span>
                      <div className={styles.averageStars}>
                         {Array.from({ length: 5 }).map((_, i) => (
                           <Star 
@@ -327,7 +345,9 @@ export default function CourseDetailsPage() {
                           />
                         ))}
                      </div>
-                     <span className={styles.totalReviews}>{course.reviewsCount} reviews</span>
+                     <span className={styles.totalReviews}>
+                       {course.reviewsCount} {course.reviewsCount === 1 ? "review" : "reviews"}
+                     </span>
                      {canReview && (
                         <Button
                           size="sm"
@@ -356,8 +376,7 @@ export default function CourseDetailsPage() {
                   </div>
                </div>
 
-              {reviews.length > 0 ? (
-                <div className={styles.reviewsList}>
+              <div className={styles.reviewsList}>
                   {reviews.map((review: any) => (
                     <div key={review.id} className={styles.reviewCard}>
                       <div className={styles.reviewHeader}>
@@ -386,12 +405,10 @@ export default function CourseDetailsPage() {
                       <ReviewTeacherReply reply={review.teacherReply} repliedAt={review.teacherRepliedAt} />
                     </div>
                   ))}
-                </div>
-              ) : (
-                <p className={styles.noReviews}>No reviews yet.</p>
-              )}
+              </div>
             </div>
           </section>
+          )}
 
           {course.disclaimer && (
             <div className={styles.disclaimerSection}>

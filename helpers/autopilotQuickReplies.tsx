@@ -47,9 +47,9 @@ async function findLedger(messageId: string | null, phone: string | null): Promi
   if (digits.length < 10) return null;
   const row = await db
     .selectFrom("revMessages")
-    .innerJoin("users", "users.id", "revMessages.userId")
+    .innerJoin("students", "students.id", "revMessages.userId")
     .select(["revMessages.id", "revMessages.userId", "revMessages.intentId", "revMessages.step", "revMessages.playbookKey"])
-    .where("users.mobileNumber", "=", digits.slice(-10))
+    .where("students.mobileNumber", "=", digits.slice(-10))
     .where("revMessages.channel", "=", "whatsapp")
     .where("revMessages.shadow", "=", false)
     .where("revMessages.createdAt", ">", sql<Date>`now() - interval '72 hours'`)

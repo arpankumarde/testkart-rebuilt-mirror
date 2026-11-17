@@ -61,7 +61,7 @@ export async function handle(request: Request): Promise<Response> {
     const duration = toNumberOrNull(get(paper, "duration_minutes"));
 
     const user = await db
-      .selectFrom("users")
+      .selectFrom("students")
       .select(["id", "displayName", "avatarUrl"])
       .where("id", "=", input.studentId)
       .executeTakeFirst();

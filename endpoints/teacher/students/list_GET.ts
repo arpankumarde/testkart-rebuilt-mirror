@@ -69,7 +69,7 @@ export async function handle(request: Request): Promise<Response> {
           o.status::text                                                AS order_status
         FROM mock_test_enrollments mte
         INNER JOIN mock_tests mt  ON mt.id = mte.mock_test_id
-        INNER JOIN users u        ON u.id  = mte.student_id
+        INNER JOIN students u     ON u.id  = mte.student_id
         LEFT  JOIN orders o       ON o.id  = mte.order_id
         LEFT  JOIN order_items oi ON oi.order_id = o.id
                                  AND oi.mock_test_id = mte.mock_test_id
@@ -92,7 +92,7 @@ export async function handle(request: Request): Promise<Response> {
           paid.order_status                                             AS order_status
         FROM course_enrollments ce
         INNER JOIN courses c      ON c.id  = ce.course_id
-        INNER JOIN users u        ON u.id  = ce.student_id
+        INNER JOIN students u     ON u.id  = ce.student_id
         LEFT JOIN LATERAL (
           SELECT oi.price_at_purchase - COALESCE(oi.discount_amount, 0) AS amount,
              o.status::text AS order_status
@@ -127,7 +127,7 @@ AND o.status IN ('completed', 'refunded')
           o.status::text                                                AS order_status
         FROM live_test_enrollments lte
         INNER JOIN live_tests lt  ON lt.id = lte.live_test_id
-        INNER JOIN users u        ON u.id  = lte.student_id
+        INNER JOIN students u     ON u.id  = lte.student_id
         LEFT  JOIN orders o       ON o.id  = lte.payment_order_id
         WHERE lt.teacher_id = ${teacherId}
 
@@ -150,7 +150,7 @@ AND o.status IN ('completed', 'refunded')
           o.status::text                                                AS order_status
         FROM bundle_enrollments be
         INNER JOIN course_bundles cb ON cb.id = be.bundle_id
-        INNER JOIN users u           ON u.id  = be.student_id
+        INNER JOIN students u        ON u.id  = be.student_id
         LEFT  JOIN orders o          ON o.id  = be.order_id
         WHERE cb.teacher_id = ${teacherId}
 
@@ -171,7 +171,7 @@ AND o.status IN ('completed', 'refunded')
         FROM order_items oi
         INNER JOIN orders o          ON o.id  = oi.order_id
         INNER JOIN digital_products dp ON dp.id = oi.digital_product_id
-        INNER JOIN users u           ON u.id  = o.user_id
+        INNER JOIN students u        ON u.id  = o.user_id
         WHERE oi.digital_product_id IS NOT NULL
           AND o.status IN ('completed', 'refunded')
           AND o.bundle_id IS NULL

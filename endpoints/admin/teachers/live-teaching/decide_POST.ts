@@ -20,7 +20,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const application = await db
       .selectFrom("liveTeachingApplications as a")
-      .innerJoin("users as u", "u.id", "a.teacherId")
+      .innerJoin("teachers as u", "u.id", "a.teacherId")
       .select([
         "a.id",
         "a.kind",
@@ -79,7 +79,7 @@ export async function handle(request: Request): Promise<Response> {
         .where("id", "=", application.id)
         .execute();
       await trx
-        .updateTable("users")
+        .updateTable("teachers")
         .set(
           input.action === "approve"
             ? {
@@ -143,7 +143,7 @@ async function decideVideoChange(
       .execute();
     if (action === "approve") {
       await trx
-        .updateTable("users")
+        .updateTable("teachers")
         .set({ introVideoUrl: row.introVideoUrl, introVideoFileId: row.introVideoFileId })
         .where("id", "=", row.teacherId)
         .execute();

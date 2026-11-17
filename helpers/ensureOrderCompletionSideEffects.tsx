@@ -800,8 +800,8 @@ export async function ensureOrderCompletionSideEffects(orderId: number): Promise
     const { studentId, teacherId, sessionTypeTitle, scheduledAt, durationMinutes, bookingId, price } = pendingMentorshipBookingEmail;
     try {
       const [student, teacher] = await Promise.all([
-        db.selectFrom("users").select(["email", "displayName"]).where("id", "=", studentId).executeTakeFirst(),
-        db.selectFrom("users").select(["email", "displayName"]).where("id", "=", teacherId).executeTakeFirst(),
+        db.selectFrom("students").select(["email", "displayName"]).where("id", "=", studentId).executeTakeFirst(),
+        db.selectFrom("teachers").select(["email", "displayName"]).where("id", "=", teacherId).executeTakeFirst(),
       ]);
       if (student?.email) {
         const tmpl = emailTemplatesExtra.mentorshipBookingConfirmed(student.displayName, teacher?.displayName ?? "your teacher", sessionTypeTitle, scheduledAt, durationMinutes, bookingId);
@@ -829,8 +829,8 @@ export async function ensureOrderCompletionSideEffects(orderId: number): Promise
     const { studentId, teacherId, lessonTitle, startTime, groupLessonId } = pendingGroupLessonEnrollmentEmail;
     try {
       const [student, teacher] = await Promise.all([
-        db.selectFrom("users").select(["email", "displayName"]).where("id", "=", studentId).executeTakeFirst(),
-        db.selectFrom("users").select(["displayName"]).where("id", "=", teacherId).executeTakeFirst(),
+        db.selectFrom("students").select(["email", "displayName"]).where("id", "=", studentId).executeTakeFirst(),
+        db.selectFrom("teachers").select(["displayName"]).where("id", "=", teacherId).executeTakeFirst(),
       ]);
       if (student?.email) {
         const tmpl = emailTemplatesExtra.groupLessonEnrolled(student.displayName, teacher?.displayName ?? "the teacher", lessonTitle, startTime, groupLessonId);

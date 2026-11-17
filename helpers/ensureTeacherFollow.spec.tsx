@@ -43,7 +43,7 @@ const answers = (options: { role?: string; unfollowed?: number[]; items?: Row[];
     if (sql.includes('from "order_items"')) return options.items ?? [];
     if (sql.includes('from "course_bundles"')) return options.bundleTeacher ? [{ teacher_id: options.bundleTeacher }] : [];
     if (sql.includes('from "mock_test_items"')) return options.testTeacher ? [{ teacher_id: options.testTeacher }] : [];
-    if (sql.includes('from "users"')) return [{ role: options.role ?? "student" }];
+    if (sql.includes('from "students"')) return (options.role ?? "student") === "student" ? [{ id: 1 }] : [];
     if (sql.includes('from "teacher_unfollows"')) return (options.unfollowed ?? []).map((teacher_id) => ({ teacher_id }));
     return [];
   };

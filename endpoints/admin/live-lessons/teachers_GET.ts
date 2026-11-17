@@ -10,7 +10,7 @@ export async function handle(request: Request): Promise<Response> {
     await getAdminServerSessionOrThrow(request);
     const { rows } = await sql<{ id: number; displayName: string | null }>`
       SELECT u.id, u.display_name
-      FROM users u
+      FROM teachers u
       WHERE u.id IN (SELECT teacher_id FROM mentorship_bookings)
       ORDER BY lower(coalesce(u.display_name, '')), u.id
       LIMIT 2000

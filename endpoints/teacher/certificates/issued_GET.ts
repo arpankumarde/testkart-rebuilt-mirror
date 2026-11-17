@@ -23,7 +23,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const baseQuery = db
       .selectFrom("certificates")
-      .innerJoin("users", "users.id", "certificates.studentId")
+      .innerJoin("students", "students.id", "certificates.studentId")
       .leftJoin("courses", "courses.id", "certificates.courseId")
       .leftJoin("mockTestItems", "mockTestItems.id", "certificates.testItemId")
       .leftJoin("mockTests", "mockTests.id", "mockTestItems.packageId")
@@ -37,7 +37,7 @@ export async function handle(request: Request): Promise<Response> {
     const certificates = await baseQuery
       .selectAll("certificates")
       .select([
-        "users.displayName as studentName",
+        "students.displayName as studentName",
         (eb) => eb.fn<string>("coalesce", ["courses.title", "mockTestItems.title"]).as("itemName"),
       ])
       .orderBy("certificates.issuedAt", "desc")

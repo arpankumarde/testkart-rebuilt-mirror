@@ -121,7 +121,7 @@ END
     // The base query already joins subscriptionPlans, so we can filter by price
     const baseQuery = db
       .selectFrom("teacherSubscriptions as ts")
-      .innerJoin("users as u", "u.id", "ts.teacherId")
+      .innerJoin("teachers as u", "u.id", "ts.teacherId")
       .innerJoin("subscriptionPlans as sp", "sp.id", "ts.planId");
 
     // By default exclude Free Plan (price = 0), unless includeFree is requested or the

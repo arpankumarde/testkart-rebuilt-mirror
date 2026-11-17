@@ -23,7 +23,7 @@ export async function handle(request: Request) {
     if (wantType("mock_test")) {
       let q = db
         .selectFrom("mockTests")
-        .innerJoin("users", "users.id", "mockTests.teacherId")
+        .innerJoin("teachers", "teachers.id", "mockTests.teacherId")
         .select([
           "mockTests.id",
           "mockTests.title",
@@ -32,7 +32,7 @@ export async function handle(request: Request) {
           "mockTests.price",
           "mockTests.discountPrice",
           "mockTests.isFree",
-          "users.displayName as teacherName",
+          "teachers.displayName as teacherName",
         ])
         .where("mockTests.isPublished", "=", true)
         .where("mockTests.visibility", "=", "public")
@@ -61,14 +61,14 @@ export async function handle(request: Request) {
     if (wantType("digital_product")) {
       let q = db
         .selectFrom("digitalProducts")
-        .innerJoin("users", "users.id", "digitalProducts.teacherId")
+        .innerJoin("teachers", "teachers.id", "digitalProducts.teacherId")
         .select([
           "digitalProducts.id",
           "digitalProducts.title",
           "digitalProducts.slug",
           "digitalProducts.thumbnailUrl",
           "digitalProducts.price",
-          "users.displayName as teacherName",
+          "teachers.displayName as teacherName",
         ])
         .where("digitalProducts.status", "=", "published")
         .where("digitalProducts.visibility", "=", "public");
@@ -95,7 +95,7 @@ export async function handle(request: Request) {
     if (wantType("course")) {
       let q = db
         .selectFrom("courses")
-        .innerJoin("users", "users.id", "courses.teacherId")
+        .innerJoin("teachers", "teachers.id", "courses.teacherId")
         .select([
           "courses.id",
           "courses.title",
@@ -103,7 +103,7 @@ export async function handle(request: Request) {
           "courses.thumbnailUrl",
           "courses.thumbnailImageUrl",
           "courses.price",
-          "users.displayName as teacherName",
+          "teachers.displayName as teacherName",
         ])
         .where("courses.status", "=", "published")
         .where("courses.visibility", "=", "public");
@@ -130,7 +130,7 @@ export async function handle(request: Request) {
     if (wantType("bundle")) {
       let q = db
         .selectFrom("courseBundles")
-        .innerJoin("users", "users.id", "courseBundles.teacherId")
+        .innerJoin("teachers", "teachers.id", "courseBundles.teacherId")
         .select([
           "courseBundles.id",
           "courseBundles.title",
@@ -138,7 +138,7 @@ export async function handle(request: Request) {
           "courseBundles.thumbnailUrl",
           "courseBundles.price",
           "courseBundles.originalPrice",
-          "users.displayName as teacherName",
+          "teachers.displayName as teacherName",
         ])
         .where("courseBundles.isPublished", "=", true)
         .where("courseBundles.visibility", "=", "public");

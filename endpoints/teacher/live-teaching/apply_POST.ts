@@ -44,7 +44,7 @@ export async function handle(request: Request) {
         })
         .execute();
       await trx
-        .updateTable("users")
+        .updateTable("teachers")
         .set({ liveTeachingStatus: "pending", mentorshipEnabled: false })
         .where("id", "=", effectiveTeacherId)
         .execute();

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
-import { Certificates, Users } from "../../../helpers/schema";
+import { Certificates, Students } from "../../../helpers/schema";
 
 export const schema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -11,7 +11,7 @@ export const schema = z.object({
 export type InputType = z.infer<typeof schema>;
 
 export type IssuedCertificate = Selectable<Certificates> & {
-  studentName: Selectable<Users>["displayName"];
+  studentName: Selectable<Students>["displayName"];
   itemName: string;
 };
 

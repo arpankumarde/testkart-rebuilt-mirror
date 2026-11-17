@@ -136,7 +136,9 @@ export const TestReviews: React.FC<TestReviewsProps> = ({ mockTestId, rating, re
           <div className={styles.averageRating}>
             <span className={styles.bigRating}>{averageRating.toFixed(1)}</span>
             <StarRating rating={averageRating} size={20} />
-            <span className={styles.totalReviews}>{(reviewsCount ?? reviews.length).toLocaleString()} reviews</span>
+            <span className={styles.totalReviews}>
+              {(reviewsCount ?? reviews.length).toLocaleString()} {(reviewsCount ?? reviews.length) === 1 ? 'review' : 'reviews'}
+            </span>
           </div>
           <div className={styles.ratingBars}>
             {[5, 4, 3, 2, 1].map((stars) => {

@@ -1,6 +1,7 @@
 import { schema, OutputType } from "./messages_GET.schema";
 import superjson from 'superjson';
 import { db } from "../../../../helpers/db";
+import { allAccounts } from "../../../../helpers/allAccounts";
 import { getAdminServerSessionOrThrow } from "../../../../helpers/getAdminSession";
 import { loadThreadAttachments } from "../../../../helpers/supportAttachmentStorage";
 
@@ -30,7 +31,7 @@ export async function handle(request: Request) {
       .execute();
 
     const messages = await db.selectFrom("supportMessages")
-      .leftJoin("users", (join) => join
+      .leftJoin(allAccounts(db).as("users"), (join) => join
         .onRef("users.id", "=", "supportMessages.senderId")
         .on("supportMessages.senderType", "=", "teacher")
       )

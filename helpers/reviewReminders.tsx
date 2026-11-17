@@ -13,9 +13,9 @@ export async function reviewReminders() {
       .leftJoin("courses", "courses.id", "orderItems.courseId")
       .leftJoin("mockTests", "mockTests.id", "orderItems.mockTestId")
       .leftJoin("digitalProducts", "digitalProducts.id", "orderItems.digitalProductId")
-      .leftJoin("users as courseTeacher", "courseTeacher.id", "courses.teacherId")
-      .leftJoin("users as testTeacher", "testTeacher.id", "mockTests.teacherId")
-      .leftJoin("users as productTeacher", "productTeacher.id", "digitalProducts.teacherId")
+      .leftJoin("teachers as courseTeacher", "courseTeacher.id", "courses.teacherId")
+      .leftJoin("teachers as testTeacher", "testTeacher.id", "mockTests.teacherId")
+      .leftJoin("teachers as productTeacher", "productTeacher.id", "digitalProducts.teacherId")
       .select([
         "orders.userId as studentId",
         "orderItems.courseId",

@@ -13,8 +13,7 @@ export async function handle(request: Request) {
     
     const search = input.q.trim();
     
-    const teachers = await db.selectFrom("users")
-      .where("role", "=", "teacher")
+    const teachers = await db.selectFrom("teachers")
       .where((eb) => eb.or([
         eb("displayName", "ilike", `%${search}%`),
         eb("email", "ilike", `%${search}%`),

@@ -15,7 +15,7 @@ export async function handle(request: Request) {
     let q = db
       .selectFrom("groupLessons as gl")
       .innerJoin("liveCourses as lc", "lc.id", "gl.liveCourseId")
-      .innerJoin("users as t", "t.id", "gl.teacherId")
+      .innerJoin("teachers as t", "t.id", "gl.teacherId")
       .select([
         "gl.id",
         "gl.title",

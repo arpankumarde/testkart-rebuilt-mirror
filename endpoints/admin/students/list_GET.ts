@@ -8,17 +8,17 @@ import { getAccountStatus } from "../../../helpers/accountStatus";
 function getStudentSortExpression(sortBy: string) {
   switch (sortBy) {
     case "name":
-      return "users.displayName" as const;
+      return "students.displayName" as const;
     case "email":
-      return "users.email" as const;
+      return "students.email" as const;
     case "createdAt":
-      return "users.createdAt" as const;
+      return "students.createdAt" as const;
     case "enrolledTestsCount":
       return sql`"enrolled_tests_count"`;
     case "totalSpent":
       return sql`"total_spent"`;
     default:
-      return "users.createdAt" as const;
+      return "students.createdAt" as const;
   }
 }
 
@@ -34,28 +34,26 @@ export async function handle(request: Request): Promise<Response> {
     const sortBy = url.searchParams.get("sortBy") || "createdAt";
     const sortOrder = (url.searchParams.get("sortOrder") || "desc") as "asc" | "desc";
 
-    const baseQuery = db
-      .selectFrom("users")
-      .where("users.role", "=", "student");
+    const baseQuery = db.selectFrom("students");
 
     let studentsQuery = baseQuery
-      .selectAll("users")
+      .selectAll("students")
       .select([
         sql<string>`(
           SELECT COUNT(DISTINCT oi.mock_test_id)
           FROM order_items oi
           JOIN orders o ON oi.order_id = o.id
-          WHERE o.user_id = users.id AND o.status = 'completed'
+          WHERE o.user_id = students.id AND o.status = 'completed'
         )`.as("enrolledTestsCount"),
         sql<string>`(
           SELECT COALESCE(SUM(o.total_amount), 0)
           FROM orders o
-          WHERE o.user_id = users.id AND o.status = 'completed'
+          WHERE o.user_id = students.id AND o.status = 'completed'
         )`.as("totalSpent"),
       ])
       .orderBy(getStudentSortExpression(sortBy), sortOrder)
       // Id tie-breaker so tied rows (e.g. 0 tests, 0 spent) never repeat across pages.
-      .orderBy("users.id", sortOrder)
+      .orderBy("students.id", sortOrder)
       .limit(limit)
       .offset(offset);
 
@@ -67,16 +65,16 @@ export async function handle(request: Request): Promise<Response> {
       const searchQuery = `%${search}%`;
             studentsQuery = studentsQuery.where((eb) =>
         eb.or([
-          eb("users.displayName", "ilike", searchQuery),
-          eb("users.email", "ilike", searchQuery),
-          eb("users.mobileNumber", "ilike", searchQuery),
+          eb("students.displayName", "ilike", searchQuery),
+          eb("students.email", "ilike", searchQuery),
+          eb("students.mobileNumber", "ilike", searchQuery),
         ])
       );
       countQuery = countQuery.where((eb) =>
         eb.or([
-          eb("users.displayName", "ilike", searchQuery),
-          eb("users.email", "ilike", searchQuery),
-          eb("users.mobileNumber", "ilike", searchQuery),
+          eb("students.displayName", "ilike", searchQuery),
+          eb("students.email", "ilike", searchQuery),
+          eb("students.mobileNumber", "ilike", searchQuery),
         ])
       );
     }

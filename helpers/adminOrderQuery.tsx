@@ -129,8 +129,8 @@ export function orderWhere(f: AdminOrderFilters): RawBuilder<SqlBool> {
     const parts: RawBuilder<SqlBool>[] = [
       sql<SqlBool>`orders.payment_transaction_id ilike ${like}`,
       sql<SqlBool>`orders.client_ip ilike ${like}`,
-      sql<SqlBool>`exists (select 1 from users u where u.id = orders.user_id and ${people("u")})`,
-      sql<SqlBool>`exists (select 1 from teacher_sponsored_enrollments tse join users su on su.id = tse.student_id
+      sql<SqlBool>`exists (select 1 from students u where u.id = orders.user_id and ${people("u")})`,
+      sql<SqlBool>`exists (select 1 from teacher_sponsored_enrollments tse join students su on su.id = tse.student_id
         where tse.order_id = orders.id and ${people("su")})`,
       sql<SqlBool>`exists (select 1 from promo_codes pc where pc.id = orders.promo_code_id and pc.code ilike ${like})`,
     ];
@@ -216,7 +216,7 @@ export function orderSortSql(sort: AdminOrderSort): RawBuilder<unknown> {
     case "paidAt":
       return sql`orders.paid_at ${dir} nulls last, orders.id ${dir}`;
     case "student":
-      return sql`users.display_name ${dir}, orders.id desc`;
+      return sql`students.display_name ${dir}, orders.id desc`;
     case "amount":
       return sql`orders.total_amount ${dir}, orders.id desc`;
     case "status":
@@ -236,7 +236,7 @@ export async function findOrderIds(
 ): Promise<number[]> {
   let query = db
     .selectFrom("orders")
-    .innerJoin("users", "users.id", "orders.userId")
+    .innerJoin("students", "students.id", "orders.userId")
     .select("orders.id")
     .where(orderWhere(filters))
     .orderBy(orderSortSql(sort));
@@ -291,7 +291,7 @@ export async function loadOrderRows(ids: number[]): Promise<AdminOrderRow[]> {
   const [orders, items, sponsored, packageCycles] = await Promise.all([
     db
       .selectFrom("orders")
-      .innerJoin("users", "users.id", "orders.userId")
+      .innerJoin("students", "students.id", "orders.userId")
       .leftJoin("promoCodes", "promoCodes.id", "orders.promoCodeId")
       .leftJoin("courseBundles", "courseBundles.id", "orders.bundleId")
       .select([
@@ -334,9 +334,9 @@ export async function loadOrderRows(ids: number[]): Promise<AdminOrderRow[]> {
         "courseBundles.title as bundleTitle",
         "courseBundles.slug as bundleSlug",
         "courseBundles.teacherId as bundleTeacherId",
-        "users.displayName as studentName",
-        "users.email as studentEmail",
-        "users.mobileNumber as studentPhone",
+        "students.displayName as studentName",
+        "students.email as studentEmail",
+        "students.mobileNumber as studentPhone",
       ])
       .where("orders.id", "in", ids)
       .execute(),
@@ -371,13 +371,13 @@ export async function loadOrderRows(ids: number[]): Promise<AdminOrderRow[]> {
       .execute(),
     db
       .selectFrom("teacherSponsoredEnrollments")
-      .leftJoin("users", "users.id", "teacherSponsoredEnrollments.studentId")
+      .leftJoin("students", "students.id", "teacherSponsoredEnrollments.studentId")
       .select([
         "teacherSponsoredEnrollments.orderId",
-        "users.displayName as studentName",
-        "users.email as studentEmail",
-        "users.mobileNumber as studentPhone",
-        "users.id as studentId",
+        "students.displayName as studentName",
+        "students.email as studentEmail",
+        "students.mobileNumber as studentPhone",
+        "students.id as studentId",
       ])
       .where("teacherSponsoredEnrollments.orderId", "in", ids)
       .execute(),
@@ -473,7 +473,7 @@ export async function loadOrderRows(ids: number[]): Promise<AdminOrderRow[]> {
 
   const teacherIds = [...new Set(teacherByOrder.values())];
   const teachers = teacherIds.length
-    ? await db.selectFrom("users").select(["id", "displayName"]).where("id", "in", teacherIds).execute()
+    ? await db.selectFrom("teachers").select(["id", "displayName"]).where("id", "in", teacherIds).execute()
     : [];
   const teacherName = new Map(teachers.map((t) => [t.id, t.displayName]));
   const sponsoredByOrder = new Map(sponsored.filter((s) => s.orderId !== null).map((s) => [s.orderId as number, s]));

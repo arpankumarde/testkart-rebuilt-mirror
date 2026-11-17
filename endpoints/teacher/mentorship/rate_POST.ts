@@ -16,7 +16,7 @@ export async function handle(request: Request) {
     const input = schema.parse(superjson.parse(await request.text()));
 
     if (input.enabled) {
-      const row = await db.selectFrom("users").select("liveTeachingStatus").where("id", "=", effectiveTeacherId).executeTakeFirst();
+      const row = await db.selectFrom("teachers").select("liveTeachingStatus").where("id", "=", effectiveTeacherId).executeTakeFirst();
       if (row?.liveTeachingStatus !== "approved") {
         return fail("1:1 sessions open once your live teaching application is approved.", 403);
       }
@@ -32,7 +32,7 @@ export async function handle(request: Request) {
 
     if (input.enabled && !input.prices) {
       const current = await db
-        .selectFrom("users")
+        .selectFrom("teachers")
         .select(["mentorshipRatePerUnit", "mentorshipClassPrice60", "mentorshipTrialDiscount"])
         .where("id", "=", effectiveTeacherId)
         .executeTakeFirst();
@@ -43,7 +43,7 @@ export async function handle(request: Request) {
     }
 
     await db
-      .updateTable("users")
+      .updateTable("teachers")
       .set({
         mentorshipEnabled: input.enabled,
         ...(input.prices

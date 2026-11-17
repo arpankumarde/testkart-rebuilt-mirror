@@ -2,6 +2,7 @@ import { z } from "zod";
 import superjson from "superjson";
 import { schema, OutputType } from "./verify-otp_POST.schema";
 import { db } from "../../../helpers/db";
+import { allAccounts } from "../../../helpers/allAccounts";
 import {
   setServerSession,
   SessionExpirationSeconds,
@@ -19,11 +20,19 @@ import {
 } from "../../../helpers/otpVerifyGuard";
 import { recordSignIn } from "../../../helpers/recordSignIn";
 import { syncWaplifyContact } from "../../../helpers/syncWaplifyContact";
+import { maskEmail } from "../../../helpers/organizationClaim";
+import {
+  createAccountChoiceResponse,
+  findLoginAccounts,
+  resolveLogin,
+  sideFromRoleParam,
+} from "../../../helpers/loginAccount";
+import { insertAccount, updateAccount } from "../../../helpers/accountRows";
 
 export async function handle(request: Request) {
   try {
     const json = superjson.parse(await request.text());
-    const { mobileNumber, otpCode, role } = schema.parse(json);
+    const { mobileNumber, otpCode, role, supportsAccountChoice } = schema.parse(json);
     const ipAddress = getClientIp(request);
 
     const limitMessage = await checkOtpVerifyLimit(mobileNumber, ipAddress);
@@ -71,21 +80,20 @@ export async function handle(request: Request) {
       });
     }
 
-    // 4. OTP is correct, check if user exists
-    let user = await db
-      .selectFrom("users")
-      .select([
-        "id",
-        "email",
-        "displayName",
-        "role",
-        "avatarUrl",
-        "mobileNumber",
-        "mobileVerified",
-      ])
-      .where("mobileNumber", "=", mobileNumber)
-      .where("mobileVerified", "=", true)
-      .executeTakeFirst();
+    // 4. OTP is correct: find this side's account, or offer the other side's (helpers/loginAccount)
+    const side = sideFromRoleParam(role);
+    const resolution = resolveLogin(await findLoginAccounts({ mobileNumber }, side), supportsAccountChoice ?? false);
+    if (resolution.kind === "choice") {
+      await db.updateTable("mobileOtps").set({ verifiedAt: new Date() }).where("id", "=", otpRecord.id).execute();
+      const choiceOutput = await createAccountChoiceResponse({
+        side,
+        otherAccount: resolution.otherAccount,
+        identifier: { mobileNumber },
+        method: "mobile_otp",
+      });
+      return new Response(superjson.stringify(choiceOutput));
+    }
+    let user = resolution.kind === "existing" ? resolution.account : undefined;
 
     if (user) {
       const blockedMessage = await getAccountBlockMessage(user.id);
@@ -94,38 +102,48 @@ export async function handle(request: Request) {
       }
     }
 
-    // 5. If no user exists, create a new student account (signup flow)
+    // An existing account carries this number unverified: send them to it instead of creating a duplicate
+    if (!user) {
+      const unverifiedOwner = await db
+        .selectFrom(allAccounts(db).as("users"))
+        .select(["id", "email"])
+        .where("mobileNumber", "=", mobileNumber)
+        .where("mobileVerified", "=", false)
+        .where("role", "=", role === "teacher" ? "teacher" : "student")
+        .orderBy("id", "asc")
+        .executeTakeFirst();
+
+      if (unverifiedOwner) {
+        await db
+          .updateTable("mobileOtps")
+          .set({ verifiedAt: new Date() })
+          .where("id", "=", otpRecord.id)
+          .execute();
+        console.log(
+          `OTP login refused for mobile: ${mobileNumber}, unverified on userId: ${unverifiedOwner.id}`
+        );
+        const error = unverifiedOwner.email
+          ? `This number is on an account that signs in with email (${maskEmail(unverifiedOwner.email)}). Sign in with that email, then verify this number in your profile to use phone sign-in.`
+          : "This number is on an existing account that has not verified it. Sign in the way you signed up, then verify this number in your profile to use phone sign-in.";
+        return new Response(superjson.stringify({ error }), { status: 409 });
+      }
+    }
+
+    // 5. If no user exists, create a new account (signup flow)
     const isNewUser = !user;
     if (!user) {
-      const newUser = await db
-        .insertInto("users")
-        .values({
-          displayName: "User",
-          mobileNumber,
-          mobileVerified: true,
-          role: role === "teacher" ? "teacher" : "student",
-          email: null,
-          isActive: true,
-        })
-        .returning([
-          "id",
-          "email",
-          "displayName",
-          "role",
-          "avatarUrl",
-          "mobileNumber",
-          "mobileVerified",
-        ])
-        .executeTakeFirstOrThrow();
+      const newUser = await insertAccount(db, side, {
+        displayName: "User",
+        mobileNumber,
+        mobileVerified: true,
+        email: null,
+        isActive: true,
+      });
 
       const finalDisplayName = `User_${newUser.id}`;
       const avatarUrl = `https://api.dicebear.com/9.x/fun-emoji/png?seed=${newUser.id}`;
 
-      await db
-        .updateTable("users")
-        .set({ displayName: finalDisplayName, avatarUrl })
-        .where("id", "=", newUser.id)
-        .execute();
+      await updateAccount(db, side, newUser.id, { displayName: finalDisplayName, avatarUrl });
 
       await assignUserSlug(newUser.id, finalDisplayName);
 

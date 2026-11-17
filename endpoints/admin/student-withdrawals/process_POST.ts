@@ -86,7 +86,7 @@ export async function handle(request: Request): Promise<Response> {
 
     // Send withdrawal processed email (non-blocking)
     const student = await db
-      .selectFrom("users")
+      .selectFrom("students")
       .where("id", "=", updatedWithdrawal.studentId)
       .select(["email", "displayName"])
       .executeTakeFirst();

@@ -95,7 +95,7 @@ export async function handle(request: Request) {
     if (input.breakdown === "teacher") {
       const ids = groups.map((g) => Number(g.key)).filter((id) => Number.isInteger(id) && id > 0);
       if (ids.length) {
-        const teachers = await db.selectFrom("users").select(["id", "displayName"]).where("id", "in", ids).execute();
+        const teachers = await db.selectFrom("teachers").select(["id", "displayName"]).where("id", "in", ids).execute();
         teacherNames = new Map(teachers.map((t) => [t.id, t.displayName]));
       }
     }

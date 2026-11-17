@@ -12,16 +12,16 @@ function asScalar(builder: RawBuilder<{ total: string }>) {
   return sql<string>`${builder}`;
 }
 
-const teacherIdRef = sql.ref("users.id");
+const teacherIdRef = sql.ref("teachers.id");
 
 function getSortExpression(sortBy: string) {
   switch (sortBy) {
     case "name":
-      return "users.displayName" as const;
+      return "teachers.displayName" as const;
     case "email":
-      return "users.email" as const;
+      return "teachers.email" as const;
     case "createdAt":
-      return "users.createdAt" as const;
+      return "teachers.createdAt" as const;
     case "testsCount":
       return sql`"tests_count"`;
     case "bundlesCount":
@@ -35,7 +35,7 @@ function getSortExpression(sortBy: string) {
     case "totalEarnings":
       return sql`"total_earnings"`;
     default:
-      return "users.createdAt" as const;
+      return "teachers.createdAt" as const;
   }
 }
 
@@ -53,17 +53,16 @@ export async function handle(request: Request): Promise<Response> {
     const relationshipManager = url.searchParams.get("relationshipManager") || "";
 
     let baseQuery = db
-      .selectFrom("users")
-      .where("users.role", "=", "teacher");
+      .selectFrom("teachers");
 
     if (relationshipManager === "unassigned") {
-      baseQuery = baseQuery.where("users.relationshipManagerAdminId", "is", null);
+      baseQuery = baseQuery.where("teachers.relationshipManagerAdminId", "is", null);
     } else if (/^\d+$/.test(relationshipManager)) {
-      baseQuery = baseQuery.where("users.relationshipManagerAdminId", "=", parseInt(relationshipManager, 10));
+      baseQuery = baseQuery.where("teachers.relationshipManagerAdminId", "=", parseInt(relationshipManager, 10));
     }
 
     let teachersQuery = baseQuery
-      .selectAll("users")
+      .selectAll("teachers")
       .select([
         // Content counts are live items only, by the same rule as
         // loadContentState in helpers/contentReviewQueue.tsx. Drafts, items in
@@ -72,32 +71,32 @@ export async function handle(request: Request): Promise<Response> {
         sql<string>`(
           SELECT COUNT(*) 
           FROM mock_tests 
-          WHERE mock_tests.teacher_id = users.id
+          WHERE mock_tests.teacher_id = teachers.id
             AND mock_tests.is_published = true
             AND mock_tests.deleted_at IS NULL
         )`.as("testsCount"),
         sql<string>`(
           SELECT COUNT(*)
           FROM course_bundles
-          WHERE course_bundles.teacher_id = users.id
+          WHERE course_bundles.teacher_id = teachers.id
             AND course_bundles.is_published = true
         )`.as("bundlesCount"),
         sql<string>`(
           SELECT COUNT(*)
           FROM courses
-          WHERE courses.teacher_id = users.id
+          WHERE courses.teacher_id = teachers.id
             AND courses.status = 'published'
         )`.as("coursesCount"),
         sql<string>`(
           SELECT COUNT(*)
           FROM live_tests
-          WHERE live_tests.teacher_id = users.id
+          WHERE live_tests.teacher_id = teachers.id
             AND live_tests.is_active = true
         )`.as("liveTestsCount"),
         sql<string>`(
           SELECT COUNT(*)
           FROM digital_products
-          WHERE digital_products.teacher_id = users.id
+          WHERE digital_products.teacher_id = teachers.id
             AND digital_products.status = 'published'
         )`.as("productsCount"),
         // Net teacher earnings (gross minus discount, minus platform fee at time of sale) across
@@ -108,14 +107,14 @@ export async function handle(request: Request): Promise<Response> {
         sql<string | null>`(
           SELECT admins.full_name
           FROM admins
-          WHERE admins.id = users.relationship_manager_admin_id
+          WHERE admins.id = teachers.relationship_manager_admin_id
         )`.as("relationshipManagerName"),
       ])
       .orderBy(getSortExpression(sortBy), sortOrder)
       // Most teachers tie on counts (often 0), and Postgres may order tied rows
       // differently per page, which repeated teachers across pages. The id
       // tie-breaker makes the order total, so every page is a stable slice.
-      .orderBy("users.id", sortOrder)
+      .orderBy("teachers.id", sortOrder)
       .limit(limit)
       .offset(offset);
 
@@ -127,16 +126,16 @@ export async function handle(request: Request): Promise<Response> {
       const searchQuery = `%${search}%`;
             teachersQuery = teachersQuery.where((eb) =>
         eb.or([
-          eb("users.displayName", "ilike", searchQuery),
-          eb("users.email", "ilike", searchQuery),
-          eb("users.mobileNumber", "ilike", searchQuery),
+          eb("teachers.displayName", "ilike", searchQuery),
+          eb("teachers.email", "ilike", searchQuery),
+          eb("teachers.mobileNumber", "ilike", searchQuery),
         ])
       );
       countQuery = countQuery.where((eb) =>
         eb.or([
-          eb("users.displayName", "ilike", searchQuery),
-          eb("users.email", "ilike", searchQuery),
-          eb("users.mobileNumber", "ilike", searchQuery),
+          eb("teachers.displayName", "ilike", searchQuery),
+          eb("teachers.email", "ilike", searchQuery),
+          eb("teachers.mobileNumber", "ilike", searchQuery),
         ])
       );
     }

@@ -52,7 +52,7 @@ export async function generateSalesInvoicePdf(
 
   const order = await db
     .selectFrom("orders")
-    .innerJoin("users", "users.id", "orders.userId")
+    .innerJoin("students", "students.id", "orders.userId")
     .where("orders.id", "=", orderId)
     .select([
       "orders.id",
@@ -62,10 +62,10 @@ export async function generateSalesInvoicePdf(
       "orders.paymentMethod",
       "orders.paymentTransactionId",
       "orders.invoiceNumber",
-      "users.displayName as studentName",
-      "users.email as studentEmail",
-      "users.mobileNumber as studentPhone",
-      "users.billingDetails as studentBillingDetails",
+      "students.displayName as studentName",
+      "students.email as studentEmail",
+      "students.mobileNumber as studentPhone",
+      "students.billingDetails as studentBillingDetails",
     ])
     .executeTakeFirst();
 

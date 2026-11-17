@@ -11,21 +11,21 @@ import { isTestOfferedToStudents } from "./testSchedule";
 export async function fetchTestDetailsServer(slug: string): Promise<OutputType> {
   const test = await db
     .selectFrom("mockTests")
-    .innerJoin("users", "users.id", "mockTests.teacherId")
+    .innerJoin("teachers", "teachers.id", "mockTests.teacherId")
     .leftJoin("exams", "exams.id", "mockTests.examId")
     .selectAll("mockTests")
     .select([
-      "users.displayName as teacherName",
-      "users.avatarUrl as teacherAvatarUrl",
-      "users.bio as teacherBio",
-      "users.websiteUrl as teacherWebsiteUrl",
-      "users.publicPhone as teacherPublicPhone",
-      "users.publicEmail as teacherPublicEmail",
-      "users.academyName as teacherAcademyName",
-      "users.socialLinks as teacherSocialLinks",
-      "users.awardsCertificates as teacherAwardsCertificates",
-      "users.isVerified as teacherIsVerified",
-      "users.slug as teacherSlugCol",
+      "teachers.displayName as teacherName",
+      "teachers.avatarUrl as teacherAvatarUrl",
+      "teachers.bio as teacherBio",
+      "teachers.websiteUrl as teacherWebsiteUrl",
+      "teachers.publicPhone as teacherPublicPhone",
+      "teachers.publicEmail as teacherPublicEmail",
+      "teachers.academyName as teacherAcademyName",
+      "teachers.socialLinks as teacherSocialLinks",
+      "teachers.awardsCertificates as teacherAwardsCertificates",
+      "teachers.isVerified as teacherIsVerified",
+      "teachers.slug as teacherSlugCol",
       "exams.examSlug as examSlug",
     ])
     .where("mockTests.slug", "=", slug)

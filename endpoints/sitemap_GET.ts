@@ -98,10 +98,26 @@ export async function handle(request: Request) {
       careerPostings,
       newsCoverage,
     ] = await Promise.all([
+      // Only teachers whose /expert profile lists at least one item: the same
+      // published + public filters endpoints/teachers/profile_GET.ts and
+      // helpers/loadTeacherProfileBundles.tsx apply. Empty profiles stay out.
       db
-        .selectFrom("users")
-        .where("role", "=", "teacher")
+        .selectFrom("teachers")
         .where("isActive", "=", true)
+        .where(
+          sql<boolean>`(
+            EXISTS (SELECT 1 FROM courses c WHERE c.teacher_id = teachers.id
+              AND c.status = 'published' AND c.visibility = 'public')
+            OR EXISTS (SELECT 1 FROM digital_products d WHERE d.teacher_id = teachers.id
+              AND d.status = 'published' AND d.visibility = 'public')
+            OR EXISTS (SELECT 1 FROM mock_tests m WHERE m.teacher_id = teachers.id
+              AND m.is_published = true AND m.deleted_at IS NULL AND m.visibility = 'public'
+              AND NOT EXISTS (SELECT 1 FROM live_tests l WHERE l.mock_test_id = m.id
+                AND l.is_active = true AND l.visibility IS DISTINCT FROM 'public'))
+            OR EXISTS (SELECT 1 FROM course_bundles b WHERE b.teacher_id = teachers.id
+              AND b.is_published = true AND b.visibility = 'public')
+          )`
+        )
         .select(["displayName", "slug"])
         .execute(),
       db

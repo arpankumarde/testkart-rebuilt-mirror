@@ -10,6 +10,40 @@ import { publishesWithoutReview } from "../../helpers/contentReviewQueue";
 import superjson from "superjson";
 import { OutputType } from "./session_GET.schema";
 
+/* Students have no teacher profile columns: these are the values every student row held in users. */
+const STUDENT_PROFILE_DEFAULTS = {
+  websiteUrl: null,
+  publicEmail: null,
+  publicPhone: null,
+  socialLinks: {},
+  awardsCertificates: [],
+  languages: [],
+  location: null,
+  expertiseAreas: [],
+  responseTime: null,
+  tagline: null,
+  isVerified: false,
+  instituteType: null,
+  academyName: null,
+  yearsOfExperience: null,
+  teachingCategories: null,
+  targetExams: null,
+  teachingExperienceLevel: null,
+  currentOccupation: null,
+  goals: null,
+  discoverySource: null,
+  schoolCollegeName: null,
+};
+
+async function loadStudentProfile(id: number) {
+  const row = await db
+    .selectFrom("students")
+    .select(["avatarFileId", "bio", "emailVerified", "slug", "onboardingCompleted", "signupSource"])
+    .where("id", "=", id)
+    .executeTakeFirst();
+  return row && { ...row, ...STUDENT_PROFILE_DEFAULTS };
+}
+
 export async function handle(request: Request) {
   try {
     // Get session and basic user info
@@ -19,8 +53,8 @@ export async function handle(request: Request) {
     );
 
     // Fetch additional user profile fields that are not returned by getServerUserSession
-    const userProfile = await db
-      .selectFrom("users")
+    const userProfile = user.role === "student" ? await loadStudentProfile(user.id) : await db
+      .selectFrom("teachers")
       .select([
         "avatarFileId",
         "bio",

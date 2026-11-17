@@ -15,13 +15,13 @@ export async function handle(request: Request): Promise<Response> {
       "courseBundles.id",
       "bundleEnrollments.bundleId"
     ).
-    innerJoin("users", "users.id", "courseBundles.teacherId").
+    innerJoin("teachers", "teachers.id", "courseBundles.teacherId").
     select([
     "courseBundles.id",
     "courseBundles.title",
     "courseBundles.slug",
     "courseBundles.thumbnailUrl",
-    "users.displayName as teacherName",
+    "teachers.displayName as teacherName",
     "bundleEnrollments.enrolledAt"]
     ).
     where("bundleEnrollments.studentId", "=", user.id).

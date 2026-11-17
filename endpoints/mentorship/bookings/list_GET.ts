@@ -33,8 +33,8 @@ export async function handle(request: Request) {
 
     let query = db
       .selectFrom("mentorshipBookings")
-      .innerJoin("users as teacher", "teacher.id", "mentorshipBookings.teacherId")
-      .innerJoin("users as student", "student.id", "mentorshipBookings.studentId")
+      .innerJoin("teachers as teacher", "teacher.id", "mentorshipBookings.teacherId")
+      .innerJoin("students as student", "student.id", "mentorshipBookings.studentId")
       .select([
         "mentorshipBookings.id",
         "mentorshipBookings.status",

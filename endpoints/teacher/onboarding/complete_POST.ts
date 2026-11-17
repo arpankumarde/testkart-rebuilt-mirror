@@ -56,7 +56,7 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     const existingUser = await db
-      .selectFrom("users")
+      .selectFrom("teachers")
       .select(["signupSource", "email", "mobileNumber"])
       .where("id", "=", effectiveTeacherId)
       .executeTakeFirst();
@@ -93,7 +93,7 @@ export async function handle(request: Request): Promise<Response> {
     const focusIds = examIds;
     const { updatedUser, examFocus } = await db.transaction().execute(async (trx) => {
       const [row] = await trx
-        .updateTable("users")
+        .updateTable("teachers")
         .set({
           teachingCategories: validatedInput.teachingCategories,
           expertiseAreas: validatedInput.subjects,
@@ -133,7 +133,7 @@ export async function handle(request: Request): Promise<Response> {
       displayName: updatedUser.displayName,
       avatarUrl: updatedUser.avatarUrl,
       avatarFileId: updatedUser.avatarFileId,
-      role: updatedUser.role,
+      role: "teacher",
       bio: updatedUser.bio,
       websiteUrl: updatedUser.websiteUrl,
       mobileNumber: updatedUser.mobileNumber,

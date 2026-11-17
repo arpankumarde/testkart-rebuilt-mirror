@@ -33,16 +33,16 @@ export async function handle(request: Request): Promise<Response> {
 
     const course = await db
       .selectFrom("courses")
-      .innerJoin("users", "users.id", "courses.teacherId")
+      .innerJoin("teachers", "teachers.id", "courses.teacherId")
       .selectAll("courses")
       .select([
-        "users.id as teacherId",
-        "users.displayName as teacherDisplayName",
-        "users.avatarUrl as teacherProfilePicture",
-        "users.isVerified as teacherIsVerified",
-        "users.bio as teacherBio",
-        "users.academyName as teacherAcademyName",
-        "users.slug as teacherSlug"
+        "teachers.id as teacherId",
+        "teachers.displayName as teacherDisplayName",
+        "teachers.avatarUrl as teacherProfilePicture",
+        "teachers.isVerified as teacherIsVerified",
+        "teachers.bio as teacherBio",
+        "teachers.academyName as teacherAcademyName",
+        "teachers.slug as teacherSlug"
       ])
       .where("courses.slug", "=", validation.data.slug)
       .where("courses.status", "=", "published")
@@ -118,7 +118,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const reviews = await db
       .selectFrom("reviews")
-      .innerJoin("users", "reviews.userId", "users.id")
+      .innerJoin("students as reviewer", "reviews.userId", "reviewer.id")
       .select([
         "reviews.id",
         "reviews.rating",
@@ -127,8 +127,8 @@ export async function handle(request: Request): Promise<Response> {
         "reviews.teacherRepliedAt",
         "reviews.createdAt",
         "reviews.userId",
-        "users.displayName as reviewerName",
-        "users.avatarUrl as reviewerAvatarUrl",
+        "reviewer.displayName as reviewerName",
+        "reviewer.avatarUrl as reviewerAvatarUrl",
       ])
       .where("reviews.courseId", "=", course.id)
       .orderBy("reviews.createdAt", "desc")

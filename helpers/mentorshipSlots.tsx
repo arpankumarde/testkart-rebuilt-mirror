@@ -34,7 +34,7 @@ export async function generateTeacherSlots(
   fromDate: Date,
   toDate: Date
 ): Promise<AvailableSlot[]> {
-  const teacher = await db.selectFrom("users").select(["timezone"]).where("id", "=", teacherId).executeTakeFirst();
+  const teacher = await db.selectFrom("teachers").select(["timezone"]).where("id", "=", teacherId).executeTakeFirst();
   if (!teacher) return [];
   const timezone = teacher.timezone;
 
@@ -148,7 +148,7 @@ export async function isTeacherSlotBookable(
     return { ok: false, reason: `Bookings need at least ${BOOKING_MIN_NOTICE_MINUTES} minutes' notice.` };
   }
 
-  const teacher = await executor.selectFrom("users").select(["timezone"]).where("id", "=", teacherId).executeTakeFirst();
+  const teacher = await executor.selectFrom("teachers").select(["timezone"]).where("id", "=", teacherId).executeTakeFirst();
   if (!teacher) return { ok: false, reason: "Teacher not found." };
   const timezone = teacher.timezone;
 

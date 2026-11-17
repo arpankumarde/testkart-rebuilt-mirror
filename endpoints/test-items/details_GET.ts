@@ -16,7 +16,7 @@ export async function handle(request: Request): Promise<Response> {
     const result = await db
       .selectFrom('mockTestItems')
       .innerJoin('mockTests', 'mockTests.id', 'mockTestItems.packageId')
-      .innerJoin('users', 'users.id', 'mockTests.teacherId')
+      .innerJoin('teachers', 'teachers.id', 'mockTests.teacherId')
       .where('mockTestItems.id', '=', validatedInput.testItemId)
       .select([
         'mockTestItems.id as itemId',
@@ -32,7 +32,7 @@ export async function handle(request: Request): Promise<Response> {
         'mockTests.id as packageId',
         'mockTests.title as packageTitle',
         'mockTests.isPublished',
-        'users.displayName as teacherName',
+        'teachers.displayName as teacherName',
       ])
       .executeTakeFirst();
 

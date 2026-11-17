@@ -1,4 +1,5 @@
 import { db } from "../../../helpers/db";
+import { allAccounts } from "../../../helpers/allAccounts";
 import { getAdminServerSessionOrThrow } from "../../../helpers/getAdminSession";
 import { schema, OutputType } from "./toggle-verified_POST.schema";
 import { sendTemplateEmail } from "../../../helpers/sendTemplateEmail";
@@ -15,7 +16,7 @@ export async function handle(request: Request): Promise<Response> {
 
     // 3. Verify Target User Exists
     const user = await db
-      .selectFrom("users")
+      .selectFrom(allAccounts(db).as("account"))
       .select("id")
       .where("id", "=", userId)
       .executeTakeFirst();
@@ -28,8 +29,9 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     // 4. Update the isVerified field
+    // The verified badge is a teacher field; a student id updates nothing.
     await db
-      .updateTable("users")
+      .updateTable("teachers")
       .set({ isVerified })
       .where("id", "=", userId)
       .execute();
@@ -38,7 +40,7 @@ export async function handle(request: Request): Promise<Response> {
     if (isVerified) {
       try {
         const targetUser = await db
-          .selectFrom("users")
+          .selectFrom(allAccounts(db).as("account"))
           .select(["email", "displayName", "role"])
           .where("id", "=", userId)
           .executeTakeFirst();

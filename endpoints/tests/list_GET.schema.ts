@@ -1,7 +1,7 @@
 import { z } from "zod";
 import superjson from "superjson";
 import { Selectable } from "kysely";
-import { MockTests, Users } from "../../helpers/schema";
+import { MockTests, Teachers } from "../../helpers/schema";
 
 export const schema = z.object({
   search: z.string().optional(),
@@ -44,7 +44,7 @@ export type TestListItem = Omit<
   >,
   "price" | "discountPrice" | "rating"
 > & {
-  teacherName: Selectable<Users>["displayName"];
+  teacherName: Selectable<Teachers>["displayName"];
   teacherIsVerified: boolean;
   isEnrolled: boolean;
   actualQuestionCount: number;

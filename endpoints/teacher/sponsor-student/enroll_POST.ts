@@ -1,4 +1,5 @@
 import { db } from "../../../helpers/db";
+import { insertAccount } from "../../../helpers/accountRows";
 import { getServerUserSession } from "../../../helpers/getServerUserSession";
 import { schema, OutputType, InputType } from "./enroll_POST.schema";
 import superjson from "superjson";
@@ -300,20 +301,15 @@ export async function handle(request: Request): Promise<Response> {
           : null;
         const userPhone = resolvedPhone ?? null;
 
-        const newUser = await trx
-          .insertInto("users")
-          .values({
-            mobileNumber: userPhone,
-            displayName: input.studentName.trim(),
-            email: userEmail,
-            role: "student",
-            mobileVerified: userPhone !== null,
-            isActive: true,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          })
-          .returning(["id", "displayName", "role", "mobileNumber", "email"])
-          .executeTakeFirstOrThrow();
+        const newUser = await insertAccount(trx, "student", {
+          mobileNumber: userPhone,
+          displayName: input.studentName.trim(),
+          email: userEmail,
+          mobileVerified: userPhone !== null,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
 
         await trx
           .insertInto("userPasswords")

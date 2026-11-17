@@ -63,7 +63,7 @@ export async function handle(request: Request): Promise<Response> {
 
    let query = db
       .selectFrom("digitalProducts")
-      .innerJoin("users", "users.id", "digitalProducts.teacherId")
+      .innerJoin("teachers", "teachers.id", "digitalProducts.teacherId")
       .leftJoin(reviewsSubquery, "reviewStats.digitalProductId", "digitalProducts.id")
       .leftJoin(fileCountSubquery, "fileStats.productId", "digitalProducts.id")
       .leftJoin(recentPurchasesSubquery, "popularity.productId", "digitalProducts.id")
@@ -80,12 +80,12 @@ export async function handle(request: Request): Promise<Response> {
         "digitalProducts.totalPurchases",
         "digitalProducts.publishedAt",
         "digitalProducts.views",
-        "users.displayName as teacherName",
-        "users.avatarUrl as teacherAvatar",
-        "users.isVerified as teacherIsVerified",
-        "users.tagline as teacherTagline",
-        "users.yearsOfExperience as teacherYearsOfExperience",
-        "users.slug as teacherSlugCol",
+        "teachers.displayName as teacherName",
+        "teachers.avatarUrl as teacherAvatar",
+        "teachers.isVerified as teacherIsVerified",
+        "teachers.tagline as teacherTagline",
+        "teachers.yearsOfExperience as teacherYearsOfExperience",
+        "teachers.slug as teacherSlugCol",
         "reviewStats.avgRating",
         "reviewStats.ratingsCount",
        "fileStats.fileCount",

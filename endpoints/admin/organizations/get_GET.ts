@@ -46,24 +46,24 @@ export async function handle(request: Request): Promise<Response> {
 
     const [owner, memberRows] = await Promise.all([
       db
-        .selectFrom("users")
+        .selectFrom("teachers")
         .select(["id", "displayName", "email", "mobileNumber", "slug", "isActive"])
         .where("id", "=", org.createdByTeacherId)
         .executeTakeFirst(),
       db
         .selectFrom("organizationTeachers")
-        .innerJoin("users", "users.id", "organizationTeachers.teacherId")
+        .innerJoin("teachers", "teachers.id", "organizationTeachers.teacherId")
         .select([
           "organizationTeachers.id as membershipId",
           "organizationTeachers.teacherId",
           "organizationTeachers.status",
           "organizationTeachers.requestedAt",
           "organizationTeachers.respondedAt",
-          "users.displayName",
-          "users.email",
-          "users.slug",
-          "users.avatarUrl",
-          "users.isVerified",
+          "teachers.displayName",
+          "teachers.email",
+          "teachers.slug",
+          "teachers.avatarUrl",
+          "teachers.isVerified",
         ])
         .where("organizationTeachers.organizationId", "=", org.id)
         .orderBy("organizationTeachers.requestedAt", "asc")
@@ -77,8 +77,8 @@ export async function handle(request: Request): Promise<Response> {
       const [courses, bundles, tests, liveTests, products] = await Promise.all([
         db
           .selectFrom("courses")
-          .innerJoin("users", "users.id", "courses.teacherId")
-          .select(["courses.id", "courses.title", "courses.slug", "courses.price", "courses.discountPrice", "courses.createdAt", "users.displayName as teacherName"])
+          .innerJoin("teachers", "teachers.id", "courses.teacherId")
+          .select(["courses.id", "courses.title", "courses.slug", "courses.price", "courses.discountPrice", "courses.createdAt", "teachers.displayName as teacherName"])
           .where("courses.status", "=", "published")
           .where("courses.teacherId", "in", approvedIds)
           .orderBy("courses.createdAt", "desc")
@@ -86,8 +86,8 @@ export async function handle(request: Request): Promise<Response> {
           .execute(),
         db
           .selectFrom("courseBundles")
-          .innerJoin("users", "users.id", "courseBundles.teacherId")
-          .select(["courseBundles.id", "courseBundles.title", "courseBundles.slug", "courseBundles.price", "courseBundles.originalPrice", "courseBundles.createdAt", "users.displayName as teacherName"])
+          .innerJoin("teachers", "teachers.id", "courseBundles.teacherId")
+          .select(["courseBundles.id", "courseBundles.title", "courseBundles.slug", "courseBundles.price", "courseBundles.originalPrice", "courseBundles.createdAt", "teachers.displayName as teacherName"])
           .where("courseBundles.isPublished", "=", true)
           .where("courseBundles.teacherId", "in", approvedIds)
           .orderBy("courseBundles.createdAt", "desc")
@@ -95,8 +95,8 @@ export async function handle(request: Request): Promise<Response> {
           .execute(),
         db
           .selectFrom("mockTests")
-          .innerJoin("users", "users.id", "mockTests.teacherId")
-          .select(["mockTests.id", "mockTests.title", "mockTests.slug", "mockTests.price", "mockTests.discountPrice", "mockTests.createdAt", "users.displayName as teacherName"])
+          .innerJoin("teachers", "teachers.id", "mockTests.teacherId")
+          .select(["mockTests.id", "mockTests.title", "mockTests.slug", "mockTests.price", "mockTests.discountPrice", "mockTests.createdAt", "teachers.displayName as teacherName"])
           .where("mockTests.isPublished", "=", true)
           .where("mockTests.deletedAt", "is", null)
           .where("mockTests.teacherId", "in", approvedIds)
@@ -105,9 +105,9 @@ export async function handle(request: Request): Promise<Response> {
           .execute(),
         db
           .selectFrom("liveTests")
-          .innerJoin("users", "users.id", "liveTests.teacherId")
+          .innerJoin("teachers", "teachers.id", "liveTests.teacherId")
           .innerJoin("mockTests", "mockTests.id", "liveTests.mockTestId")
-          .select(["liveTests.id", "mockTests.slug", "liveTests.title", "liveTests.price", "liveTests.discountPrice", "liveTests.createdAt", "users.displayName as teacherName"])
+          .select(["liveTests.id", "mockTests.slug", "liveTests.title", "liveTests.price", "liveTests.discountPrice", "liveTests.createdAt", "teachers.displayName as teacherName"])
           .where("liveTests.isActive", "=", true)
           .where("liveTests.endTime", ">", new Date())
           .where("liveTests.teacherId", "in", approvedIds)
@@ -116,8 +116,8 @@ export async function handle(request: Request): Promise<Response> {
           .execute(),
         db
           .selectFrom("digitalProducts")
-          .innerJoin("users", "users.id", "digitalProducts.teacherId")
-          .select(["digitalProducts.id", "digitalProducts.title", "digitalProducts.slug", "digitalProducts.price", "digitalProducts.createdAt", "users.displayName as teacherName"])
+          .innerJoin("teachers", "teachers.id", "digitalProducts.teacherId")
+          .select(["digitalProducts.id", "digitalProducts.title", "digitalProducts.slug", "digitalProducts.price", "digitalProducts.createdAt", "teachers.displayName as teacherName"])
           .where("digitalProducts.status", "=", "published")
           .where("digitalProducts.teacherId", "in", approvedIds)
           .orderBy("digitalProducts.createdAt", "desc")
@@ -201,13 +201,13 @@ export async function handle(request: Request): Promise<Response> {
       approvedIds.length > 0
         ? db
             .selectFrom("teacherPosts")
-            .innerJoin("users", "users.id", "teacherPosts.teacherId")
+            .innerJoin("teachers", "teachers.id", "teacherPosts.teacherId")
             .select([
               "teacherPosts.id",
               "teacherPosts.body",
               "teacherPosts.imageUrl",
               "teacherPosts.createdAt",
-              "users.displayName as teacherName",
+              "teachers.displayName as teacherName",
               sql<string>`(SELECT COUNT(*) FROM teacher_post_likes l WHERE l.post_id = teacher_posts.id)`.as("likeCount"),
             ])
             .where("teacherPosts.teacherId", "in", approvedIds)

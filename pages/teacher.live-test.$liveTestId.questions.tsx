@@ -1,14 +1,14 @@
-import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { toast } from "sonner";
 import {
   AlertTriangle,
   Calendar as CalendarIcon,
   CheckCircle,
+  ChevronRight,
   Download,
   LoaderCircle,
-  Send,
   Trophy,
   Users,
 } from "lucide-react";
@@ -57,6 +57,8 @@ const Page = () => {
   const downloadPdf = useDownloadTestPdf();
 
   const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const wantsPublish = searchParams.get("publish") === "1";
 
   const handlePublish = () => {
     if (!liveTestDetails) return;
@@ -88,7 +90,19 @@ const Page = () => {
     !liveTestDetails.isActive &&
     !liveTestDetails.inReview;
   const isSubmitted = !!liveTestDetails && (liveTestDetails.isActive || !!liveTestDetails.inReview);
-  const publishLabel = publishesDirectly ? "Publish" : "Submit for review";
+
+  // The Publish step (from Details or the track) arrives with ?publish=1: open
+  // the confirmation once the paper is known to be ready, then drop the flag.
+  useEffect(() => {
+    if (!wantsPublish || !liveTestDetails || (testItemId && subjects === undefined)) return;
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.delete("publish");
+      return next;
+    }, { replace: true });
+    if (isReadyToPublish) setIsPublishDialogOpen(true);
+    else if (!isSubmitted) toast.error("Add at least one question before you publish.");
+  }, [wantsPublish, liveTestDetails, subjects, isReadyToPublish, isSubmitted, setSearchParams]);
 
   const status = !liveTestDetails
     ? null
@@ -101,8 +115,8 @@ const Page = () => {
           : {
               tone: "todo",
               text: publishesDirectly
-                ? "When the paper is complete, publish it. It goes live at once."
-                : "When the paper is complete, submit it. Our team reviews it before students can register.",
+                ? "When the paper is complete, set the schedule and price in Details, then publish. It goes live at once."
+                : "When the paper is complete, set the schedule and price in Details, then submit it for review.",
             };
 
   const renderHeader = () => {
@@ -134,16 +148,10 @@ const Page = () => {
               <WithdrawReviewButton contentType="live_test" contentId={liveTestDetails.id} title={liveTestDetails.title} />
             )}
             {!isSubmitted && (
-              <Button
-                onClick={() => setIsPublishDialogOpen(true)}
-                disabled={!isReadyToPublish || publishMutation.isPending}
-              >
-                {publishMutation.isPending ? (
-                  <LoaderCircle size={16} className={styles.spinner} />
-                ) : (
-                  <Send size={16} />
-                )}
-                {publishLabel}
+              <Button asChild>
+                <Link to={`/teacher/live-test/${liveTestDetails.id}/edit`}>
+                  Next: Details <ChevronRight size={16} />
+                </Link>
               </Button>
             )}
           </div>

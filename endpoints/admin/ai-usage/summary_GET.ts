@@ -51,8 +51,7 @@ export async function handle(request: Request): Promise<Response> {
 
     // Total teachers on the platform (for adoption rate)
     const totalTeachersPromise = db
-      .selectFrom("users")
-      .where("role", "=", "teacher")
+      .selectFrom("teachers")
       .select(db.fn.countAll<string>().as("count"))
       .executeTakeFirstOrThrow();
 

@@ -15,11 +15,11 @@ import {
 } from "../../../helpers/teacherEarningsSql";
 
 // All the earnings/balance math below is built from helpers/teacherEarningsSql.tsx,
-// correlated per-row against `users.id` (the current row in the paginated teacher
+// correlated per-row against `teachers.id` (the current row in the paginated teacher
 // list). This keeps this page's numbers byte-for-byte identical to the teacher-facing
 // earnings page and every other admin dashboard — see that file's header comment for
 // why this used to drift (it was hand-copied here before).
-const teacherIdRef = sql.ref("users.id");
+const teacherIdRef = sql.ref("teachers.id");
 
 // The shared builders are typed as RawBuilder<{ total: string }> (handy for standalone
 // execution elsewhere); re-wrap as a plain string-typed scalar expression for use as a
@@ -31,9 +31,9 @@ function asScalar(builder: RawBuilder<{ total: string }>) {
 function getEarningsSortExpression(sortBy: string) {
   switch (sortBy) {
     case "name":
-      return "users.displayName" as const;
+      return "teachers.displayName" as const;
     case "email":
-      return "users.email" as const;
+      return "teachers.email" as const;
     case "totalEarnings":
       return asScalar(buildTeacherNetEarningsSql(teacherIdRef));
     case "totalWithdrawals":
@@ -49,7 +49,7 @@ function getEarningsSortExpression(sortBy: string) {
     case "availableBalance":
       return asScalar(buildTeacherAvailableBalanceSql(teacherIdRef));
     default:
-      return "users.createdAt" as const;
+      return "teachers.createdAt" as const;
   }
 }
 
@@ -65,15 +65,13 @@ export async function handle(request: Request): Promise<Response> {
     const sortBy = url.searchParams.get("sortBy") || "createdAt";
     const sortOrder = (url.searchParams.get("sortOrder") || "desc") as "asc" | "desc";
 
-    const baseQuery = db
-      .selectFrom("users")
-      .where("users.role", "=", "teacher");
+    const baseQuery = db.selectFrom("teachers");
 
     let earningsQuery = baseQuery
       .select([
-        "users.id as teacherId",
-        "users.displayName as teacherName",
-        "users.email as teacherEmail",
+        "teachers.id as teacherId",
+        "teachers.displayName as teacherName",
+        "teachers.email as teacherEmail",
         asScalar(buildTeacherNetEarningsSql(teacherIdRef)).as("totalEarnings"),
         asScalar(buildTeacherWithdrawalsSql(teacherIdRef, "completed")).as("totalWithdrawals"),
         asScalar(buildTeacherWithdrawalsSql(teacherIdRef, "pending")).as("pendingWithdrawals"),
@@ -85,7 +83,7 @@ export async function handle(request: Request): Promise<Response> {
       .orderBy(getEarningsSortExpression(sortBy), sortOrder)
       // Id tie-breaker: most teachers tie on money columns (often 0), and
       // without it tied rows can land on more than one page.
-      .orderBy("users.id", sortOrder)
+      .orderBy("teachers.id", sortOrder)
       .limit(limit)
       .offset(offset);
 
@@ -95,10 +93,10 @@ export async function handle(request: Request): Promise<Response> {
 
     if (search) {
       const searchQuery = `%${search}%`;
-      const searchFilter = (eb: ExpressionBuilder<DB, "users">) =>
+      const searchFilter = (eb: ExpressionBuilder<DB, "teachers">) =>
         eb.or([
-          eb("users.displayName", "ilike", searchQuery),
-          eb("users.email", "ilike", searchQuery),
+          eb("teachers.displayName", "ilike", searchQuery),
+          eb("teachers.email", "ilike", searchQuery),
         ]);
 
       earningsQuery = earningsQuery.where(searchFilter);

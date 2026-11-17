@@ -26,7 +26,7 @@ export async function handle(request: Request) {
     const fileId = input.introVideoUrl ? input.introVideoFileId ?? null : null;
 
     const row = await db
-      .selectFrom("users")
+      .selectFrom("teachers")
       .select(["liveTeachingStatus", "introVideoUrl"])
       .where("id", "=", effectiveTeacherId)
       .executeTakeFirst();
@@ -66,7 +66,7 @@ export async function handle(request: Request) {
 
     await db.transaction().execute(async (trx) => {
       await trx
-        .updateTable("users")
+        .updateTable("teachers")
         .set({ introVideoUrl: input.introVideoUrl, introVideoFileId: fileId })
         .where("id", "=", effectiveTeacherId)
         .execute();

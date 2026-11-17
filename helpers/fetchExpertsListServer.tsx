@@ -22,7 +22,7 @@ export async function fetchExpertsListServer(rawInput: Record<string, unknown>):
   const limit = input.limit ?? 24;
   const offset = (page - 1) * limit;
 
-  let baseQuery = db.selectFrom("users").where(bookableTutorCondition);
+  let baseQuery = db.selectFrom("teachers").where(bookableTutorCondition);
 
   if (input.search) {
     const searchQuery = `%${input.search}%`;
@@ -54,28 +54,28 @@ export async function fetchExpertsListServer(rawInput: Record<string, unknown>):
   const ratingAndStudentsSelect = [
     sql<string>`(
       SELECT COALESCE(SUM(rating * reviews_count), 0)
-      FROM courses WHERE courses.teacher_id = users.id AND courses.status = 'published'
+      FROM courses WHERE courses.teacher_id = teachers.id AND courses.status = 'published'
     ) + (
       SELECT COALESCE(SUM(rating * reviews_count), 0)
-      FROM mock_tests WHERE mock_tests.teacher_id = users.id AND mock_tests.is_published = true AND mock_tests.deleted_at IS NULL
+      FROM mock_tests WHERE mock_tests.teacher_id = teachers.id AND mock_tests.is_published = true AND mock_tests.deleted_at IS NULL
     )`.as("ratingWeightedSum"),
     sql<string>`(
       SELECT COALESCE(SUM(reviews_count), 0)
-      FROM courses WHERE courses.teacher_id = users.id AND courses.status = 'published'
+      FROM courses WHERE courses.teacher_id = teachers.id AND courses.status = 'published'
     ) + (
       SELECT COALESCE(SUM(reviews_count), 0)
-      FROM mock_tests WHERE mock_tests.teacher_id = users.id AND mock_tests.is_published = true AND mock_tests.deleted_at IS NULL
+      FROM mock_tests WHERE mock_tests.teacher_id = teachers.id AND mock_tests.is_published = true AND mock_tests.deleted_at IS NULL
     )`.as("totalReviews"),
     sql<string>`(
       SELECT COALESCE(SUM(students_enrolled), 0)
-      FROM mock_tests WHERE mock_tests.teacher_id = users.id AND mock_tests.is_published = true AND mock_tests.deleted_at IS NULL
+      FROM mock_tests WHERE mock_tests.teacher_id = teachers.id AND mock_tests.is_published = true AND mock_tests.deleted_at IS NULL
     )`.as("totalStudents"),
     sql<string>`(
       SELECT COUNT(*) FROM mentorship_bookings
-      WHERE mentorship_bookings.teacher_id = users.id AND mentorship_bookings.status = 'completed'
+      WHERE mentorship_bookings.teacher_id = teachers.id AND mentorship_bookings.status = 'completed'
     ) + (
       SELECT COUNT(*) FROM group_lessons
-      WHERE group_lessons.teacher_id = users.id AND group_lessons.status = 'completed'
+      WHERE group_lessons.teacher_id = teachers.id AND group_lessons.status = 'completed'
     )`.as("totalLessons"),
   ] as const;
 
@@ -121,8 +121,7 @@ export async function fetchExpertsListServer(rawInput: Record<string, unknown>):
     listQuery.execute(),
     baseQuery.select((eb) => eb.fn.countAll<string>().as("count")).executeTakeFirstOrThrow(),
     db
-      .selectFrom("users")
-      .where("role", "=", "teacher")
+      .selectFrom("teachers")
       .where("isActive", "=", true)
       .where("mentorshipEnabled", "=", true)
       .select([sql<string>`MIN(${priceExpr})`.as("min"), sql<string>`MAX(${priceExpr})`.as("max")])

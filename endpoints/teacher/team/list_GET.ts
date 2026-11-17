@@ -17,13 +17,13 @@ export async function handle(request: Request) {
 
     const members = await db.
     selectFrom("teacherTeamMembers").
-    innerJoin("users", "users.id", "teacherTeamMembers.memberUserId").
+    innerJoin("teachers", "teachers.id", "teacherTeamMembers.memberUserId").
     select([
     "teacherTeamMembers.id",
     "teacherTeamMembers.memberUserId",
-    "users.displayName",
-    "users.mobileNumber",
-    "users.avatarUrl",
+    "teachers.displayName",
+    "teachers.mobileNumber",
+    "teachers.avatarUrl",
     "teacherTeamMembers.invitedPhone",
     "teacherTeamMembers.status",
     "teacherTeamMembers.role",

@@ -20,7 +20,7 @@ export async function handle(request: Request) {
 
     // Left join: a closed teacher account leaves its threads with teacher_id null.
     let base = db.selectFrom("supportThreads")
-      .leftJoin("users", "users.id", "supportThreads.teacherId");
+      .leftJoin("teachers", "teachers.id", "supportThreads.teacherId");
 
     if (query.threadId) {
       base = base.where("supportThreads.id", "=", query.threadId);
@@ -29,8 +29,8 @@ export async function handle(request: Request) {
     if (search) {
       const pattern = `%${escapeLikePattern(search)}%`;
       base = base.where((eb) => eb.or([
-        eb("users.displayName", "ilike", pattern),
-        eb("users.email", "ilike", pattern),
+        eb("teachers.displayName", "ilike", pattern),
+        eb("teachers.email", "ilike", pattern),
         eb("supportThreads.subject", "ilike", pattern),
       ]));
     }
@@ -66,8 +66,8 @@ export async function handle(request: Request) {
         "supportThreads.createdAt",
         "supportThreads.lastMessageAt",
         "supportThreads.updatedAt",
-        "users.displayName as teacherName",
-        "users.email as teacherEmail",
+        "teachers.displayName as teacherName",
+        "teachers.email as teacherEmail",
         "supportThreads.teacherId",
       ])
       .select(

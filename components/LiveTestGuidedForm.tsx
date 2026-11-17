@@ -21,7 +21,6 @@ import type { TeacherFlowStep } from './TeacherFlowSteps';
 import { useTeacherLiveTestMutations } from '../helpers/useTeacherLiveTestMutations';
 import { liveTestCreationFormSchema, type LiveTestFormValues } from '../helpers/liveTestCreationFormSchema';
 import { isLiveTestFieldLocked } from '../helpers/liveTestLocks';
-import { itemLanguages } from '../helpers/itemLanguages';
 import {
   LIVE_TEST_FORM_FIELDS,
   type LiveTestFormField,
@@ -29,27 +28,29 @@ import {
   buildLiveTestEditValues,
   findLiveTestIssues,
   focusFirstFormError,
-  normalizeLiveTestFormValues,
 } from '../helpers/liveTestFormValues';
 import type { OutputType as LiveTestDetails } from '../endpoints/teacher/live-test/details_GET.schema';
-import type { InputType as CreateLiveTestInput } from '../endpoints/teacher/live-tests/create_POST.schema';
 import type { InputType as UpdateLiveTestInput } from '../endpoints/teacher/live-tests/update_POST.schema';
 import styles from './LiveTestGuidedForm.module.css';
 
-export type LiveTestFlowStep = 'details' | 'questions' | 'publish';
+export type LiveTestFlowStep = 'questions' | 'details' | 'publish';
 
-const FLOW_ORDER: LiveTestFlowStep[] = ['details', 'questions', 'publish'];
+const FLOW_ORDER: LiveTestFlowStep[] = ['questions', 'details', 'publish'];
 const FLOW_META = {
-  details: { label: 'Details', hint: 'Name, time and price', tone: 'lavender' },
   questions: { label: 'Questions', hint: 'Build the paper', tone: 'butter' },
+  details: { label: 'Details', hint: 'Time, price and seats', tone: 'lavender' },
   publish: { label: 'Publish', hint: 'Check and go live', tone: 'peach' },
 } as const;
 
+/** The questions page opens its publish confirmation when it gets this. */
+export const liveTestPublishPath = (liveTestId: number) => `/teacher/live-test/${liveTestId}/questions?publish=1`;
+
 /*
- * Go back and the live test step track: Details, Questions, Publish. Once the
- * test exists each step links to its page; Publish happens on the questions
- * page, so there it runs `onPublish` instead. `submitted` (live or in review)
- * marks every other step done.
+ * Go back and the live test step track: Questions, Details, Publish. Once the
+ * test exists each step links to its page. The publish confirmation lives on
+ * the questions page, so there Publish runs `onPublish`, and elsewhere it links
+ * to liveTestPublishPath. `submitted` (live or in review) marks every other
+ * step done.
  */
 export const LiveTestSteps = ({
   current,
@@ -67,7 +68,9 @@ export const LiveTestSteps = ({
   const currentIndex = FLOW_ORDER.indexOf(current);
   const pathFor = (key: LiveTestFlowStep): string | null => {
     if (!liveTestId) return null;
-    return key === 'details' ? `/teacher/live-test/${liveTestId}/edit` : `/teacher/live-test/${liveTestId}/questions`;
+    if (key === 'details') return `/teacher/live-test/${liveTestId}/edit`;
+    if (key === 'publish') return liveTestPublishPath(liveTestId);
+    return `/teacher/live-test/${liveTestId}/questions`;
   };
   const steps: TeacherFlowStep[] = FLOW_ORDER.map((key, index) => {
     const target = pathFor(key);
@@ -86,7 +89,6 @@ export const LiveTestSteps = ({
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
 const DURATION_PICKS = [30, 60, 90, 120, 180];
-const EMPTY_LIST: string[] = [];
 
 // Fields that live inside each folded panel, so an error there opens it.
 const RULE_FIELDS: LiveTestFormField[] = [
@@ -121,42 +123,6 @@ const formatWindow = (ms: number): string => {
 
 const formatMoment = (date: Date): string =>
   date.toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-
-type CreateInitialValues = {
-  title?: string;
-  description?: string;
-  examName?: string;
-  language?: string;
-  price?: number;
-  durationMinutes?: number;
-} | null;
-
-const createDefaults = (initial: CreateInitialValues | undefined): LiveTestFormValues => ({
-  title: initial?.title || '',
-  description: initial?.description || null,
-  examName: initial?.examName || null,
-  examNames: initial?.examName ? [initial.examName] : [],
-  languages: initial?.language ? itemLanguages({ language: initial.language }) : [],
-  durationMinutes: initial?.durationMinutes || 60,
-  calculatorEnabled: false,
-  subjectWiseTiming: false,
-  questionWiseTiming: false,
-  price: initial?.price || 0,
-  discountPrice: null,
-  isFree: false,
-  whatYouLearn: EMPTY_LIST,
-  requirements: EMPTY_LIST,
-  maxSeats: 100,
-  thumbnailUrl: null,
-  thumbnailFileId: null,
-  introVideoUrl: null,
-  introVideoFileId: null,
-  registrationDeadline: null,
-  startTime: null,
-  endTime: new Date(Date.now() + 25 * HOUR),
-  hasPrizes: false,
-  prizeTiers: [],
-});
 
 const ListField = ({
   name,
@@ -213,36 +179,32 @@ const ListField = ({
 );
 
 interface LiveTestGuidedFormProps {
-  /** The saved live test; present when editing, absent when creating. */
-  liveTest?: LiveTestDetails;
-  /** Create only: values from AI fill. */
-  initialValues?: CreateInitialValues;
-  /** Shown under the step track: AI fill on create, the rejection note on edit. */
+  liveTest: LiveTestDetails;
+  /** Shown under the step track, e.g. the rejection note. */
   intro?: React.ReactNode;
-  exitTo: string;
 }
 
 /*
- * The teacher's live test details on one page: basics, when it runs, and price
- * and seats, with rules and prizes and the storefront extras folded below.
- * Creating goes straight to the questions page; editing saves only what
- * changed, and a published test keeps its committed fields locked
- * (helpers/liveTestLocks.tsx, which the update endpoint enforces too).
+ * The Details step of a live test, after its questions: basics, when it runs,
+ * and price and seats, with rules and prizes and the storefront extras folded
+ * below. The test is created on pages/teacher.create-live-test with draft
+ * defaults, so this always edits. It saves only what changed, and a published
+ * test keeps its committed fields locked (helpers/liveTestLocks.tsx, which the
+ * update endpoint enforces too). Before submitting, the main action saves and
+ * moves on to Publish.
  */
-export const LiveTestGuidedForm = ({ liveTest, initialValues, intro, exitTo }: LiveTestGuidedFormProps) => {
-  const isEdit = !!liveTest;
-  const isPublished = !!liveTest?.isActive;
+export const LiveTestGuidedForm = ({ liveTest, intro }: LiveTestGuidedFormProps) => {
+  const isPublished = !!liveTest.isActive;
+  const isSubmitted = !!(liveTest.isActive || liveTest.inReview);
+  const questionsPath = `/teacher/live-test/${liveTest.id}/questions`;
   const navigate = useNavigate();
-  const { useCreateLiveTestMutation, useUpdateLiveTestMutation } = useTeacherLiveTestMutations();
-  const createLiveTest = useCreateLiveTestMutation();
+  const { useUpdateLiveTestMutation } = useTeacherLiveTestMutations();
   const updateLiveTest = useUpdateLiveTestMutation();
   const containerRef = useRef<HTMLDivElement>(null);
   const [focusRequest, setFocusRequest] = useState(0);
 
   // Seeded once, so a background refetch never overwrites what the teacher is typing.
-  const [initial] = useState<LiveTestFormValues>(() =>
-    liveTest ? buildLiveTestEditValues(liveTest) : createDefaults(initialValues)
-  );
+  const [initial] = useState<LiveTestFormValues>(() => buildLiveTestEditValues(liveTest));
   const [savedValues, setSavedValues] = useState(initial);
   const form = useForm({ schema: liveTestCreationFormSchema, defaultValues: initial });
   const { values, setValues } = form;
@@ -262,11 +224,11 @@ export const LiveTestGuidedForm = ({ liveTest, initialValues, intro, exitTo }: L
   );
 
   const changes = useMemo(
-    () => (isEdit ? buildLiveTestChanges(savedValues, values, isPublished) : {}),
-    [isEdit, savedValues, values, isPublished]
+    () => buildLiveTestChanges(savedValues, values, isPublished),
+    [savedValues, values, isPublished]
   );
   const hasChanges = Object.keys(changes).length > 0;
-  const isPending = createLiveTest.isPending || updateLiveTest.isPending;
+  const isPending = updateLiveTest.isPending;
 
   useEffect(() => {
     if (focusRequest === 0 || focusFirstFormError(containerRef.current)) return;
@@ -286,29 +248,20 @@ export const LiveTestGuidedForm = ({ liveTest, initialValues, intro, exitTo }: L
     return false;
   };
 
-  const handleCreate = () => {
-    if (!checkValues()) return;
-    const data = normalizeLiveTestFormValues(values);
-    const payload: CreateLiveTestInput = {
-      ...data,
-      languages: data.languages ?? [],
-      calculatorEnabled: data.calculatorEnabled ?? false,
-      subjectWiseTiming: data.subjectWiseTiming ?? false,
-      questionWiseTiming: data.questionWiseTiming ?? false,
-      isFree: data.isFree ?? false,
-      hasPrizes: data.hasPrizes ?? false,
-      prizeTiers: data.prizeTiers ?? [],
-    };
-    createLiveTest.mutate(payload, {
-      onSuccess: (result) => navigate(`/teacher/live-test/${result.id}/questions`),
-    });
-  };
-
+  // Before submitting, the main action also moves on to Publish; a saved form goes straight there.
   const handleSave = () => {
-    if (!liveTest || !checkValues() || !hasChanges) return;
+    const continueToPublish = !isSubmitted;
+    if (!checkValues()) return;
+    if (!hasChanges) {
+      if (continueToPublish) navigate(liveTestPublishPath(liveTest.id));
+      return;
+    }
     const submitted = values;
     updateLiveTest.mutate({ id: liveTest.id, ...changes } as UpdateLiveTestInput, {
-      onSuccess: () => setSavedValues(submitted),
+      onSuccess: () => {
+        setSavedValues(submitted);
+        if (continueToPublish) navigate(liveTestPublishPath(liveTest.id));
+      },
     });
   };
 
@@ -391,9 +344,9 @@ export const LiveTestGuidedForm = ({ liveTest, initialValues, intro, exitTo }: L
     <div ref={containerRef} className={styles.container}>
       <LiveTestSteps
         current="details"
-        liveTestId={liveTest?.id}
-        submitted={!!(liveTest?.isActive || liveTest?.inReview)}
-        back={exitTo}
+        liveTestId={liveTest.id}
+        submitted={isSubmitted}
+        back={questionsPath}
       />
 
       {intro}
@@ -413,8 +366,7 @@ export const LiveTestGuidedForm = ({ liveTest, initialValues, intro, exitTo }: L
           className={styles.form}
           onSubmit={(e) => {
             e.preventDefault();
-            if (isEdit) handleSave();
-            else handleCreate();
+            handleSave();
           }}
           onKeyDown={(e) => {
             // Enter in a text field must not create or save the test.
@@ -930,24 +882,18 @@ export const LiveTestGuidedForm = ({ liveTest, initialValues, intro, exitTo }: L
 
           <div className={styles.actions}>
             <p className={styles.actionsNote}>
-              {isEdit
-                ? hasChanges
-                  ? 'You have unsaved changes.'
-                  : 'All changes saved.'
-                : 'Nothing goes live until you publish it.'}
+              {hasChanges ? 'You have unsaved changes.' : isSubmitted ? 'All changes saved.' : 'Nothing goes live until you publish it.'}
             </p>
-            {isEdit ? (
-              <>
-                <Button asChild variant="outline">
-                  <Link to={`/teacher/live-test/${liveTest.id}/questions`}>Go to questions</Link>
-                </Button>
-                <Button type="submit" disabled={isPending || !hasChanges}>
-                  {updateLiveTest.isPending ? 'Saving...' : 'Save changes'}
-                </Button>
-              </>
+            <Button asChild variant="outline">
+              <Link to={questionsPath}>Back to questions</Link>
+            </Button>
+            {isSubmitted ? (
+              <Button type="submit" disabled={isPending || !hasChanges}>
+                {isPending ? 'Saving...' : 'Save changes'}
+              </Button>
             ) : (
               <Button type="submit" disabled={isPending}>
-                {createLiveTest.isPending ? 'Creating...' : 'Next: Add questions'}
+                {isPending ? 'Saving...' : hasChanges ? 'Save and continue' : 'Next: Publish'}
               </Button>
             )}
           </div>

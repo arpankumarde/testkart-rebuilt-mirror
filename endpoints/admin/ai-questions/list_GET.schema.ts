@@ -1,7 +1,7 @@
 import { z } from "zod";
 import superjson from "superjson";
 import { type Selectable } from "kysely";
-import { type TestQuestions, type Users, type Exams, type MockTests, type MockTestItems, type TestItemSubjects } from "../../../helpers/schema";
+import { type TestQuestions, type Teachers, type Exams, type MockTests, type MockTestItems, type TestItemSubjects } from "../../../helpers/schema";
 
 export const schema = z.object({
   page: z.number().min(1).default(1),
@@ -24,9 +24,9 @@ export type AIQuestionListItem = Selectable<TestQuestions> & {
   testItemId: Selectable<MockTestItems>["id"];
   testPackageName: Selectable<MockTests>["title"];
   examName: Selectable<Exams>["examName"];
-  teacherId: Selectable<Users>["id"];
-  teacherName: Selectable<Users>["displayName"];
-  academyName: Selectable<Users>["academyName"];
+  teacherId: Selectable<Teachers>["id"];
+  teacherName: Selectable<Teachers>["displayName"];
+  academyName: Selectable<Teachers>["academyName"];
 };
 
 export type OutputType = {

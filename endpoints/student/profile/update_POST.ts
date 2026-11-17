@@ -4,8 +4,6 @@ import { schema, OutputType } from "./update_POST.schema";
 import superjson from "superjson";
 import { NotAuthenticatedError } from "../../../helpers/getSetServerSession";
 import { ZodError } from "zod";
-import { Selectable } from "kysely";
-import { Users } from "../../../helpers/schema";
 import { User } from "../../../helpers/User";
 import { isPlaceholderDisplayName, PLACEHOLDER_NAME_SQL_REGEX } from "../../../helpers/isPlaceholderDisplayName";
 import { syncWaplifyContact } from "../../../helpers/syncWaplifyContact";
@@ -59,12 +57,12 @@ export async function handle(request: Request): Promise<Response> {
       updateData.bio = validatedInput.bio;
     }
 
-    const [updatedUser] = await db
-      .updateTable("users")
-      .set(updateData)
+    await db.updateTable("students").set(updateData).where("id", "=", user.id).execute();
+    const updatedUser = await db
+      .selectFrom("students")
+      .select(["id", "displayName", "email", "avatarUrl", "bio", "mobileNumber", "mobileVerified"])
       .where("id", "=", user.id)
-      .returningAll()
-      .execute();
+      .executeTakeFirst();
 
     if (!updatedUser) {
       return new Response(
@@ -87,16 +85,17 @@ export async function handle(request: Request): Promise<Response> {
       await syncWaplifyContact(updatedUser.id);
     }
     
-    const mapUser = (dbUser: Selectable<Users>): User => ({
+    // Students have no website, social links or awards: these are the values every student row held in users.
+    const mapUser = (dbUser: NonNullable<typeof updatedUser>): User => ({
       id: dbUser.id,
       displayName: dbUser.displayName,
       email: dbUser.email,
       avatarUrl: dbUser.avatarUrl,
-      role: dbUser.role,
+      role: "student",
       bio: dbUser.bio,
-            websiteUrl: dbUser.websiteUrl,
-      socialLinks: dbUser.socialLinks as User['socialLinks'],
-      awardsCertificates: dbUser.awardsCertificates as User['awardsCertificates'],
+      websiteUrl: null,
+      socialLinks: {} as User['socialLinks'],
+      awardsCertificates: [] as User['awardsCertificates'],
       mobileNumber: dbUser.mobileNumber,
       mobileVerified: dbUser.mobileVerified,
     });

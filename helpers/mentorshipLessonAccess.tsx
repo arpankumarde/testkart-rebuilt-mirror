@@ -44,7 +44,7 @@ export async function getLessonAccessContext(
   if (kind === "booking") {
     const booking = await db
       .selectFrom("mentorshipBookings")
-      .innerJoin("users as teacher", "teacher.id", "mentorshipBookings.teacherId")
+      .innerJoin("teachers as teacher", "teacher.id", "mentorshipBookings.teacherId")
       .select([
         "mentorshipBookings.id",
         "mentorshipBookings.teacherId",
@@ -83,7 +83,7 @@ export async function getLessonAccessContext(
 
   const lesson = await db
     .selectFrom("groupLessons")
-    .innerJoin("users as teacher", "teacher.id", "groupLessons.teacherId")
+    .innerJoin("teachers as teacher", "teacher.id", "groupLessons.teacherId")
     .select([
       "groupLessons.id",
       "groupLessons.teacherId",

@@ -1,5 +1,6 @@
-import type { Kysely } from "kysely";
+import { sql, type Kysely } from "kysely";
 import type { DB } from "./schema";
+import { allAccounts } from "./allAccounts";
 import { normalizePhoneNumber } from "./normalizePhoneNumber";
 
 /**
@@ -105,11 +106,11 @@ export async function resolveSponsorAccount(
   const what = isEmail ? "email" : "mobile number";
 
   const query = db
-    .selectFrom("users")
+    .selectFrom(allAccounts(db).as("account"))
     .select(["id", "displayName", "role", "mobileNumber", "email", "isActive", "createdAt"])
     .orderBy("id", "asc");
   const matches = isEmail
-    ? await query.where(db.fn("lower", ["users.email"]), "=", email!).execute()
+    ? await query.where(sql<string>`lower(${sql.ref("account.email")})`, "=", email!).execute()
     : await query.where("mobileNumber", "=", phone!).execute();
 
   if (matches.length === 0) {

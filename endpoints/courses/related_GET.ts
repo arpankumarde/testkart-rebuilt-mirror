@@ -54,7 +54,7 @@ export async function handle(request: Request): Promise<Response> {
 
     const courses = await db
       .selectFrom("courses")
-      .innerJoin("users", "users.id", "courses.teacherId")
+      .innerJoin("teachers", "teachers.id", "courses.teacherId")
       .select([
         "courses.id",
         "courses.slug",
@@ -72,12 +72,12 @@ export async function handle(request: Request): Promise<Response> {
         "courses.views",
         "courses.examId",
         "courses.examName",
-        "users.displayName as teacherName",
-        "users.isVerified as teacherIsVerified",
-        "users.avatarUrl as teacherAvatarUrl",
-        "users.tagline as teacherTagline",
-        "users.yearsOfExperience as teacherYearsOfExperience",
-        "users.slug as teacherSlugCol",
+        "teachers.displayName as teacherName",
+        "teachers.isVerified as teacherIsVerified",
+        "teachers.avatarUrl as teacherAvatarUrl",
+        "teachers.tagline as teacherTagline",
+        "teachers.yearsOfExperience as teacherYearsOfExperience",
+        "teachers.slug as teacherSlugCol",
       ])
       .select([
         enrollmentCount.as("enrollmentCount"),

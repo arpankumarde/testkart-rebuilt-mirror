@@ -1,4 +1,5 @@
 import { db } from "./db";
+import { allAccounts } from "./allAccounts";
 import { WAPLIFY_ENDPOINT } from "./_publicConfigs";
 import { isPlaceholderDisplayName } from "./isPlaceholderDisplayName";
 
@@ -108,7 +109,7 @@ export async function syncWaplifyContact(userId: number): Promise<void> {
     }
 
     const user = await db
-      .selectFrom("users")
+      .selectFrom(allAccounts(db).as("account"))
       .select(["role", "displayName", "email", "mobileNumber", "isActive"])
       .where("id", "=", userId)
       .executeTakeFirst();

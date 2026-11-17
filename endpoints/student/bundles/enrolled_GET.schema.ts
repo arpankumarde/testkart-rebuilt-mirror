@@ -4,7 +4,7 @@ import { Selectable } from "kysely";
 import {
   CourseBundles,
   BundleEnrollments,
-  Users,
+  Teachers,
   Courses,
   CourseEnrollments,
   MockTests,
@@ -38,7 +38,7 @@ export type EnrolledBundle = Pick<
   "id" | "title" | "slug" | "thumbnailUrl"> &
 
 Pick<Selectable<BundleEnrollments>, "enrolledAt"> & {
-  teacherName: Selectable<Users>["displayName"];
+  teacherName: Selectable<Teachers>["displayName"];
   courses: EnrolledCourseInBundle[];
   mockTests: EnrolledMockTestInBundle[];
   digitalProducts: EnrolledDigitalProductInBundle[];

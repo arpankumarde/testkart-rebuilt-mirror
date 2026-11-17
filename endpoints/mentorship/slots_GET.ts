@@ -22,7 +22,7 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     const teacher = await db
-      .selectFrom("users")
+      .selectFrom("teachers")
       .select(["timezone", "mentorshipEnabled"])
       .where("id", "=", input.teacherId)
       .executeTakeFirst();

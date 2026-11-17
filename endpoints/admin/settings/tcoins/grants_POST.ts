@@ -28,9 +28,8 @@ export async function handle(request: Request) {
       throw new Error("Enter the student's email address or 10-digit mobile number.");
     }
     const students = await db
-      .selectFrom("users")
+      .selectFrom("students")
       .select(["id", "displayName", "email"])
-      .where("role", "=", "student")
       .where(
         isEmail
           ? sql<boolean>`lower(email) = ${lookup.toLowerCase()}`

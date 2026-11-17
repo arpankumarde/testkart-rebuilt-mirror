@@ -40,7 +40,7 @@ export async function handle(request: Request): Promise<Response> {
     // Fetch mock test sales transactions
     const mockTestSalesData = await db
       .selectFrom("orders")
-      .innerJoin("users", "orders.userId", "users.id")
+      .innerJoin("students", "orders.userId", "students.id")
       .innerJoin("orderItems", "orderItems.orderId", "orders.id")
       .innerJoin("mockTests", "orderItems.mockTestId", "mockTests.id")
       .leftJoin("promoCodes", "orders.promoCodeId", "promoCodes.id")
@@ -57,7 +57,7 @@ export async function handle(request: Request): Promise<Response> {
         "orders.id as orderId",
         "orders.createdAt as transactionDate",
         "mockTests.title as testTitle",
-        "users.displayName as studentName",
+        "students.displayName as studentName",
         sql<string>`(order_items.price_at_purchase - ${teacherDiscount()})`.as("grossAmount"),
         "orderItems.platformFeePercentage",
         sql<string>`(order_items.price_at_purchase - ${teacherDiscount()}) * (1 - order_items.platform_fee_percentage / 100)`.as(
@@ -109,7 +109,7 @@ export async function handle(request: Request): Promise<Response> {
     // Fetch course sales transactions
     const courseSalesData = await db
       .selectFrom("orders")
-      .innerJoin("users", "orders.userId", "users.id")
+      .innerJoin("students", "orders.userId", "students.id")
       .innerJoin("orderItems", "orderItems.orderId", "orders.id")
       .innerJoin("courses", "orderItems.courseId", "courses.id")
       .leftJoin("promoCodes", "orders.promoCodeId", "promoCodes.id")
@@ -125,7 +125,7 @@ export async function handle(request: Request): Promise<Response> {
       .select([
         "orders.createdAt as transactionDate",
         "courses.title as testTitle",
-        "users.displayName as studentName",
+        "students.displayName as studentName",
         sql<string>`(order_items.price_at_purchase - ${teacherDiscount()})`.as("grossAmount"),
         "orderItems.platformFeePercentage",
         sql<string>`(order_items.price_at_purchase - ${teacherDiscount()}) * (1 - order_items.platform_fee_percentage / 100)`.as(
@@ -152,7 +152,7 @@ export async function handle(request: Request): Promise<Response> {
     // Fetch digital product sales transactions
     const digitalProductSalesData = await db
       .selectFrom("orders")
-      .innerJoin("users", "orders.userId", "users.id")
+      .innerJoin("students", "orders.userId", "students.id")
       .innerJoin("orderItems", "orderItems.orderId", "orders.id")
       .innerJoin("digitalProducts", "orderItems.digitalProductId", "digitalProducts.id")
       .leftJoin("promoCodes", "orders.promoCodeId", "promoCodes.id")
@@ -168,7 +168,7 @@ export async function handle(request: Request): Promise<Response> {
       .select([
         "orders.createdAt as transactionDate",
         "digitalProducts.title as testTitle",
-        "users.displayName as studentName",
+        "students.displayName as studentName",
         sql<string>`(order_items.price_at_purchase - ${teacherDiscount()})`.as("grossAmount"),
         "orderItems.platformFeePercentage",
         sql<string>`(order_items.price_at_purchase - ${teacherDiscount()}) * (1 - order_items.platform_fee_percentage / 100)`.as(
@@ -195,7 +195,7 @@ export async function handle(request: Request): Promise<Response> {
     // Fetch bundle sales transactions
     const bundleSalesData = await db
       .selectFrom("orders")
-      .innerJoin("users", "orders.userId", "users.id")
+      .innerJoin("students", "orders.userId", "students.id")
       .innerJoin("courseBundles", "orders.bundleId", "courseBundles.id")
       .leftJoin("promoCodes", "orders.promoCodeId", "promoCodes.id")
       .where("courseBundles.teacherId", "=", effectiveTeacherId)
@@ -211,7 +211,7 @@ export async function handle(request: Request): Promise<Response> {
       .select([
         "orders.createdAt as transactionDate",
         "courseBundles.title as testTitle",
-        "users.displayName as studentName",
+        "students.displayName as studentName",
         sql<string>`orders.total_amount`.as("grossAmount"),
         "orders.platformFeePercentage",
         "promoCodes.code as couponCode",
@@ -270,7 +270,7 @@ export async function handle(request: Request): Promise<Response> {
     const sponsoredData = await db
       .selectFrom("teacherSponsoredEnrollments")
       // Left join, so a closed student account still shows the deduction the balance counts.
-      .leftJoin("users", "teacherSponsoredEnrollments.studentId", "users.id")
+      .leftJoin("students", "teacherSponsoredEnrollments.studentId", "students.id")
       .leftJoin("mockTests", "teacherSponsoredEnrollments.mockTestId", "mockTests.id")
       .leftJoin("courses", "teacherSponsoredEnrollments.courseId", "courses.id")
       .leftJoin("digitalProducts", "teacherSponsoredEnrollments.digitalProductId", "digitalProducts.id")
@@ -283,7 +283,7 @@ export async function handle(request: Request): Promise<Response> {
       .select([
         "teacherSponsoredEnrollments.enrolledAt as transactionDate",
         sql<string>`COALESCE(mock_tests.title, courses.title, digital_products.title, course_bundles.title, 'Unknown')`.as("contentTitle"),
-        sql<string>`COALESCE(users.display_name, 'Deleted account')`.as("studentName"),
+        sql<string>`COALESCE(students.display_name, 'Deleted account')`.as("studentName"),
         "teacherSponsoredEnrollments.commissionAmount as grossAmount",
         "teacherSponsoredEnrollments.platformFeePercentage",
         "teacherSponsoredEnrollments.paymentMethod",
@@ -307,13 +307,13 @@ export async function handle(request: Request): Promise<Response> {
     const prizeDistributionData = await db
       .selectFrom("liveTestPrizeDistributions")
       .innerJoin("liveTests", "liveTestPrizeDistributions.liveTestId", "liveTests.id")
-      .innerJoin("users", "liveTestPrizeDistributions.studentId", "users.id")
+      .innerJoin("students", "liveTestPrizeDistributions.studentId", "students.id")
       .where("liveTests.teacherId", "=", effectiveTeacherId)
       .select([
         "liveTestPrizeDistributions.createdAt as transactionDate",
         "liveTests.title as liveTestTitle",
         "liveTestPrizeDistributions.rank",
-        "users.displayName as studentName",
+        "students.displayName as studentName",
         "liveTestPrizeDistributions.actualAmount",
       ])
       .execute();
@@ -416,7 +416,7 @@ export async function handle(request: Request): Promise<Response> {
       SELECT live.sold_at, live.title, buyer.display_name AS student_name,
              live.gross, live.fee_percentage, live.earnings
       FROM ${buildTeacherLiveSessionRowsSql(effectiveTeacherId)} live
-      LEFT JOIN users buyer ON buyer.id = live.buyer_id
+      LEFT JOIN students buyer ON buyer.id = live.buyer_id
     `.execute(db);
 
     const liveSessionTransactions: OutputType = liveSessionData.rows.map((row) => ({

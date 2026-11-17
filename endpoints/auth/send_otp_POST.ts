@@ -1,6 +1,7 @@
 import { schema, OutputType } from "./send_otp_POST.schema";
 import superjson from 'superjson';
 import { db } from "../../helpers/db";
+import { allAccounts } from "../../helpers/allAccounts";
 import { getServerUserSession } from "../../helpers/getServerUserSession";
 import { sendSMS } from "../../helpers/sendSMS";
 import { NotAuthenticatedError } from "../../helpers/getSetServerSession";
@@ -32,7 +33,7 @@ export async function handle(request: Request): Promise<Response> {
     }
 
     // Check if another verified user already has this mobile number
-    const existingUser = await db.selectFrom('users')
+    const existingUser = await db.selectFrom(allAccounts(db).as('users'))
       .select('id')
       .where('mobileNumber', '=', normalizedMobile)
       .where('mobileVerified', '=', true)

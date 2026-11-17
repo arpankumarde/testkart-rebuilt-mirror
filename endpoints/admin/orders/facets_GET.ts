@@ -42,7 +42,7 @@ export async function handle(request: Request) {
 
     const teacherIds = teacherCounts.map((t) => t.teacherId).filter((id): id is number => typeof id === "number");
     const names = teacherIds.length
-      ? await db.selectFrom("users").select(["id", "displayName"]).where("id", "in", teacherIds).execute()
+      ? await db.selectFrom("teachers").select(["id", "displayName"]).where("id", "in", teacherIds).execute()
       : [];
     const nameById = new Map(names.map((n) => [n.id, n.displayName]));
     const teachers = teacherCounts

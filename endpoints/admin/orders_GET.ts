@@ -1,4 +1,5 @@
 import { db } from "../../helpers/db";
+import { allAccounts } from "../../helpers/allAccounts";
 import { getAdminServerSessionOrThrow } from "../../helpers/getAdminSession";
 import { OutputType, type OrderClient } from "./orders_GET.schema";
 import { paymentFailureReason } from "../../helpers/paymentFailureReason";
@@ -8,10 +9,10 @@ export async function handle(request: Request) {
   try {
     await getAdminServerSessionOrThrow(request);
 
-    // First query: Fetch all orders with user details
+    // First query: Fetch all orders with buyer details (a teacher-sponsored order's buyer is the teacher)
     const orders = await db
       .selectFrom("orders")
-      .innerJoin("users", "users.id", "orders.userId")
+      .innerJoin(allAccounts(db).as("users"), "users.id", "orders.userId")
       .leftJoin("promoCodes", "promoCodes.id", "orders.promoCodeId")
       .select([
         "orders.id",
@@ -113,7 +114,7 @@ export async function handle(request: Request) {
       const uniqueBundleTeacherIds = [...new Set(bundleIdToTeacherId.values())];
       if (uniqueBundleTeacherIds.length > 0) {
         const bundleTeachers = await db
-          .selectFrom("users")
+          .selectFrom("teachers")
           .select(["id", "displayName"])
           .where("id", "in", uniqueBundleTeacherIds)
           .execute();
@@ -206,24 +207,24 @@ export async function handle(request: Request) {
       purchasedItemDetailsMap.set(item.orderId, details);
     }
 
-    // Fifth query: Fetch teacher names per order via order items joined with product tables and users
+    // Fifth query: Fetch teacher names per order via order items joined with product tables and teachers
     const orderItemsWithTeacher = await db
       .selectFrom("orderItems")
       .leftJoin("mockTests", "mockTests.id", "orderItems.mockTestId")
       .leftJoin("courses", "courses.id", "orderItems.courseId")
       .leftJoin("digitalProducts", "digitalProducts.id", "orderItems.digitalProductId")
-      .innerJoin("users", (join) =>
+      .innerJoin("teachers", (join) =>
         join.on((eb) =>
           eb.or([
-            eb("users.id", "=", eb.ref("mockTests.teacherId")),
-            eb("users.id", "=", eb.ref("courses.teacherId")),
-            eb("users.id", "=", eb.ref("digitalProducts.teacherId")),
+            eb("teachers.id", "=", eb.ref("mockTests.teacherId")),
+            eb("teachers.id", "=", eb.ref("courses.teacherId")),
+            eb("teachers.id", "=", eb.ref("digitalProducts.teacherId")),
           ])
         )
       )
       .select([
         "orderItems.orderId",
-        "users.displayName as teacherName",
+        "teachers.displayName as teacherName",
       ])
       .execute();
 
@@ -253,12 +254,12 @@ export async function handle(request: Request) {
     // because a student who closed their account leaves student_id null.
     const sponsoredEnrollments = await db
       .selectFrom("teacherSponsoredEnrollments")
-      .leftJoin("users", "users.id", "teacherSponsoredEnrollments.studentId")
+      .leftJoin("students", "students.id", "teacherSponsoredEnrollments.studentId")
       .select([
         "teacherSponsoredEnrollments.orderId",
-        "users.displayName as studentName",
-        "users.email as studentEmail",
-        "users.mobileNumber as studentPhone",
+        "students.displayName as studentName",
+        "students.email as studentEmail",
+        "students.mobileNumber as studentPhone",
       ])
       .where("teacherSponsoredEnrollments.orderId", "is not", null)
       .execute();
