@@ -118,7 +118,7 @@ export async function getAutopilotDashboard(days: number): Promise<AutopilotDash
   `.execute(db);
 
   const costs = await sql<Row>`
-    SELECT coalesce(sum(cost_paise), 0)::int AS paise, count(*) FILTER (WHERE sent_at IS NOT NULL)::int AS sent
+    SELECT coalesce(sum(cost_paise), 0)::float AS paise, count(*) FILTER (WHERE sent_at IS NOT NULL)::int AS sent
     FROM rev_messages WHERE shadow = false AND created_at >= ${since}
   `.execute(db);
   const offers = await sql<Row>`
@@ -159,7 +159,7 @@ export async function getAutopilotDashboard(days: number): Promise<AutopilotDash
            count(*) FILTER (WHERE delivered_at IS NOT NULL)::int AS delivered,
            count(*) FILTER (WHERE opened_at IS NOT NULL OR read_at IS NOT NULL)::int AS opened,
            count(*) FILTER (WHERE first_clicked_at IS NOT NULL)::int AS clicked,
-           coalesce(sum(cost_paise), 0)::int AS paise
+           coalesce(sum(cost_paise), 0)::float AS paise
     FROM rev_messages WHERE shadow = false AND created_at >= ${since}
     GROUP BY 1 ORDER BY 2 DESC
   `.execute(db);

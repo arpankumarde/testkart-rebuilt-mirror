@@ -2328,7 +2328,7 @@ export interface Reviews {
 export interface RevMessages {
   channel: RevChannel;
   clickCount: Generated<number>;
-  costPaise: Generated<number>;
+  costPaise: Generated<Numeric>;
   createdAt: Generated<Timestamp>;
   deliveredAt: Timestamp | null;
   error: string | null;

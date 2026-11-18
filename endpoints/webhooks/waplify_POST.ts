@@ -91,7 +91,12 @@ async function handleStatus(event: string, message: Obj, at: Date): Promise<void
     const reason = str(message.error_message);
     await db
       .updateTable("revMessages")
-      .set({ status: "failed", error: reason ? reason.slice(0, 500) : `WhatsApp error ${message.error_code ?? ""}`.trim() })
+      .set({
+        status: "failed",
+        error: reason ? reason.slice(0, 500) : `WhatsApp error ${message.error_code ?? ""}`.trim(),
+        // Meta bills a template only once it is delivered.
+        costPaise: sql`CASE WHEN channel = 'whatsapp' AND delivered_at IS NULL THEN 0 ELSE cost_paise END`,
+      })
       .where("id", "=", id)
       .execute();
   } else if (event === "button.clicked") {

@@ -161,7 +161,7 @@ export async function handle(request: Request): Promise<Response> {
         count(*) FILTER (WHERE opened_at IS NOT NULL OR read_at IS NOT NULL)::int AS opened,
         count(*) FILTER (WHERE first_clicked_at IS NOT NULL)::int AS clicked,
         count(*) FILTER (WHERE status IN ('failed', 'bounced', 'complained'))::int AS failed,
-        coalesce(sum(cost_paise), 0)::int AS paise
+        coalesce(sum(cost_paise), 0)::float AS paise
       FROM rev_messages WHERE shadow = false AND created_at >= now() - interval '24 hours'
     `.execute(db);
     const skippedRows = await sql<Row>`

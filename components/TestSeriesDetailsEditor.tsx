@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Plus, X } from "lucide-react";
+import { Gift, IndianRupee, Plus, X } from "lucide-react";
 import { ExamMultiPicker } from "./ExamMultiPicker";
 import { LanguageMultiPicker } from "./LanguageMultiPicker";
 import {
@@ -385,8 +385,9 @@ export const TestSeriesDetailsEditor = ({ testId }: { testId: number }) => {
   const publicUrl =
     testPackage && isLive && testPackage.slug ? buildPublicAssetUrl("test-series", testPackage.slug) : undefined;
 
-  const renderList = (key: ListField, placeholder: string) => (
+  const renderList = (key: ListField, placeholder: string, emptyHint: string) => (
     <div className={styles.dynamicList}>
+      {values[key].length === 0 && <p className={styles.dynamicListEmpty}>{emptyHint}</p>}
       {values[key].map((item, index) => (
         <div key={index} className={styles.dynamicListRow}>
           <Input
@@ -532,77 +533,93 @@ export const TestSeriesDetailsEditor = ({ testId }: { testId: number }) => {
                     </div>
 
                     <div className={styles.blockFields}>
-                      <div className={styles.pricingRow}>
-                        <FormItem name="isFree" data-field="isFree">
-                          <FormLabel id="series-access-label" htmlFor={undefined}>
-                            Access
-                          </FormLabel>
-                          <div className={styles.access} role="radiogroup" aria-labelledby="series-access-label">
-                            <input
-                              type="radio"
-                              id="series-access-paid"
-                              name="series-access"
-                              className={styles.accessInput}
-                              checked={!values.isFree}
-                              onChange={() => setAccess(false)}
-                            />
-                            <label htmlFor="series-access-paid" className={styles.accessLabel}>
-                              Paid
-                            </label>
-                            <input
-                              type="radio"
-                              id="series-access-free"
-                              name="series-access"
-                              className={styles.accessInput}
-                              checked={values.isFree}
-                              onChange={() => setAccess(true)}
-                            />
-                            <label htmlFor="series-access-free" className={styles.accessLabel}>
-                              Free
-                            </label>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
+                      <FormItem name="isFree" data-field="isFree">
+                        <FormLabel id="series-access-label" htmlFor={undefined}>
+                          Access
+                        </FormLabel>
+                        <div className={styles.access} role="radiogroup" aria-labelledby="series-access-label">
+                          <input
+                            type="radio"
+                            id="series-access-paid"
+                            name="series-access"
+                            className={styles.accessInput}
+                            checked={!values.isFree}
+                            onChange={() => setAccess(false)}
+                            aria-describedby="series-access-paid-hint"
+                          />
+                          <label htmlFor="series-access-paid" className={styles.accessOption}>
+                            <span className={styles.accessIcon} aria-hidden="true">
+                              <IndianRupee size={18} />
+                            </span>
+                            <span className={styles.accessText}>
+                              <span className={styles.accessTitle}>Paid</span>
+                              <span id="series-access-paid-hint" className={styles.accessHint}>
+                                Students pay once to unlock the full series.
+                              </span>
+                            </span>
+                            <span className={styles.accessDot} aria-hidden="true" />
+                          </label>
+                          <input
+                            type="radio"
+                            id="series-access-free"
+                            name="series-access"
+                            className={styles.accessInput}
+                            checked={values.isFree}
+                            onChange={() => setAccess(true)}
+                            aria-describedby="series-access-free-hint"
+                          />
+                          <label htmlFor="series-access-free" className={styles.accessOption}>
+                            <span className={styles.accessIcon} aria-hidden="true">
+                              <Gift size={18} />
+                            </span>
+                            <span className={styles.accessText}>
+                              <span className={styles.accessTitle}>Free</span>
+                              <span id="series-access-free-hint" className={styles.accessHint}>
+                                Students enrol without paying.
+                              </span>
+                            </span>
+                            <span className={styles.accessDot} aria-hidden="true" />
+                          </label>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
 
-                        {values.isFree ? (
-                          <p className={styles.freeNote}>Students enrol without paying.</p>
-                        ) : (
-                          <>
-                            <FormItem name="price" data-field="price">
-                              <FormLabel>Price (₹)</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  min={0}
-                                  placeholder="e.g., 299"
-                                  value={values.price}
-                                  onChange={(e) => setValues((p) => ({ ...p, price: Number(e.target.value) }))}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
+                      {!values.isFree && (
+                        <div className={styles.row}>
+                          <FormItem name="price" data-field="price">
+                            <FormLabel>Price (₹)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min={0}
+                                placeholder="e.g., 299"
+                                value={values.price}
+                                onChange={(e) => setValues((p) => ({ ...p, price: Number(e.target.value) }))}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
 
-                            <FormItem name="discountPrice" data-field="discountPrice">
-                              <FormLabel>Discounted price (₹)</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  min={0}
-                                  placeholder="Optional"
-                                  value={values.discountPrice ?? ""}
-                                  onChange={(e) =>
-                                    setValues((p) => ({
-                                      ...p,
-                                      discountPrice: e.target.value === "" ? null : Number(e.target.value),
-                                    }))
-                                  }
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          </>
-                        )}
-                      </div>
+                          <FormItem name="discountPrice" data-field="discountPrice">
+                            <FormLabel>Discounted price (₹)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min={0}
+                                placeholder="Optional"
+                                value={values.discountPrice ?? ""}
+                                onChange={(e) =>
+                                  setValues((p) => ({
+                                    ...p,
+                                    discountPrice: e.target.value === "" ? null : Number(e.target.value),
+                                  }))
+                                }
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        </div>
+                      )}
                     </div>
                   </section>
 
@@ -614,7 +631,7 @@ export const TestSeriesDetailsEditor = ({ testId }: { testId: number }) => {
 
                     <div className={`${styles.blockFields} ${styles.blockFieldsLoose}`}>
                       <div className={styles.listPair}>
-                        <FormItem name="whatYouLearn" data-field="whatYouLearn">
+                        <FormItem name="whatYouLearn" data-field="whatYouLearn" className={styles.listCard}>
                           <div className={styles.labelWithAI}>
                             <FormLabel>What students will master</FormLabel>
                             <AIListGenerateButton
@@ -632,11 +649,15 @@ export const TestSeriesDetailsEditor = ({ testId }: { testId: number }) => {
                               }
                             />
                           </div>
-                          {renderList("whatYouLearn", "e.g., Master every topic in the syllabus")}
+                          {renderList(
+                            "whatYouLearn",
+                            "e.g., Master every topic in the syllabus",
+                            "List the skills and outcomes students walk away with."
+                          )}
                           <FormMessage />
                         </FormItem>
 
-                        <FormItem name="requirements" data-field="requirements">
+                        <FormItem name="requirements" data-field="requirements" className={styles.listCard}>
                           <div className={styles.labelWithAI}>
                             <FormLabel>Requirements</FormLabel>
                             <AIListGenerateButton
@@ -654,7 +675,11 @@ export const TestSeriesDetailsEditor = ({ testId }: { testId: number }) => {
                               }
                             />
                           </div>
-                          {renderList("requirements", "e.g., Basic understanding of the exam syllabus")}
+                          {renderList(
+                            "requirements",
+                            "e.g., Basic understanding of the exam syllabus",
+                            "List anything students should know or have before they start."
+                          )}
                           <FormMessage />
                         </FormItem>
                       </div>

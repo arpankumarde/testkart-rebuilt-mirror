@@ -4,6 +4,14 @@ import { DEFAULT_WHATSAPP_TEMPLATE_NAMES } from "./autopilotWhatsAppTemplates";
 
 export type AutopilotAiProvider = "deepseek" | "floot";
 
+export type ChannelCostPaise = {
+  email: number;
+  whatsappMarketing: number;
+  whatsappUtility: number;
+  push: number;
+  onsite: number;
+};
+
 /**
  * The revenue autopilot's settings, kept as JSON in platform_settings under
  * rev_autopilot and merged over safe defaults. Without a holdout salt the
@@ -23,7 +31,8 @@ export type AutopilotSettings = {
   sendWindowEndHour: number;
   dailyOfferBudgetRupees: number;
   offerMarginShare: number;
-  channelCostPaise: Record<RevChannel, number>;
+  /** What one send costs us, in paise (fractions allowed). WhatsApp is priced by the template's Meta category. */
+  channelCostPaise: ChannelCostPaise;
   /** When the measurement layer went live in production (set after publish); checks and coverage count from here. */
   trackingStartedAt: string | null;
   aiProvider: AutopilotAiProvider;
@@ -54,7 +63,7 @@ export const DEFAULT_AUTOPILOT_SETTINGS: AutopilotSettings = {
   sendWindowEndHour: 22,
   dailyOfferBudgetRupees: 500,
   offerMarginShare: 0.5,
-  channelCostPaise: { email: 8, whatsapp: 90, push: 0, onsite: 0 },
+  channelCostPaise: { email: 9.25, whatsappMarketing: 86.31, whatsappUtility: 11.5, push: 0, onsite: 0 },
   trackingStartedAt: null,
   aiProvider: "deepseek",
   whatsappTemplates: DEFAULT_WHATSAPP_TEMPLATE_NAMES,
@@ -84,7 +93,8 @@ export function normalizeAutopilotSettings(raw: unknown): AutopilotSettings {
     offerMarginShare: num(v.offerMarginShare, d.offerMarginShare, 0, 1),
     channelCostPaise: {
       email: num(costs.email, d.channelCostPaise.email, 0, 1000),
-      whatsapp: num(costs.whatsapp, d.channelCostPaise.whatsapp, 0, 1000),
+      whatsappMarketing: num(costs.whatsappMarketing, d.channelCostPaise.whatsappMarketing, 0, 1000),
+      whatsappUtility: num(costs.whatsappUtility, d.channelCostPaise.whatsappUtility, 0, 1000),
       push: num(costs.push, d.channelCostPaise.push, 0, 1000),
       onsite: num(costs.onsite, d.channelCostPaise.onsite, 0, 1000),
     },
@@ -105,6 +115,17 @@ export function normalizeAutopilotSettings(raw: unknown): AutopilotSettings {
     ),
   };
 }
+
+/** The cost of one send; a WhatsApp template is billed at Meta's utility or marketing rate. */
+export const messageCostPaise = (
+  settings: AutopilotSettings,
+  channel: RevChannel,
+  whatsappCategory: "MARKETING" | "UTILITY" = "MARKETING"
+): number => {
+  const costs = settings.channelCostPaise;
+  if (channel === "whatsapp") return whatsappCategory === "UTILITY" ? costs.whatsappUtility : costs.whatsappMarketing;
+  return costs[channel];
+};
 
 export async function getAutopilotSettings(): Promise<AutopilotSettings> {
   const row = await db

@@ -1,6 +1,6 @@
 import { sql } from "kysely";
 import { db } from "./db";
-import { getAutopilotSettings, offerExpiryDays, type AutopilotSettings } from "./getAutopilotSettings";
+import { getAutopilotSettings, messageCostPaise, offerExpiryDays, type AutopilotSettings } from "./getAutopilotSettings";
 import { isInGlobalHoldout } from "./isInGlobalHoldout";
 import { nextSendTime, offerCoins, pickVariant } from "./autopilotRules";
 import { AUTOPILOT_PLAYBOOKS, type Playbook, type PlaybookContext } from "./autopilotPlaybooks";
@@ -18,9 +18,10 @@ import {
   type SendOutcome,
 } from "./autopilotChannels";
 import {
-  approvedTemplateNames,
+  approvedTemplates,
   headerImageFor,
   resolveTemplate,
+  templateCategory,
   templateLinkPath,
   templateUsable,
   templateVariables,
@@ -300,7 +301,8 @@ export async function dispatchDue(settings: AutopilotSettings, counts: EngineCou
   const stats = await variantStats();
   const copyState = await loadCopyState();
   const tcoins = await tcoinsLimits();
-  const approved = await approvedTemplateNames();
+  const templates = await approvedTemplates();
+  const approved = templates?.names ?? null;
 
   for (const row of due) {
     const enrolment: DueEnrolment = {
@@ -405,7 +407,9 @@ export async function dispatchDue(settings: AutopilotSettings, counts: EngineCou
           templateKey: choice.channel === "whatsapp" ? choice.template : `${playbook.key}.${enrolment.nextStep}.${variantKey}`,
           status: "queued",
           shadow: settings.shadow,
-          costPaise: settings.shadow ? 0 : settings.channelCostPaise[choice.channel],
+          costPaise: settings.shadow
+            ? 0
+            : messageCostPaise(settings, choice.channel, choice.channel === "whatsapp" ? templateCategory(choice.template, templates) : undefined),
         })
         .returning("id")
         .executeTakeFirstOrThrow();
@@ -493,7 +497,7 @@ export async function dispatchDue(settings: AutopilotSettings, counts: EngineCou
             .execute();
           counts.sent++;
         } else {
-          await db.updateTable("revMessages").set({ status: "failed", error: outcome.error }).where("id", "=", message.id).execute();
+          await db.updateTable("revMessages").set({ status: "failed", error: outcome.error, costPaise: 0 }).where("id", "=", message.id).execute();
           counts.failed++;
         }
       }
@@ -582,7 +586,7 @@ export async function rescueFailedWhatsApp(settings: AutopilotSettings, counts: 
           .execute();
         counts.rescued++;
       } else {
-        await db.updateTable("revMessages").set({ status: "failed", error: `whatsapp and email failed: ${outcome.error}`.slice(0, 300) }).where("id", "=", messageId).execute();
+        await db.updateTable("revMessages").set({ status: "failed", error: `whatsapp and email failed: ${outcome.error}`.slice(0, 300), costPaise: 0 }).where("id", "=", messageId).execute();
         counts.failed++;
       }
     } catch (error) {

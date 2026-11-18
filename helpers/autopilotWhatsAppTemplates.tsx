@@ -453,16 +453,35 @@ export async function listAutopilotTemplateStatuses(): Promise<TemplateStatus[]>
   });
 }
 
-/** Names of the autopilot templates Meta has approved, or null when Waplify cannot be reached. */
-export async function approvedTemplateNames(): Promise<Set<string> | null> {
+export type ApprovedTemplates = { names: Set<string>; utility: Set<string> };
+
+/**
+ * The autopilot templates Meta has approved, and which of them Meta files as
+ * UTILITY (billed at the utility rate), or null when Waplify cannot be reached.
+ */
+export async function approvedTemplates(): Promise<ApprovedTemplates | null> {
   try {
-    const statuses = await listAutopilotTemplateStatuses();
-    return new Set(statuses.filter((s) => s.status === "APPROVED").map((s) => s.name));
+    const approved = (await listAutopilotTemplateStatuses()).filter((s) => s.status === "APPROVED");
+    return {
+      names: new Set(approved.map((s) => s.name)),
+      utility: new Set(approved.filter((s) => (s.metaCategory ?? s.category) === "UTILITY").map((s) => s.name)),
+    };
   } catch (error) {
     console.warn("[autopilot] could not list WhatsApp templates:", error);
     return null;
   }
 }
+
+/** Names of the autopilot templates Meta has approved, or null when Waplify cannot be reached. */
+export async function approvedTemplateNames(): Promise<Set<string> | null> {
+  return (await approvedTemplates())?.names ?? null;
+}
+
+/** The billing category of a template: Meta's when known, else the one we asked for; unknown names are marketing. */
+export const templateCategory = (name: string, approved: ApprovedTemplates | null): "MARKETING" | "UTILITY" => {
+  if (approved) return approved.utility.has(name) ? "UTILITY" : "MARKETING";
+  return BY_NAME.get(name)?.category ?? "MARKETING";
+};
 
 /** Creates the templates that do not exist yet on Waplify; existing ones are left alone. */
 export async function createMissingAutopilotTemplates(): Promise<{ name: string; result: string }[]> {

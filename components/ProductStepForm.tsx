@@ -31,7 +31,7 @@ import { DIGITAL_PRODUCT_CATEGORIES, filePreviewError, isRealFileUrl, PDF_UNREAD
 import { checkStudyNotesPdf } from '../helpers/studyNotesPdfCheck';
 import { schema as createSchema } from '../endpoints/teacher/products/create_POST.schema';
 import { postTeacherProductsPdfPageCount, PdfRejectedError } from '../endpoints/teacher/products/pdf-page-count_POST.schema';
-import { Plus, GripVertical, ArrowUp, ArrowDown, X, Eye, Sparkles, AlertTriangle, AlertCircle, CheckCircle, FileText, RefreshCw, ChevronDown, Upload } from 'lucide-react';
+import { Plus, GripVertical, ArrowUp, ArrowDown, X, Eye, Sparkles, AlertTriangle, AlertCircle, CheckCircle, FileText, RefreshCw, ChevronDown, Upload, Pencil } from 'lucide-react';
 import { AIRewriteButton } from './AIRewriteButton';
 import { WithdrawReviewButton } from './WithdrawReviewButton';
 import { ContentVisibilityPanel } from './ContentVisibilityPanel';
@@ -1246,20 +1246,60 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, vis
                         {uploaded ? (
                           <>
                           <div className={styles.fileRow}>
-                            <GripVertical size={16} className={styles.dragHandle} aria-hidden="true" />
-                            <div className={styles.fileRowIcon}>
-                              <FileText size={16} />
+                            <div className={styles.fileRowTop}>
+                              <GripVertical size={16} className={styles.dragHandle} aria-hidden="true" />
+                              <div className={styles.fileRowIcon}>
+                                <FileText size={16} />
+                              </div>
+                              <span className={styles.fileRowIndex}>PDF {index + 1}</span>
+                              <div className={styles.fileRowActions}>
+                                <Button type="button" variant="ghost" size="icon-sm" title="Preview PDF" aria-label="Preview PDF" onClick={() => { setPreviewPdfTitle(file.title || `File ${index + 1}`); setPreviewPdfUrl(file.fileUrl); }}>
+                                  <Eye size={14} />
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  title="Replace PDF"
+                                  aria-label={`Replace the PDF for ${file.title || `file ${index + 1}`}`}
+                                  disabled={replacing !== null || isSubmitting}
+                                  onClick={() => clientKey && startReplace(clientKey)}
+                                >
+                                  {isReplacing ? <Spinner size="sm" /> : <RefreshCw size={14} />}
+                                </Button>
+                                <Button type="button" variant="ghost" size="icon-sm" title="Move up" aria-label="Move up" disabled={index === 0} onClick={() => moveRow(-1)}>
+                                  <ArrowUp size={14} />
+                                </Button>
+                                <Button type="button" variant="ghost" size="icon-sm" title="Move down" aria-label="Move down" disabled={index === allFiles.length - 1} onClick={() => moveRow(1)}>
+                                  <ArrowDown size={14} />
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  title={uploadedCount <= 1 ? 'A product needs at least one PDF. Use Replace instead.' : 'Remove'}
+                                  aria-label="Remove file"
+                                  disabled={uploadedCount <= 1 || isReplacing}
+                                  onClick={removeRow}
+                                >
+                                  <X size={14} />
+                                </Button>
+                              </div>
                             </div>
                             <FormItem name={`files.${index}.title`} className={styles.fileRowInfo}>
-                              <FormControl>
-                                <input
-                                  className={styles.fileRowNameInput}
-                                  aria-label={`Title of file ${index + 1}`}
-                                  value={file.title || ''}
-                                  placeholder={`File ${index + 1}`}
-                                  onChange={(e) => setTitle(e.target.value)}
-                                />
-                              </FormControl>
+                              <FormLabel className={styles.fileRowNameLabel}>File name</FormLabel>
+                              <div className={styles.fileRowNameField}>
+                                <Pencil size={14} className={styles.fileRowNameIcon} aria-hidden="true" />
+                                <FormControl>
+                                  <input
+                                    className={styles.fileRowNameInput}
+                                    aria-label={`File name, PDF ${index + 1}`}
+                                    value={file.title || ''}
+                                    placeholder={`File ${index + 1}`}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                  />
+                                </FormControl>
+                              </div>
                               <span className={styles.fileRowMeta}>
                                 {isReplacing
                                   ? replacing?.checking
@@ -1273,39 +1313,6 @@ export const ProductStepForm: React.FC<ProductStepFormProps> = ({ productId, vis
                               </span>
                               <FormMessage />
                             </FormItem>
-                            <div className={styles.fileRowActions}>
-                              <Button type="button" variant="ghost" size="icon-sm" title="Preview PDF" aria-label="Preview PDF" onClick={() => { setPreviewPdfTitle(file.title || `File ${index + 1}`); setPreviewPdfUrl(file.fileUrl); }}>
-                                <Eye size={14} />
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon-sm"
-                                title="Replace PDF"
-                                aria-label={`Replace the PDF for ${file.title || `file ${index + 1}`}`}
-                                disabled={replacing !== null || isSubmitting}
-                                onClick={() => clientKey && startReplace(clientKey)}
-                              >
-                                {isReplacing ? <Spinner size="sm" /> : <RefreshCw size={14} />}
-                              </Button>
-                              <Button type="button" variant="ghost" size="icon-sm" title="Move up" aria-label="Move up" disabled={index === 0} onClick={() => moveRow(-1)}>
-                                <ArrowUp size={14} />
-                              </Button>
-                              <Button type="button" variant="ghost" size="icon-sm" title="Move down" aria-label="Move down" disabled={index === allFiles.length - 1} onClick={() => moveRow(1)}>
-                                <ArrowDown size={14} />
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon-sm"
-                                title={uploadedCount <= 1 ? 'A product needs at least one PDF. Use Replace instead.' : 'Remove'}
-                                aria-label="Remove file"
-                                disabled={uploadedCount <= 1 || isReplacing}
-                                onClick={removeRow}
-                              >
-                                <X size={14} />
-                              </Button>
-                            </div>
                           </div>
                           {!isFreeChecked && (
                           <div className={styles.filePreview}>
